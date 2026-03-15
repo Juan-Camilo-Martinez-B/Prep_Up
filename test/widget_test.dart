@@ -6,8 +6,7 @@ void main() {
     await tester.pumpWidget(const AiInterviewTrainerApp());
 
     expect(find.text('AI Interview Trainer'), findsOneWidget);
-    expect(find.text('Splash Screen'), findsOneWidget);
-    expect(find.text('Ir a Login'), findsOneWidget);
-    expect(find.text('Ir a Registro'), findsOneWidget);
+    expect(find.text('Iniciar sesión'), findsOneWidget);
+    expect(find.text('Crear cuenta'), findsOneWidget);
   });
 }
