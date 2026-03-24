@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:prep_up/core/navigation/app_routes.dart';
 import 'package:prep_up/domain/services/auth_service.dart';
 import 'package:prep_up/presentation/widgets/app_card.dart';
@@ -43,15 +44,33 @@ class _LoginScreenState extends State<LoginScreen> {
       );
 
       if (mounted) {
-        Navigator.of(context).pushNamedAndRemoveUntil(
-          AppRoutes.dashboard,
-          (route) => false,
+        Navigator.of(
+          context,
+        ).pushNamedAndRemoveUntil(AppRoutes.dashboard, (route) => false);
+      }
+    } on AuthException catch (e) {
+      if (mounted) {
+        String message = 'Error al iniciar sesión';
+        if (e.message.contains('Email not confirmed')) {
+          message =
+              'Tu cuenta aún no ha sido confirmada. Por favor verifica tu bandeja de entrada.';
+        } else if (e.message.contains('Invalid login credentials')) {
+          message = 'Credenciales incorrectas. Inténtalo de nuevo.';
+        } else {
+          message = e.message;
+        }
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(message),
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
         );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error al iniciar sesión: ${e.toString()}')),
+          SnackBar(content: Text('Error inesperado: ${e.toString()}')),
         );
       }
     } finally {
@@ -114,8 +133,9 @@ class _LoginScreenState extends State<LoginScreen> {
                 Row(
                   children: [
                     TextButton(
-                      onPressed: () => Navigator.of(context)
-                          .pushNamed(AppRoutes.forgotPassword),
+                      onPressed: () => Navigator.of(
+                        context,
+                      ).pushNamed(AppRoutes.forgotPassword),
                       child: const Text('Olvidé mi contraseña'),
                     ),
                     const Spacer(),
@@ -132,9 +152,9 @@ class _LoginScreenState extends State<LoginScreen> {
           const SizedBox(height: 14),
           Text(
             'Tip: practica como si fuera real. Ajusta el ritmo y la claridad.',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: scheme.onSurfaceVariant,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(color: scheme.onSurfaceVariant),
           ),
         ],
       ),

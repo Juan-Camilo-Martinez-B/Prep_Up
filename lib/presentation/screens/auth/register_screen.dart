@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:prep_up/core/navigation/app_routes.dart';
 import 'package:prep_up/domain/services/auth_service.dart';
 import 'package:prep_up/presentation/widgets/app_card.dart';
@@ -15,6 +16,8 @@ class RegisterScreen extends StatefulWidget {
 class _RegisterScreenState extends State<RegisterScreen> {
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
+  final _phoneController = TextEditingController();
+  final _occupationController = TextEditingController();
   final _passwordController = TextEditingController();
   final _authService = AuthService();
   var _obscure = true;
@@ -24,6 +27,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
   void dispose() {
     _nameController.dispose();
     _emailController.dispose();
+    _phoneController.dispose();
+    _occupationController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
@@ -31,7 +36,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
   Future<void> _handleRegister() async {
     if (_emailController.text.isEmpty ||
         _passwordController.text.isEmpty ||
-        _nameController.text.isEmpty) {
+        _nameController.text.isEmpty ||
+        _phoneController.text.isEmpty ||
+        _occupationController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Por favor completa todos los campos')),
       );
@@ -44,20 +51,24 @@ class _RegisterScreenState extends State<RegisterScreen> {
       await _authService.signUp(
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
-        metadata: {'full_name': _nameController.text.trim()},
+        metadata: {
+          'full_name': _nameController.text.trim(),
+          'phone': _phoneController.text.trim(),
+          'occupation': _occupationController.text.trim(),
+        },
       );
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
+            duration: Duration(seconds: 6),
             content: Text(
-              'Registro exitoso. Por favor verifica tu email si es necesario.',
+              'Registro exitoso. Se ha enviado un correo de confirmación. Por favor verifícalo antes de iniciar sesión.',
             ),
           ),
         );
-        Navigator.of(
-          context,
-        ).pushNamedAndRemoveUntil(AppRoutes.dashboard, (route) => false);
+        // Redirigir a login en lugar de dashboard
+        Navigator.of(context).pushReplacementNamed(AppRoutes.login);
       }
     } catch (e) {
       if (mounted) {
@@ -78,10 +89,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
       title: 'Crear cuenta',
       background: const TechBackground(),
       body: ListView(
+        padding: const EdgeInsets.only(bottom: 40),
         children: [
           AppCard(
-            title: 'Tu perfil de entrenamiento',
-            subtitle: 'Empieza hoy y mide tu progreso',
+            title: 'Perfil Profesional',
+            subtitle: 'Únete a la plataforma de entrenamiento líder',
             leading: Icon(
               Icons.person_add_alt_1_rounded,
               color: Theme.of(context).colorScheme.primary,
@@ -91,7 +103,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 TextField(
                   controller: _nameController,
                   decoration: const InputDecoration(
-                    labelText: 'Nombre',
+                    labelText: 'Nombre Completo',
                     prefixIcon: Icon(Icons.badge_outlined),
                   ),
                 ),
@@ -100,8 +112,25 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   controller: _emailController,
                   keyboardType: TextInputType.emailAddress,
                   decoration: const InputDecoration(
-                    labelText: 'Email',
+                    labelText: 'Correo Electrónico',
                     prefixIcon: Icon(Icons.alternate_email_rounded),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: _phoneController,
+                  keyboardType: TextInputType.phone,
+                  decoration: const InputDecoration(
+                    labelText: 'Número de Teléfono',
+                    prefixIcon: Icon(Icons.phone_android_rounded),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: _occupationController,
+                  decoration: const InputDecoration(
+                    labelText: 'Ocupación / Cargo',
+                    prefixIcon: Icon(Icons.work_outline_rounded),
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -121,24 +150,24 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ),
                   ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 24),
                 if (_isLoading)
                   const CircularProgressIndicator()
                 else
                   AppPrimaryButton(
-                    label: 'Crear y continuar',
-                    icon: Icons.rocket_launch_rounded,
+                    label: 'Registrarse',
+                    icon: Icons.how_to_reg_rounded,
                     onPressed: _handleRegister,
                   ),
-                const SizedBox(height: 10),
+                const SizedBox(height: 16),
                 Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Text('¿Ya tienes cuenta?'),
-                    const Spacer(),
+                    const Text('¿Ya eres miembro?'),
                     TextButton(
                       onPressed: () =>
                           Navigator.of(context).pushNamed(AppRoutes.login),
-                      child: const Text('Iniciar sesión'),
+                      child: const Text('Inicia Sesión'),
                     ),
                   ],
                 ),
