@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:prep_up/navigation/app_router.dart';
-import 'package:prep_up/navigation/app_routes.dart';
-import 'package:prep_up/navigation/app_theme.dart';
-import 'package:prep_up/models/app_settings_model.dart';
+import 'package:prep_up/core/navigation/app_router.dart';
+import 'package:prep_up/core/navigation/app_routes.dart';
+import 'package:prep_up/theme/app_theme.dart';
+import 'package:prep_up/domain/entities/app_settings_model.dart';
 
 void main() {
   runApp(const AiInterviewTrainerApp());
