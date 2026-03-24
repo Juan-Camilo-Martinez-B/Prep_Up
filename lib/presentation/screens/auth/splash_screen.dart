@@ -1,10 +1,35 @@
 import 'package:flutter/material.dart';
 import 'package:prep_up/core/navigation/app_routes.dart';
+import 'package:prep_up/domain/services/auth_service.dart';
 import 'package:prep_up/presentation/widgets/app_primary_button.dart';
 import 'package:prep_up/presentation/widgets/app_screen_scaffold.dart';
 
-class SplashScreen extends StatelessWidget {
+class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
+
+  @override
+  State<SplashScreen> createState() => _SplashScreenState();
+}
+
+class _SplashScreenState extends State<SplashScreen> {
+  final _authService = AuthService();
+
+  @override
+  void initState() {
+    super.initState();
+    _checkAuth();
+  }
+
+  void _checkAuth() {
+    // Pequeña espera para mostrar el splash o asegurar que el cliente esté listo
+    Future.delayed(const Duration(seconds: 1), () {
+      if (_authService.currentUser != null) {
+        if (mounted) {
+          Navigator.of(context).pushReplacementNamed(AppRoutes.dashboard);
+        }
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -93,7 +118,7 @@ class SplashScreen extends StatelessWidget {
           ),
           const SizedBox(height: 10),
           Text(
-            'MVP de interfaz: sin IA real, sin BD todavía.',
+            'Sesión protegida por Supabase.',
             style: Theme.of(context).textTheme.labelMedium?.copyWith(
                   color: scheme.onSurfaceVariant,
                 ),

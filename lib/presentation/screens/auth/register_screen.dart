@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:prep_up/core/navigation/app_routes.dart';
+import 'package:prep_up/domain/services/auth_service.dart';
 import 'package:prep_up/presentation/widgets/app_card.dart';
 import 'package:prep_up/presentation/widgets/app_primary_button.dart';
 import 'package:prep_up/presentation/widgets/app_screen_scaffold.dart';
@@ -15,7 +16,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _authService = AuthService();
   var _obscure = true;
+  var _isLoading = false;
 
   @override
   void dispose() {
@@ -23,6 +26,50 @@ class _RegisterScreenState extends State<RegisterScreen> {
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
+  }
+
+  Future<void> _handleRegister() async {
+    if (_emailController.text.isEmpty ||
+        _passwordController.text.isEmpty ||
+        _nameController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Por favor completa todos los campos')),
+      );
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    try {
+      await _authService.signUp(
+        email: _emailController.text.trim(),
+        password: _passwordController.text.trim(),
+        metadata: {'full_name': _nameController.text.trim()},
+      );
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Registro exitoso. Por favor verifica tu email si es necesario.',
+            ),
+          ),
+        );
+        Navigator.of(
+          context,
+        ).pushNamedAndRemoveUntil(AppRoutes.dashboard, (route) => false);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error al registrarse: ${e.toString()}')),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
   }
 
   @override
@@ -75,17 +122,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
                 ),
                 const SizedBox(height: 16),
-                AppPrimaryButton(
-                  label: 'Crear y continuar',
-                  icon: Icons.rocket_launch_rounded,
-                  onPressed: () {
-                    // TODO: registrar usuario y persistir en BD relacional.
-                    Navigator.of(context).pushNamedAndRemoveUntil(
-                      AppRoutes.dashboard,
-                      (route) => false,
-                    );
-                  },
-                ),
+                if (_isLoading)
+                  const CircularProgressIndicator()
+                else
+                  AppPrimaryButton(
+                    label: 'Crear y continuar',
+                    icon: Icons.rocket_launch_rounded,
+                    onPressed: _handleRegister,
+                  ),
                 const SizedBox(height: 10),
                 Row(
                   children: [

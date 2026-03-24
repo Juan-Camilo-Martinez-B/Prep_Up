@@ -1,10 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:prep_up/core/navigation/app_router.dart';
 import 'package:prep_up/core/navigation/app_routes.dart';
 import 'package:prep_up/theme/app_theme.dart';
 import 'package:prep_up/domain/entities/app_settings_model.dart';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // Cargar variables de entorno
+  await dotenv.load(fileName: ".env");
+
+  // Inicializar Supabase
+  await Supabase.initialize(
+    url: dotenv.env['SUPABASE_URL'] ?? '',
+    anonKey: dotenv.env['SUPABASE_ANON_KEY'] ?? '',
+  );
+
   runApp(const AiInterviewTrainerApp());
 }
 
