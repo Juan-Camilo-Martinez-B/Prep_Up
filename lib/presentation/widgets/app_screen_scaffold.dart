@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:prep_up/core/navigation/app_routes.dart';
 
 class AppScreenScaffold extends StatelessWidget {
   const AppScreenScaffold({
@@ -32,6 +33,18 @@ class AppScreenScaffold extends StatelessWidget {
         title: Text(title),
         centerTitle: centerTitle,
         actions: actions,
+        leading: Navigator.canPop(context)
+            ? BackButton(
+                onPressed: () {
+                  final nav = Navigator.of(context);
+                  if (nav.canPop()) {
+                    nav.pop();
+                  } else {
+                    nav.pushNamedAndRemoveUntil(AppRoutes.splash, (r) => false);
+                  }
+                },
+              )
+            : null,
       ),
       body: Stack(
         children: [

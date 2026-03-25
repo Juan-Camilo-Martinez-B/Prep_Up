@@ -19,7 +19,6 @@ import 'package:prep_up/presentation/screens/settings/settings_screen.dart';
 import 'package:prep_up/presentation/screens/tracking/interview_history_screen.dart';
 import 'package:prep_up/presentation/screens/tracking/repeat_interview_screen.dart';
 import 'package:prep_up/presentation/screens/tracking/statistics_screen.dart';
-import 'package:prep_up/presentation/widgets/app_screen_scaffold.dart';
 
 class AppRouter {
   const AppRouter._();
@@ -64,21 +63,8 @@ class AppRouter {
       AppRoutes.interviewHistory => const InterviewHistoryScreen(),
       AppRoutes.statistics => const StatisticsScreen(),
       AppRoutes.repeatInterview => const RepeatInterviewScreen(),
-      _ => _UnknownRouteScreen(routeName: routeName),
+      _ => const SplashScreen(),
     };
   }
 }
 
-class _UnknownRouteScreen extends StatelessWidget {
-  const _UnknownRouteScreen({required this.routeName});
-
-  final String routeName;
-
-  @override
-  Widget build(BuildContext context) {
-    return AppScreenScaffold(
-      title: 'Ruta no encontrada',
-      body: Center(child: Text(routeName.isEmpty ? 'Sin nombre' : routeName)),
-    );
-  }
-}
