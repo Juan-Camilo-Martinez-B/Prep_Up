@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:prep_up/core/navigation/app_routes.dart';
 import 'package:prep_up/domain/services/auth_service.dart';
 import 'package:prep_up/presentation/widgets/app_primary_button.dart';
+import 'package:prep_up/presentation/widgets/app_logo.dart';
 import 'package:prep_up/presentation/widgets/app_screen_scaffold.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -53,25 +54,11 @@ class _SplashScreenState extends State<SplashScreen> {
                   scheme.secondary.withValues(alpha: 0.16),
                 ],
               ),
-              border: Border.all(
-                color: scheme.primary.withValues(alpha: 0.22),
-              ),
+              border: Border.all(color: scheme.primary.withValues(alpha: 0.22)),
             ),
             child: Row(
               children: [
-                Container(
-                  width: 54,
-                  height: 54,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: scheme.primary.withValues(alpha: 0.18),
-                  ),
-                  child: Icon(
-                    Icons.smart_toy_outlined,
-                    color: scheme.primary,
-                    size: 28,
-                  ),
-                ),
+                const AppLogo(size: 54, borderRadius: 18),
                 const SizedBox(width: 14),
                 Expanded(
                   child: Column(
@@ -85,8 +72,8 @@ class _SplashScreenState extends State<SplashScreen> {
                       Text(
                         'Simula. Aprende. Mejora.',
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: scheme.onSurfaceVariant,
-                            ),
+                          color: scheme.onSurfaceVariant,
+                        ),
                       ),
                     ],
                   ),
@@ -107,7 +94,8 @@ class _SplashScreenState extends State<SplashScreen> {
           ),
           const SizedBox(height: 12),
           OutlinedButton(
-            onPressed: () => Navigator.of(context).pushNamed(AppRoutes.register),
+            onPressed: () =>
+                Navigator.of(context).pushNamed(AppRoutes.register),
             style: OutlinedButton.styleFrom(
               minimumSize: const Size(double.infinity, 48),
               shape: RoundedRectangleBorder(
@@ -119,9 +107,9 @@ class _SplashScreenState extends State<SplashScreen> {
           const SizedBox(height: 10),
           Text(
             'Sesión protegida por Supabase.',
-            style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                  color: scheme.onSurfaceVariant,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.labelMedium?.copyWith(color: scheme.onSurfaceVariant),
           ),
         ],
       ),

@@ -6,6 +6,7 @@ class AppScreenScaffold extends StatelessWidget {
     super.key,
     required this.title,
     required this.body,
+    this.titleWidget,
     this.actions,
     this.floatingActionButton,
     this.bottomNavigationBar,
@@ -17,6 +18,7 @@ class AppScreenScaffold extends StatelessWidget {
 
   final String title;
   final Widget body;
+  final Widget? titleWidget;
   final List<Widget>? actions;
   final Widget? floatingActionButton;
   final Widget? bottomNavigationBar;
@@ -30,7 +32,7 @@ class AppScreenScaffold extends StatelessWidget {
     return Scaffold(
       extendBodyBehindAppBar: extendBodyBehindAppBar,
       appBar: AppBar(
-        title: Text(title),
+        title: titleWidget ?? Text(title),
         centerTitle: centerTitle,
         actions: actions,
         leading: Navigator.canPop(context)
