@@ -8,12 +8,14 @@ class AuthService {
     required String email,
     required String password,
     required Map<String, dynamic> metadata,
+    String? emailRedirectTo,
   }) async {
     try {
       final response = await _supabase.auth.signUp(
         email: email,
         password: password,
         data: metadata,
+        emailRedirectTo: emailRedirectTo,
       );
       return response;
     } catch (e) {

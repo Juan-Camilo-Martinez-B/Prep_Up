@@ -26,6 +26,15 @@ class AppRouter {
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     final name = settings.name ?? '';
+
+    // Manejar el callback de Supabase (Deep Linking)
+    if (name.contains('login-callback')) {
+      return MaterialPageRoute<void>(
+        settings: const RouteSettings(name: AppRoutes.login),
+        builder: (context) => const LoginScreen(isVerified: true),
+      );
+    }
+
     final page = _pageFor(name);
 
     return MaterialPageRoute<void>(

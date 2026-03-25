@@ -4,6 +4,7 @@ class AppRoutes {
   static const splash = '/splash';
 
   static const login = '/auth/login';
+  static const loginCallback = '/login-callback';
   static const register = '/auth/register';
   static const forgotPassword = '/auth/forgot-password';
 
@@ -29,6 +30,7 @@ class AppRoutes {
   static const all = <String>[
     splash,
     login,
+    loginCallback,
     register,
     forgotPassword,
     dashboard,

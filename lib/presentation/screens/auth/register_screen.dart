@@ -56,6 +56,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           'phone': _phoneController.text.trim(),
           'occupation': _occupationController.text.trim(),
         },
+        emailRedirectTo: 'io.supabase.prepup://login-callback',
       );
 
       if (mounted) {

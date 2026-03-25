@@ -7,7 +7,8 @@ import 'package:prep_up/presentation/widgets/app_primary_button.dart';
 import 'package:prep_up/presentation/widgets/app_screen_scaffold.dart';
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+  final bool isVerified;
+  const LoginScreen({super.key, this.isVerified = false});
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -19,6 +20,36 @@ class _LoginScreenState extends State<LoginScreen> {
   final _authService = AuthService();
   var _obscure = true;
   var _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.isVerified) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              '¡Correo verificado con éxito! Ya puedes iniciar sesión.',
+            ),
+            backgroundColor: Colors.green,
+            duration: Duration(seconds: 5),
+          ),
+        );
+
+        // Si el SDK de Supabase ya procesó el token y el usuario está autenticado,
+        // podríamos redirigir al dashboard tras una breve espera.
+        if (_authService.currentUser != null) {
+          Future.delayed(const Duration(seconds: 3), () {
+            if (mounted) {
+              Navigator.of(
+                context,
+              ).pushNamedAndRemoveUntil(AppRoutes.dashboard, (route) => false);
+            }
+          });
+        }
+      });
+    }
+  }
 
   @override
   void dispose() {
