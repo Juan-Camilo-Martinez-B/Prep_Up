@@ -29,22 +29,32 @@ CREATE POLICY "Users can update own user data" ON public.usuarios
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
-  INSERT INTO public.usuarios (id, full_name, email, phone, occupation)
-  VALUES (
-    NEW.id,
-    NEW.raw_user_meta_data->>'full_name',
-    NEW.email,
-    NEW.raw_user_meta_data->>'phone',
-    NEW.raw_user_meta_data->>'occupation'
-  );
+  -- Solo insertar si el email ha sido verificado
+  IF NEW.email_confirmed_at IS NOT NULL THEN
+    INSERT INTO public.usuarios (id, full_name, email, phone, occupation)
+    VALUES (
+      NEW.id,
+      NEW.raw_user_meta_data->>'full_name',
+      NEW.email,
+      NEW.raw_user_meta_data->>'phone',
+      NEW.raw_user_meta_data->>'occupation'
+    )
+    ON CONFLICT (id) DO UPDATE
+    SET
+      full_name = EXCLUDED.full_name,
+      email = EXCLUDED.email,
+      phone = EXCLUDED.phone,
+      occupation = EXCLUDED.occupation,
+      updated_at = NOW();
+  END IF;
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- 5. Trigger para ejecutar la función después de un registro en auth.users
+-- 5. Trigger para ejecutar la función después de un registro o actualización en auth.users
 -- Primero borrarlo por si ya existe para recrearlo
 DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 
 CREATE TRIGGER on_auth_user_created
-  AFTER INSERT ON auth.users
+  AFTER INSERT OR UPDATE ON auth.users
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();

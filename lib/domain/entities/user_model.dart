@@ -3,6 +3,8 @@ class UserModel {
     required this.id,
     required this.email,
     required this.displayName,
+    this.phone,
+    this.occupation,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -10,15 +12,17 @@ class UserModel {
   final String id;
   final String email;
   final String displayName;
+  final String? phone;
+  final String? occupation;
   final DateTime createdAt;
   final DateTime updatedAt;
-
-  // TODO: mapear este modelo a tabla "users" en base de datos relacional.
 
   UserModel copyWith({
     String? id,
     String? email,
     String? displayName,
+    String? phone,
+    String? occupation,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -26,6 +30,8 @@ class UserModel {
       id: id ?? this.id,
       email: email ?? this.email,
       displayName: displayName ?? this.displayName,
+      phone: phone ?? this.phone,
+      occupation: occupation ?? this.occupation,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -35,12 +41,14 @@ class UserModel {
     return UserModel(
       id: (json['id'] as String?) ?? '',
       email: (json['email'] as String?) ?? '',
-      displayName: (json['displayName'] as String?) ?? '',
+      displayName: (json['full_name'] as String?) ?? (json['displayName'] as String?) ?? '',
+      phone: json['phone'] as String?,
+      occupation: json['occupation'] as String?,
       createdAt:
-          DateTime.tryParse((json['createdAt'] as String?) ?? '') ??
+          DateTime.tryParse((json['created_at'] as String?) ?? (json['createdAt'] as String?) ?? '') ??
           DateTime.fromMillisecondsSinceEpoch(0, isUtc: true),
       updatedAt:
-          DateTime.tryParse((json['updatedAt'] as String?) ?? '') ??
+          DateTime.tryParse((json['updated_at'] as String?) ?? (json['updatedAt'] as String?) ?? '') ??
           DateTime.fromMillisecondsSinceEpoch(0, isUtc: true),
     );
   }
@@ -49,15 +57,17 @@ class UserModel {
     return {
       'id': id,
       'email': email,
-      'displayName': displayName,
-      'createdAt': createdAt.toUtc().toIso8601String(),
-      'updatedAt': updatedAt.toUtc().toIso8601String(),
+      'full_name': displayName,
+      'phone': phone,
+      'occupation': occupation,
+      'created_at': createdAt.toUtc().toIso8601String(),
+      'updated_at': updatedAt.toUtc().toIso8601String(),
     };
   }
 
   @override
   String toString() {
-    return 'UserModel(id: $id, email: $email, displayName: $displayName)';
+    return 'UserModel(id: $id, email: $email, displayName: $displayName, phone: $phone, occupation: $occupation)';
   }
 
   @override
@@ -68,12 +78,14 @@ class UserModel {
             id == other.id &&
             email == other.email &&
             displayName == other.displayName &&
+            phone == other.phone &&
+            occupation == other.occupation &&
             createdAt == other.createdAt &&
             updatedAt == other.updatedAt;
   }
 
   @override
   int get hashCode {
-    return Object.hash(id, email, displayName, createdAt, updatedAt);
+    return Object.hash(id, email, displayName, phone, occupation, createdAt, updatedAt);
   }
 }

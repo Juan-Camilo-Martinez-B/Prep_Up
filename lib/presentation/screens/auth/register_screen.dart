@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:prep_up/core/navigation/app_routes.dart';
 import 'package:prep_up/domain/services/auth_service.dart';
 import 'package:prep_up/presentation/widgets/app_card.dart';
@@ -32,14 +33,49 @@ class _RegisterScreenState extends State<RegisterScreen> {
     super.dispose();
   }
 
+  bool _isPasswordStrong(String password) {
+    if (password.length < 8) return false;
+    if (!password.contains(RegExp(r'[A-Z]'))) return false;
+    if (!password.contains(RegExp(r'[a-z]'))) return false;
+    if (!password.contains(RegExp(r'[0-9]'))) return false;
+    if (!password.contains(RegExp(r'[!@#$%^&*(),.?":{}|<>]'))) return false;
+    return true;
+  }
+
   Future<void> _handleRegister() async {
-    if (_emailController.text.isEmpty ||
-        _passwordController.text.isEmpty ||
-        _nameController.text.isEmpty ||
-        _phoneController.text.isEmpty ||
-        _occupationController.text.isEmpty) {
+    final name = _nameController.text.trim();
+    final email = _emailController.text.trim();
+    final phone = _phoneController.text.trim();
+    final occupation = _occupationController.text.trim();
+    final password = _passwordController.text.trim();
+
+    if (name.isEmpty ||
+        email.isEmpty ||
+        phone.isEmpty ||
+        occupation.isEmpty ||
+        password.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Por favor completa todos los campos')),
+      );
+      return;
+    }
+
+    if (phone.length != 10) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('El número de teléfono debe tener 10 dígitos'),
+        ),
+      );
+      return;
+    }
+
+    if (!_isPasswordStrong(password)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'La contraseña debe tener al menos 8 caracteres, incluir una mayúscula, una minúscula, un número y un carácter especial.',
+          ),
+        ),
       );
       return;
     }
@@ -47,14 +83,25 @@ class _RegisterScreenState extends State<RegisterScreen> {
     setState(() => _isLoading = true);
 
     try {
+      // Verificar duplicados antes de intentar el registro
+      final emailExists = await _authService.isEmailRegistered(email);
+      if (emailExists) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Este correo electrónico ya está registrado.'),
+              backgroundColor: Colors.orange,
+            ),
+          );
+        }
+        setState(() => _isLoading = false);
+        return;
+      }
+
       await _authService.signUp(
-        email: _emailController.text.trim(),
-        password: _passwordController.text.trim(),
-        metadata: {
-          'full_name': _nameController.text.trim(),
-          'phone': _phoneController.text.trim(),
-          'occupation': _occupationController.text.trim(),
-        },
+        email: email,
+        password: password,
+        metadata: {'full_name': name, 'phone': phone, 'occupation': occupation},
         emailRedirectTo: 'io.supabase.prepup://login-callback',
       );
 
@@ -67,7 +114,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
             ),
           ),
         );
-        // Redirigir a login en lugar de dashboard
         Navigator.of(context).pushReplacementNamed(AppRoutes.login);
       }
     } catch (e) {
@@ -102,6 +148,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
               children: [
                 TextField(
                   controller: _nameController,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.deny(RegExp(r'^\s+')),
+                  ],
                   decoration: const InputDecoration(
                     labelText: 'Nombre Completo',
                     prefixIcon: Icon(Icons.badge_outlined),
@@ -111,6 +160,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 TextField(
                   controller: _emailController,
                   keyboardType: TextInputType.emailAddress,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.deny(RegExp(r'\s')),
+                  ],
                   decoration: const InputDecoration(
                     labelText: 'Correo Electrónico',
                     prefixIcon: Icon(Icons.alternate_email_rounded),
@@ -120,6 +172,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 TextField(
                   controller: _phoneController,
                   keyboardType: TextInputType.phone,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.digitsOnly,
+                    LengthLimitingTextInputFormatter(10),
+                  ],
                   decoration: const InputDecoration(
                     labelText: 'Número de Teléfono',
                     prefixIcon: Icon(Icons.phone_android_rounded),
@@ -128,6 +184,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 const SizedBox(height: 12),
                 TextField(
                   controller: _occupationController,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.deny(RegExp(r'^\s+')),
+                  ],
                   decoration: const InputDecoration(
                     labelText: 'Ocupación / Cargo',
                     prefixIcon: Icon(Icons.work_outline_rounded),
@@ -137,6 +196,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 TextField(
                   controller: _passwordController,
                   obscureText: _obscure,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.deny(RegExp(r'\s')),
+                  ],
                   decoration: InputDecoration(
                     labelText: 'Contraseña',
                     prefixIcon: const Icon(Icons.password_rounded),

@@ -58,4 +58,19 @@ class AuthService {
 
   /// Stream de estado de autenticación
   Stream<AuthState> get authStateChanges => _supabase.auth.onAuthStateChange;
+
+  /// Verificar si un correo electrónico ya está registrado en la base de datos pública
+  Future<bool> isEmailRegistered(String email) async {
+    try {
+      final response = await _supabase
+          .from('usuarios')
+          .select('id')
+          .eq('email', email)
+          .maybeSingle();
+      return response != null;
+    } catch (e) {
+      // Si hay error (ej. tabla no accesible), asumimos que no existe
+      return false;
+    }
+  }
 }
