@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:prep_up/core/navigation/app_routes.dart';
 import 'package:prep_up/domain/services/auth_service.dart';
+import 'package:prep_up/domain/services/auth_preferences.dart';
 import 'package:prep_up/presentation/widgets/app_card.dart';
 import 'package:prep_up/presentation/widgets/app_primary_button.dart';
 import 'package:prep_up/presentation/widgets/app_screen_scaffold.dart';
@@ -20,10 +21,18 @@ class _LoginScreenState extends State<LoginScreen> {
   final _authService = AuthService();
   var _obscure = true;
   var _isLoading = false;
+  var _rememberSession = false;
 
   @override
   void initState() {
     super.initState();
+    AuthPreferences.getRememberSession().then((value) {
+      if (mounted) {
+        setState(() {
+          _rememberSession = value;
+        });
+      }
+    });
     if (widget.isVerified) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -73,6 +82,7 @@ class _LoginScreenState extends State<LoginScreen> {
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
       );
+      await AuthPreferences.setRememberSession(_rememberSession);
 
       if (mounted) {
         Navigator.of(
@@ -152,6 +162,16 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
                 const SizedBox(height: 16),
+                CheckboxListTile(
+                  contentPadding: EdgeInsets.zero,
+                  controlAffinity: ListTileControlAffinity.leading,
+                  title: const Text('Mantener sesión iniciada'),
+                  value: _rememberSession,
+                  onChanged: (v) => setState(() {
+                    _rememberSession = v ?? false;
+                  }),
+                ),
+                const SizedBox(height: 8),
                 if (_isLoading)
                   const CircularProgressIndicator()
                 else

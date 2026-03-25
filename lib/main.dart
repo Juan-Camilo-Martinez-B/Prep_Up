@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:prep_up/core/navigation/app_router.dart';
 import 'package:prep_up/core/navigation/app_routes.dart';
-import 'package:prep_up/theme/app_theme.dart';
 import 'package:prep_up/domain/entities/app_settings_model.dart';
+import 'package:prep_up/domain/services/auth_preferences.dart';
+import 'package:prep_up/theme/app_theme.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -13,9 +14,15 @@ Future<void> main() async {
   await dotenv.load(fileName: ".env");
 
   // Inicializar Supabase
+  final remember = await AuthPreferences.getRememberSession();
   await Supabase.initialize(
     url: dotenv.env['SUPABASE_URL'] ?? '',
     anonKey: dotenv.env['SUPABASE_ANON_KEY'] ?? '',
+    authOptions: remember
+        ? const FlutterAuthClientOptions()
+        : const FlutterAuthClientOptions(
+            localStorage: EmptyLocalStorage(),
+          ),
   );
 
   runApp(const AiInterviewTrainerApp());

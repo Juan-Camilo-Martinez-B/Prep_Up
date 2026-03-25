@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:prep_up/domain/entities/app_settings_model.dart';
-import 'package:prep_up/theme/app_theme.dart';
 import 'package:prep_up/core/navigation/app_routes.dart';
+import 'package:prep_up/domain/entities/app_settings_model.dart';
+import 'package:prep_up/domain/services/auth_service.dart';
 import 'package:prep_up/presentation/widgets/app_card.dart';
 import 'package:prep_up/presentation/widgets/app_primary_button.dart';
 import 'package:prep_up/presentation/widgets/app_screen_scaffold.dart';
+import 'package:prep_up/theme/app_theme.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -125,6 +126,38 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   trailing: Icon(
                     Icons.hourglass_top_rounded,
                     color: scheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 14),
+          AppCard(
+            title: 'Cuenta',
+            subtitle: 'Sesión y seguridad',
+            leading: Icon(Icons.person_rounded, color: scheme.primary),
+            child: Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: () async {
+                      final auth = AuthService();
+                      final navigator = Navigator.of(context);
+                      await auth.signOut();
+                      if (!mounted) return;
+                      navigator.pushNamedAndRemoveUntil(
+                        AppRoutes.login,
+                        (r) => false,
+                      );
+                    },
+                    style: OutlinedButton.styleFrom(
+                      minimumSize: const Size(0, 48),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                    ),
+                    icon: const Icon(Icons.logout_rounded),
+                    label: const Text('Cerrar sesión'),
                   ),
                 ),
               ],
