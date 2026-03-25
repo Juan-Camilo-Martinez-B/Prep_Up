@@ -42,6 +42,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
     return true;
   }
 
+  bool _isValidEmail(String email) {
+    return RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(email);
+  }
+
   Future<void> _handleRegister() async {
     final name = _nameController.text.trim();
     final email = _emailController.text.trim();
@@ -56,6 +60,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
         password.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Por favor completa todos los campos')),
+      );
+      return;
+    }
+
+    if (!_isValidEmail(email)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Por favor ingresa un correo electrónico con dominio válido (ej: usuario@dominio.com)',
+          ),
+        ),
       );
       return;
     }
