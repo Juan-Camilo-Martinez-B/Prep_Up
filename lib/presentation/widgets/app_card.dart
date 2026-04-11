@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 
 class AppCard extends StatelessWidget {
@@ -23,6 +24,9 @@ class AppCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+
     final content = Padding(
       padding: padding,
       child: Column(
@@ -47,7 +51,7 @@ class AppCard extends StatelessWidget {
                         Text(
                           subtitle!,
                           style: theme.textTheme.bodyMedium?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant,
+                            color: scheme.onSurfaceVariant,
                           ),
                         ),
                       ],
@@ -68,9 +72,35 @@ class AppCard extends StatelessWidget {
       ),
     );
 
-    return Card(
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(onTap: onTap, child: content),
+    // Glassmorphism implementation
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: scheme.surfaceContainerHighest.withValues(alpha: isDark ? 0.3 : 0.8),
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: scheme.primary.withValues(alpha: isDark ? 0.05 : 0.03),
+            blurRadius: 16,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(20),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+          child: Material(
+            color: scheme.surface.withValues(alpha: isDark ? 0.6 : 0.85),
+            child: InkWell(
+              onTap: onTap,
+              child: content,
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

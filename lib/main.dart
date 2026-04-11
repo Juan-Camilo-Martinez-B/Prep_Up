@@ -46,7 +46,11 @@ class _AiInterviewTrainerAppState extends State<AiInterviewTrainerApp> {
 
   @override
   Widget build(BuildContext context) {
-    const seed = Color(0xFF5B5FEF);
+    const seed = Color(0xFF4ADE80); // Brighter Mint Green works better for glow in dark
+    const darkBackground = Color(0xFF0B0E14); // Deep charcoal
+    const darkSurface = Color(0xFF12161B);
+    const lightBackground = Color(0xFFF3F5F7);
+    const lightSurface = Color(0xFFFFFFFF);
 
     return AppThemeScope(
       controller: _themeController,
@@ -66,18 +70,41 @@ class _AiInterviewTrainerAppState extends State<AiInterviewTrainerApp> {
             theme: ThemeData(
               useMaterial3: true,
               brightness: Brightness.light,
+              scaffoldBackgroundColor: lightBackground,
+              cardColor: lightSurface,
               colorScheme: ColorScheme.fromSeed(
                 seedColor: seed,
                 brightness: Brightness.light,
+                surface: lightSurface,
+              ).copyWith(
+                  surfaceContainerHighest: const Color(0xFFE2E8F0), // for outlines/borders
               ),
+              appBarTheme: const AppBarTheme(
+                backgroundColor: Colors.transparent,
+                elevation: 0,
+                centerTitle: true,
+              ),
+              fontFamily: 'Inter', // Defaulting assuming it looks clean even if fallbacked
             ),
             darkTheme: ThemeData(
               useMaterial3: true,
               brightness: Brightness.dark,
+              scaffoldBackgroundColor: darkBackground,
+              cardColor: darkSurface,
               colorScheme: ColorScheme.fromSeed(
                 seedColor: seed,
                 brightness: Brightness.dark,
+                surface: darkSurface,
+              ).copyWith(
+                  surfaceContainerHighest: const Color(0xFF1E242C), // for outlines/borders
+                  onSurfaceVariant: const Color(0xFFA0ABBA)
               ),
+              appBarTheme: const AppBarTheme(
+                backgroundColor: Colors.transparent,
+                elevation: 0,
+                centerTitle: true,
+              ),
+              fontFamily: 'Inter',
             ),
             initialRoute: AppRoutes.splash,
             onGenerateRoute: AppRouter.onGenerateRoute,

@@ -67,39 +67,40 @@ class TechBackground extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
 
     return Stack(
       children: [
         DecoratedBox(
           decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                scheme.surface,
-                scheme.surface,
-                scheme.primary.withValues(alpha: 0.12),
-                scheme.secondary.withValues(alpha: 0.10),
-              ],
-              stops: const [0.0, 0.35, 0.72, 1.0],
-            ),
+            color: theme.scaffoldBackgroundColor,
+          ),
+          child: const SizedBox.expand(),
+        ),
+        Positioned(
+          top: -150,
+          left: -100,
+          child: _GlowBlob(
+            color: scheme.primary,
+            size: 400,
+            opacity: isDark ? 0.35 : 0.20,
           ),
         ),
         Positioned(
-          top: -120,
-          left: -80,
-          child: _GlowBlob(color: scheme.primary),
-        ),
-        Positioned(
-          bottom: -140,
+          bottom: -150,
           right: -100,
-          child: _GlowBlob(color: scheme.secondary),
+          child: _GlowBlob(
+            color: scheme.primary, // Using primary for both spots in the crypto aesthetic
+            size: 500,
+            opacity: isDark ? 0.25 : 0.15,
+          ),
         ),
         Positioned.fill(
           child: IgnorePointer(
             child: Opacity(
-              opacity: 0.08,
+              opacity: isDark ? 0.05 : 0.05,
               child: CustomPaint(
                 painter: _DotGridPainter(color: scheme.onSurface),
               ),
@@ -112,24 +113,30 @@ class TechBackground extends StatelessWidget {
 }
 
 class _GlowBlob extends StatelessWidget {
-  const _GlowBlob({required this.color});
+  const _GlowBlob({
+    required this.color,
+    required this.size,
+    required this.opacity,
+  });
 
   final Color color;
+  final double size;
+  final double opacity;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 340,
-      height: 340,
+      width: size,
+      height: size,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         gradient: RadialGradient(
           colors: [
-            color.withValues(alpha: 0.35),
-            color.withValues(alpha: 0.18),
+            color.withValues(alpha: opacity),
+            color.withValues(alpha: opacity * 0.5),
             Colors.transparent,
           ],
-          stops: const [0.0, 0.45, 1.0],
+          stops: const [0.0, 0.4, 1.0],
         ),
       ),
     );
@@ -144,11 +151,11 @@ class _DotGridPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()..color = color;
-    const step = 22.0;
-    const radius = 1.2;
+    const step = 28.0; // wider spacing for a cleaner look
+    const radius = 1.0;
 
-    for (double y = 12; y < size.height; y += step) {
-      for (double x = 12; x < size.width; x += step) {
+    for (double y = 14; y < size.height; y += step) {
+      for (double x = 14; x < size.width; x += step) {
         canvas.drawCircle(Offset(x, y), radius, paint);
       }
     }

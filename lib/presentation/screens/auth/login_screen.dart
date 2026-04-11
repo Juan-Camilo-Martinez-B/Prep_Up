@@ -140,97 +140,203 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+
+    final inputDecoration = InputDecoration(
+      filled: true,
+      fillColor: scheme.surface.withValues(alpha: isDark ? 0.3 : 0.6),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(16),
+        borderSide: BorderSide.none,
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(16),
+        borderSide: BorderSide(
+          color: scheme.surfaceContainerHighest.withValues(alpha: isDark ? 0.4 : 0.8),
+          width: 1,
+        ),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(16),
+        borderSide: BorderSide(
+          color: scheme.primary,
+          width: 1.5,
+        ),
+      ),
+      labelStyle: TextStyle(color: scheme.onSurfaceVariant),
+      prefixIconColor: scheme.primary,
+    );
 
     return AppScreenScaffold(
-      title: 'Iniciar sesión',
+      title: '', // Emptied for immersive effect
+      extendBodyBehindAppBar: true,
       background: const TechBackground(),
-      body: ListView(
-        children: [
-          AppCard(
-            title: 'Bienvenido de vuelta',
-            subtitle: 'Tu entrenamiento continúa',
-            leading: Icon(Icons.lock_outline, color: scheme.primary),
-            child: Column(
-              children: [
-                TextField(
-                  controller: _emailController,
-                  keyboardType: TextInputType.emailAddress,
-                  inputFormatters: [
-                    FilteringTextInputFormatter.deny(RegExp(r'\s')),
-                  ],
-                  decoration: const InputDecoration(
-                    labelText: 'Email',
-                    prefixIcon: Icon(Icons.alternate_email_rounded),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                TextField(
-                  controller: _passwordController,
-                  obscureText: _obscure,
-                  inputFormatters: [
-                    FilteringTextInputFormatter.deny(RegExp(r'\s')),
-                  ],
-                  decoration: InputDecoration(
-                    labelText: 'Contraseña',
-                    prefixIcon: const Icon(Icons.password_rounded),
-                    suffixIcon: IconButton(
-                      onPressed: () => setState(() => _obscure = !_obscure),
-                      icon: Icon(
-                        _obscure
-                            ? Icons.visibility_off_outlined
-                            : Icons.visibility_outlined,
+      body: SafeArea(
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            return SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(vertical: 24),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(minHeight: constraints.maxHeight - 48),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const SizedBox(height: 20),
+                    // Header Section
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Icon(Icons.lock_person_rounded, size: 64, color: scheme.primary),
+                          const SizedBox(height: 16),
+                          Text(
+                            'Bienvenido de vuelta',
+                            textAlign: TextAlign.center,
+                            style: theme.textTheme.headlineMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: -0.5,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Continúa tu entrenamiento donde lo dejaste.',
+                            textAlign: TextAlign.center,
+                            style: theme.textTheme.bodyLarge?.copyWith(
+                              color: scheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                CheckboxListTile(
-                  contentPadding: EdgeInsets.zero,
-                  controlAffinity: ListTileControlAffinity.leading,
-                  title: const Text('Mantener sesión iniciada'),
-                  value: _rememberSession,
-                  onChanged: (v) => setState(() {
-                    _rememberSession = v ?? false;
-                  }),
-                ),
-                const SizedBox(height: 8),
-                if (_isLoading)
-                  const CircularProgressIndicator()
-                else
-                  AppPrimaryButton(
-                    label: 'Entrar',
-                    icon: Icons.arrow_forward_rounded,
-                    onPressed: _handleLogin,
-                  ),
-                const SizedBox(height: 10),
-                Row(
-                  children: [
-                    TextButton(
-                      onPressed: () => Navigator.of(
-                        context,
-                      ).pushNamed(AppRoutes.forgotPassword),
-                      child: const Text('Olvidé mi contraseña'),
+                    const SizedBox(height: 48),
+                    // Main Form Card
+                    AppCard(
+                      padding: const EdgeInsets.all(24),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          TextField(
+                            controller: _emailController,
+                            keyboardType: TextInputType.emailAddress,
+                            inputFormatters: [
+                              FilteringTextInputFormatter.deny(RegExp(r'\s')),
+                            ],
+                            decoration: inputDecoration.copyWith(
+                              labelText: 'Correo electrónico',
+                              prefixIcon: const Icon(Icons.alternate_email_rounded),
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+                          TextField(
+                            controller: _passwordController,
+                            obscureText: _obscure,
+                            inputFormatters: [
+                              FilteringTextInputFormatter.deny(RegExp(r'\s')),
+                            ],
+                            decoration: inputDecoration.copyWith(
+                              labelText: 'Contraseña',
+                              prefixIcon: const Icon(Icons.password_rounded),
+                              suffixIcon: IconButton(
+                                onPressed: () => setState(() => _obscure = !_obscure),
+                                icon: Icon(
+                                  _obscure ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                                  color: scheme.onSurfaceVariant,
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          Wrap(
+                            alignment: WrapAlignment.spaceBetween,
+                            crossAxisAlignment: WrapCrossAlignment.center,
+                            runSpacing: 8,
+                            children: [
+                              Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  SizedBox(
+                                    height: 24,
+                                    width: 24,
+                                    child: Checkbox(
+                                      value: _rememberSession,
+                                      onChanged: (v) => setState(() {
+                                        _rememberSession = v ?? false;
+                                      }),
+                                      activeColor: scheme.primary,
+                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    'Mantener sesión',
+                                    style: theme.textTheme.bodyMedium?.copyWith(
+                                      color: scheme.onSurfaceVariant,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              TextButton(
+                                onPressed: () => Navigator.of(context).pushNamed(AppRoutes.forgotPassword),
+                                style: TextButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                  minimumSize: Size.zero,
+                                ),
+                                child: Text(
+                                  '¿Olvidaste tu contraseña?',
+                                  style: TextStyle(
+                                    color: scheme.primary,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 32),
+                          if (_isLoading)
+                            const Center(child: CircularProgressIndicator())
+                          else
+                            AppPrimaryButton(
+                              label: 'Entrar',
+                              icon: Icons.arrow_forward_rounded,
+                              onPressed: _handleLogin,
+                            ),
+                        ],
+                      ),
                     ),
-                    const Spacer(),
-                    TextButton(
-                      onPressed: () =>
-                          Navigator.of(context).pushNamed(AppRoutes.register),
-                      child: const Text('Crear cuenta'),
+                    const SizedBox(height: 32),
+                    // Bottom Section
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          '¿No tienes cuenta?',
+                          style: TextStyle(color: scheme.onSurfaceVariant),
+                        ),
+                        TextButton(
+                          onPressed: () => Navigator.of(context).pushReplacementNamed(AppRoutes.register),
+                          child: Text(
+                            'Regístrate aquí',
+                            style: TextStyle(
+                              color: scheme.primary,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
+                    const SizedBox(height: 24),
                   ],
                 ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 14),
-          Text(
-            'Tip: practica como si fuera real. Ajusta el ritmo y la claridad.',
-            style: Theme.of(
-              context,
-            ).textTheme.bodyMedium?.copyWith(color: scheme.onSurfaceVariant),
-          ),
-        ],
+              ),
+            );
+          },
+        ),
       ),
     );
   }
