@@ -9,6 +9,7 @@ class AppScreenScaffold extends StatelessWidget {
     this.titleWidget,
     this.actions,
     this.floatingActionButton,
+    this.floatingActionButtonLocation,
     this.bottomNavigationBar,
     this.background,
     this.padding = const EdgeInsets.all(16),
@@ -21,6 +22,7 @@ class AppScreenScaffold extends StatelessWidget {
   final Widget? titleWidget;
   final List<Widget>? actions;
   final Widget? floatingActionButton;
+  final FloatingActionButtonLocation? floatingActionButtonLocation;
   final Widget? bottomNavigationBar;
   final Widget? background;
   final EdgeInsetsGeometry padding;
@@ -57,6 +59,7 @@ class AppScreenScaffold extends StatelessWidget {
         ],
       ),
       floatingActionButton: floatingActionButton,
+      floatingActionButtonLocation: floatingActionButtonLocation,
       bottomNavigationBar: bottomNavigationBar,
     );
   }
