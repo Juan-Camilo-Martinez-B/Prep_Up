@@ -1,6 +1,6 @@
 import 'dart:convert';
-import 'dart:io';
 
+import 'package:http/http.dart' as http;
 import 'package:prep_up/core/config/app_config.dart';
 import 'package:prep_up/domain/entities/answer_evaluation_model.dart';
 import 'package:prep_up/domain/entities/interview_config.dart';
@@ -25,14 +25,14 @@ class GeminiException implements Exception {
 
 class GeminiService {
   GeminiService({
-    HttpClient? httpClient,
+    http.Client? httpClient,
     String? apiKey,
     String? model,
-  })  : _httpClient = httpClient ?? HttpClient(),
+  })  : _httpClient = httpClient ?? http.Client(),
         _apiKey = (apiKey ?? AppConfig.geminiApiKey).trim(),
         _model = _normalizeModelName((model ?? AppConfig.geminiModel).trim());
 
-  final HttpClient _httpClient;
+  final http.Client _httpClient;
   final String _apiKey;
   final String _model;
 
@@ -97,13 +97,11 @@ class GeminiService {
       }
       if (lastModelError != null) throw lastModelError;
       throw const GeminiException('No se pudo contactar a Gemini.');
-    } on SocketException catch (e) {
+    } on http.ClientException catch (e) {
       throw GeminiException(
         'No hay conexión a internet o no se pudo contactar a Gemini.',
         details: e,
       );
-    } on HttpException catch (e) {
-      throw GeminiException('Error HTTP al contactar a Gemini.', details: e);
     } on FormatException catch (e) {
       throw GeminiException('Error al parsear respuesta de Gemini.', details: e);
     }
@@ -118,12 +116,12 @@ class GeminiService {
       apiKey: _apiKey,
     );
 
-    final request = await _httpClient.postUrl(uri);
-    request.headers.contentType = ContentType.json;
-    request.write(jsonEncode(body));
-
-    final response = await request.close();
-    final responseBody = await utf8.decodeStream(response);
+    final response = await _httpClient.post(
+      uri,
+      headers: const {'Content-Type': 'application/json'},
+      body: jsonEncode(body),
+    );
+    final responseBody = response.body;
 
     if (response.statusCode < 200 || response.statusCode >= 300) {
       final message =
@@ -202,9 +200,8 @@ class GeminiService {
   Future<String?> _discoverBestModel() async {
     try {
       final uri = AppConfig.geminiListModelsUri(apiKey: _apiKey);
-      final request = await _httpClient.getUrl(uri);
-      final response = await request.close();
-      final responseBody = await utf8.decodeStream(response);
+      final response = await _httpClient.get(uri);
+      final responseBody = response.body;
 
       if (response.statusCode < 200 || response.statusCode >= 300) return null;
 
