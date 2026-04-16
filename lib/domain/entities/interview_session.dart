@@ -8,6 +8,7 @@ class InterviewTurn {
     required this.evaluation,
     required this.feedback,
     required this.createdAt,
+    required this.responseDurationSeconds,
   });
 
   final String question;
@@ -15,6 +16,7 @@ class InterviewTurn {
   final AnswerEvaluationModel evaluation;
   final InterviewFeedbackModel feedback;
   final DateTime createdAt;
+  final int responseDurationSeconds;
 
   InterviewTurn copyWith({
     String? question,
@@ -22,6 +24,7 @@ class InterviewTurn {
     AnswerEvaluationModel? evaluation,
     InterviewFeedbackModel? feedback,
     DateTime? createdAt,
+    int? responseDurationSeconds,
   }) {
     return InterviewTurn(
       question: question ?? this.question,
@@ -29,23 +32,19 @@ class InterviewTurn {
       evaluation: evaluation ?? this.evaluation,
       feedback: feedback ?? this.feedback,
       createdAt: createdAt ?? this.createdAt,
+      responseDurationSeconds:
+          responseDurationSeconds ?? this.responseDurationSeconds,
     );
   }
 }
 
 class InterviewSession {
-  const InterviewSession({
-    required this.startedAt,
-    required this.turns,
-  });
+  const InterviewSession({required this.startedAt, required this.turns});
 
   final DateTime startedAt;
   final List<InterviewTurn> turns;
 
-  InterviewSession copyWith({
-    DateTime? startedAt,
-    List<InterviewTurn>? turns,
-  }) {
+  InterviewSession copyWith({DateTime? startedAt, List<InterviewTurn>? turns}) {
     return InterviewSession(
       startedAt: startedAt ?? this.startedAt,
       turns: turns ?? this.turns,
@@ -54,4 +53,3 @@ class InterviewSession {
 
   bool get hasTurns => turns.isNotEmpty;
 }
-

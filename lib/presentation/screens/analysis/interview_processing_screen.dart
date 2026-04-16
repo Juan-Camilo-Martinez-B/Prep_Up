@@ -96,17 +96,17 @@ class _InterviewProcessingScreenState extends State<InterviewProcessingScreen> {
           const SizedBox(height: 10),
           Text(
             'Generando resultados con IA a partir de tus respuestas.',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: scheme.onSurfaceVariant,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(color: scheme.onSurfaceVariant),
           ),
           if (session != null) ...[
             const SizedBox(height: 8),
             Text(
               'Respuestas capturadas: ${session.turns.length}',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: scheme.onSurfaceVariant,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.bodySmall?.copyWith(color: scheme.onSurfaceVariant),
             ),
           ],
           const SizedBox(height: 22),
@@ -149,8 +149,9 @@ class _InterviewProcessingScreenState extends State<InterviewProcessingScreen> {
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(16),
                 color: scheme.errorContainer.withValues(alpha: 0.5),
-                border:
-                    Border.all(color: scheme.outlineVariant.withValues(alpha: 0.6)),
+                border: Border.all(
+                  color: scheme.outlineVariant.withValues(alpha: 0.6),
+                ),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -160,10 +161,7 @@ class _InterviewProcessingScreenState extends State<InterviewProcessingScreen> {
                     style: Theme.of(context).textTheme.titleSmall,
                   ),
                   const SizedBox(height: 8),
-                  Text(
-                    _error!,
-                    style: Theme.of(context).textTheme.bodySmall,
-                  ),
+                  Text(_error!, style: Theme.of(context).textTheme.bodySmall),
                   const SizedBox(height: 10),
                   Align(
                     alignment: Alignment.centerRight,
@@ -186,16 +184,15 @@ class _InterviewProcessingScreenState extends State<InterviewProcessingScreen> {
                 : () {
                     Navigator.of(context).pushNamed(
                       AppRoutes.generalResults,
-                      arguments: results,
+                      arguments: {'results': results, 'session': session},
                     );
                   },
           ),
           const SizedBox(height: 12),
           OutlinedButton(
-            onPressed: () => Navigator.of(context).pushNamedAndRemoveUntil(
-              AppRoutes.dashboard,
-              (r) => false,
-            ),
+            onPressed: () => Navigator.of(
+              context,
+            ).pushNamedAndRemoveUntil(AppRoutes.dashboard, (r) => false),
             style: OutlinedButton.styleFrom(
               minimumSize: const Size(double.infinity, 48),
               shape: RoundedRectangleBorder(
@@ -253,10 +250,9 @@ class _ResultsSummary extends StatelessWidget {
                 const SizedBox(height: 4),
                 Text(
                   'Estado: $outcomeLabel',
-                  style: Theme.of(context)
-                      .textTheme
-                      .bodyMedium
-                      ?.copyWith(color: scheme.onSurfaceVariant),
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: scheme.onSurfaceVariant,
+                  ),
                 ),
               ],
             ),

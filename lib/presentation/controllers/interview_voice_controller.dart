@@ -53,6 +53,7 @@ class InterviewVoiceController extends ChangeNotifier {
   int _emptyVoiceRetries = 0;
   double _soundLevel = 0;
   String? _speechLocaleId;
+  DateTime? _currentQuestionAskedAt;
 
   InterviewSession get session => _session;
   InterviewConversationState get state => _state;
@@ -150,6 +151,7 @@ class InterviewVoiceController extends ChangeNotifier {
         evaluation: evaluation,
         feedback: feedback,
         createdAt: DateTime.now().toUtc(),
+        responseDurationSeconds: _calculateCurrentResponseDurationSeconds(),
       );
 
       _session = _session.copyWith(turns: [..._session.turns, turn]);
@@ -470,6 +472,7 @@ Devuelve SOLO el texto de la pregunta.
 
   Future<void> _deliverQuestion(String question, {String? introMessage}) async {
     _currentQuestion = question.trim();
+    _currentQuestionAskedAt = DateTime.now().toUtc();
     _voiceDraft = '';
     _error = null;
     _emptyVoiceRetries = 0;
@@ -698,6 +701,10 @@ Devuelve SOLO el texto de la pregunta.
     _soundLevel = 0;
   }
 
+  int _calculateCurrentResponseDurationSeconds() {
+    return _calculateResponseDurationSeconds(_currentQuestionAskedAt);
+  }
+
   void _notifySafely() {
     if (_isDisposed) return;
     notifyListeners();
@@ -710,6 +717,12 @@ Devuelve SOLO el texto de la pregunta.
     _tts.stop();
     super.dispose();
   }
+}
+
+int _calculateResponseDurationSeconds(DateTime? askedAt) {
+  if (askedAt == null) return 0;
+  final elapsed = DateTime.now().toUtc().difference(askedAt).inSeconds;
+  return elapsed < 0 ? 0 : elapsed;
 }
 
 String? _tryExtractNextQuestion(String raw) {

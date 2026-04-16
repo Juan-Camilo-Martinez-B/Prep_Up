@@ -9,13 +9,13 @@ class InterviewSessionController extends ChangeNotifier {
   InterviewSessionController({
     required GeminiService geminiService,
     required InterviewConfig config,
-  })  : _geminiService = geminiService,
-        _config = config,
-        _speech = SpeechToText(),
-        _session = InterviewSession(
-          startedAt: DateTime.now().toUtc(),
-          turns: const [],
-        );
+  }) : _geminiService = geminiService,
+       _config = config,
+       _speech = SpeechToText(),
+       _session = InterviewSession(
+         startedAt: DateTime.now().toUtc(),
+         turns: const [],
+       );
 
   final GeminiService _geminiService;
   final InterviewConfig _config;
@@ -29,6 +29,7 @@ class InterviewSessionController extends ChangeNotifier {
   bool _isListening = false;
   String _voiceDraft = '';
   String? _error;
+  DateTime? _currentQuestionAskedAt;
 
   InterviewSession get session => _session;
   String get currentQuestion => _currentQuestion;
@@ -54,7 +55,9 @@ class InterviewSessionController extends ChangeNotifier {
     try {
       final jobRole = _config.jobRole.trim();
       if (jobRole.isEmpty) {
-        throw const GeminiException('Falta el cargo para iniciar la entrevista.');
+        throw const GeminiException(
+          'Falta el cargo para iniciar la entrevista.',
+        );
       }
       if (_config.type == null) {
         throw const GeminiException('Falta el tipo de entrevista.');
@@ -70,6 +73,7 @@ class InterviewSessionController extends ChangeNotifier {
       if (_currentQuestion.trim().isEmpty) {
         throw const GeminiException('No se pudo generar la primera pregunta.');
       }
+      _currentQuestionAskedAt = DateTime.now().toUtc();
     } catch (e) {
       _error = e.toString();
     } finally {
@@ -108,6 +112,9 @@ class InterviewSessionController extends ChangeNotifier {
         evaluation: evaluation,
         feedback: feedback,
         createdAt: DateTime.now().toUtc(),
+        responseDurationSeconds: _calculateResponseDurationSeconds(
+          _currentQuestionAskedAt,
+        ),
       );
 
       _session = _session.copyWith(turns: [..._session.turns, turn]);
@@ -134,7 +141,8 @@ class InterviewSessionController extends ChangeNotifier {
       final type = _config.type ?? InterviewConfigType.mixed;
       final history = _formatHistoryForPrompt(_session.turns);
 
-      final prompt = '''
+      final prompt =
+          '''
 Actúa como entrevistador experto para el rol "$jobRole".
 Tipo de entrevista: ${type.label}.
 
@@ -153,16 +161,20 @@ Devuelve SOLO el texto de la pregunta.
 
       final next = await _geminiService.sendPrompt(
         prompt: prompt,
-        systemInstruction: 'Eres un entrevistador humano. Sé natural y directo.',
+        systemInstruction:
+            'Eres un entrevistador humano. Sé natural y directo.',
         temperature: 0.8,
         maxOutputTokens: 256,
       );
 
       final cleaned = next.trim();
       if (cleaned.isEmpty) {
-        throw const GeminiException('No se pudo generar la siguiente pregunta.');
+        throw const GeminiException(
+          'No se pudo generar la siguiente pregunta.',
+        );
       }
       _currentQuestion = cleaned;
+      _currentQuestionAskedAt = DateTime.now().toUtc();
     } catch (e) {
       _error = e.toString();
     } finally {
@@ -202,9 +214,7 @@ Devuelve SOLO el texto de la pregunta.
     notifyListeners();
 
     await _speech.listen(
-      listenOptions: SpeechListenOptions(
-        listenMode: ListenMode.dictation,
-      ),
+      listenOptions: SpeechListenOptions(listenMode: ListenMode.dictation),
       onResult: (result) {
         _voiceDraft = result.recognizedWords;
         notifyListeners();
@@ -222,6 +232,12 @@ Devuelve SOLO el texto de la pregunta.
     _speech.stop();
     super.dispose();
   }
+}
+
+int _calculateResponseDurationSeconds(DateTime? askedAt) {
+  if (askedAt == null) return 0;
+  final elapsed = DateTime.now().toUtc().difference(askedAt).inSeconds;
+  return elapsed < 0 ? 0 : elapsed;
 }
 
 InterviewType _mapType(InterviewConfigType type) {

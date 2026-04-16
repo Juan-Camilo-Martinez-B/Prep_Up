@@ -89,17 +89,25 @@ class AppRouter {
       AppRoutes.deviceCheck => const DeviceCheckScreen(),
       AppRoutes.simulatedCall => const SimulatedCallScreen(),
       AppRoutes.interviewProcessing => InterviewProcessingScreen(
-          config: configArg,
-          session: sessionArg,
-        ),
-      AppRoutes.generalResults => GeneralResultsScreen(results: resultsArg),
-      AppRoutes.detailedAnalysis => DetailedAnalysisScreen(results: resultsArg),
+        config: configArg,
+        session: sessionArg,
+      ),
+      AppRoutes.generalResults => GeneralResultsScreen(
+        results: resultsArg,
+        session: sessionArg,
+      ),
+      AppRoutes.detailedAnalysis => DetailedAnalysisScreen(
+        results: resultsArg,
+        session: sessionArg,
+      ),
       AppRoutes.recommendations => RecommendationsScreen(results: resultsArg),
       AppRoutes.interviewHistory => const InterviewHistoryScreen(),
-      AppRoutes.statistics => const StatisticsScreen(),
+      AppRoutes.statistics => StatisticsScreen(
+        results: resultsArg,
+        session: sessionArg,
+      ),
       AppRoutes.repeatInterview => const RepeatInterviewScreen(),
       _ => const SplashScreen(),
     };
   }
 }
-
