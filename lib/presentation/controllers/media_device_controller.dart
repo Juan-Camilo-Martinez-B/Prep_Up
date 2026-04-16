@@ -117,7 +117,15 @@ class MediaDeviceController extends ChangeNotifier with WidgetsBindingObserver {
       await _cameraController?.dispose();
       _cameraController = controller;
       await controller.initialize();
-      await controller.setFocusMode(FocusMode.auto);
+      try {
+        await controller.setFocusMode(FocusMode.auto);
+      } on UnimplementedError {
+        // Algunos backends no implementan control de foco. La camara puede
+        // seguir funcionando aunque esta optimizacion no este disponible.
+      } on CameraException {
+        // Si el dispositivo no soporta cambiar el foco, evitamos bloquear
+        // toda la inicializacion de la camara.
+      }
       notifyListeners();
     } on CameraException catch (e) {
       _disposeCamera();
