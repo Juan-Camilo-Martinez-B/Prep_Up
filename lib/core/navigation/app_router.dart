@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:prep_up/core/navigation/app_routes.dart';
 import 'package:prep_up/domain/entities/interview_config.dart';
+import 'package:prep_up/domain/entities/interview_results_model.dart';
 import 'package:prep_up/domain/entities/interview_session.dart';
 import 'package:prep_up/presentation/screens/analysis/detailed_analysis_screen.dart';
 import 'package:prep_up/presentation/screens/analysis/general_results_screen.dart';
@@ -50,19 +51,28 @@ class AppRouter {
 
     final InterviewConfig? configArg;
     final InterviewSession? sessionArg;
+    final InterviewResultsModel? resultsArg;
 
     if (arguments is InterviewConfig) {
       configArg = arguments;
       sessionArg = null;
+      resultsArg = null;
+    } else if (arguments is InterviewResultsModel) {
+      configArg = null;
+      sessionArg = null;
+      resultsArg = arguments;
     } else if (arguments is Map) {
       final map = arguments.cast<String, Object?>();
       final rawConfig = map['config'];
       final rawSession = map['session'];
+      final rawResults = map['results'];
       configArg = rawConfig is InterviewConfig ? rawConfig : null;
       sessionArg = rawSession is InterviewSession ? rawSession : null;
+      resultsArg = rawResults is InterviewResultsModel ? rawResults : null;
     } else {
       configArg = null;
       sessionArg = null;
+      resultsArg = null;
     }
 
     return switch (routeName) {
@@ -82,9 +92,9 @@ class AppRouter {
           config: configArg,
           session: sessionArg,
         ),
-      AppRoutes.generalResults => const GeneralResultsScreen(),
-      AppRoutes.detailedAnalysis => const DetailedAnalysisScreen(),
-      AppRoutes.recommendations => const RecommendationsScreen(),
+      AppRoutes.generalResults => GeneralResultsScreen(results: resultsArg),
+      AppRoutes.detailedAnalysis => DetailedAnalysisScreen(results: resultsArg),
+      AppRoutes.recommendations => RecommendationsScreen(results: resultsArg),
       AppRoutes.interviewHistory => const InterviewHistoryScreen(),
       AppRoutes.statistics => const StatisticsScreen(),
       AppRoutes.repeatInterview => const RepeatInterviewScreen(),

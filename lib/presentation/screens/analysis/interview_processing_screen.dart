@@ -1,10 +1,10 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:prep_up/core/navigation/app_routes.dart';
 import 'package:prep_up/domain/entities/interview_config.dart';
+import 'package:prep_up/domain/entities/interview_results_model.dart';
 import 'package:prep_up/domain/entities/interview_session.dart';
 import 'package:prep_up/presentation/controllers/interview_config_controller.dart';
+import 'package:prep_up/domain/services/gemini_service.dart';
 import 'package:prep_up/presentation/widgets/app_primary_button.dart';
 import 'package:prep_up/presentation/widgets/app_screen_scaffold.dart';
 import 'package:provider/provider.dart';
@@ -21,24 +21,58 @@ class InterviewProcessingScreen extends StatefulWidget {
 }
 
 class _InterviewProcessingScreenState extends State<InterviewProcessingScreen> {
-  Timer? _timer;
-  var _progress = 0.12;
+  InterviewResultsModel? _results;
+  String? _error;
+  var _isLoading = false;
 
   @override
   void initState() {
     super.initState();
-    _timer = Timer.periodic(const Duration(milliseconds: 380), (_) {
-      if (!mounted) return;
-      setState(() {
-        _progress = (_progress + 0.07).clamp(0.0, 0.96);
-      });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _generateResults();
     });
   }
 
   @override
   void dispose() {
-    _timer?.cancel();
     super.dispose();
+  }
+
+  Future<void> _generateResults() async {
+    final providerConfig = context.read<InterviewConfigController>().config;
+    final config = widget.config ?? providerConfig;
+    final session = widget.session;
+    if (session == null || session.turns.isEmpty) {
+      setState(() {
+        _error = 'No hay datos suficientes para generar resultados.';
+        _isLoading = false;
+      });
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+      _error = null;
+      _results = null;
+    });
+
+    try {
+      final results = await GeminiService().generateInterviewResults(
+        config: config,
+        session: session,
+      );
+      if (!mounted) return;
+      setState(() {
+        _results = results;
+        _isLoading = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _error = e.toString();
+        _isLoading = false;
+      });
+    }
   }
 
   @override
@@ -47,6 +81,7 @@ class _InterviewProcessingScreenState extends State<InterviewProcessingScreen> {
     final providerConfig = context.watch<InterviewConfigController>().config;
     final config = widget.config ?? providerConfig;
     final session = widget.session;
+    final results = _results;
 
     return AppScreenScaffold(
       title: 'Analizando',
@@ -60,7 +95,7 @@ class _InterviewProcessingScreenState extends State<InterviewProcessingScreen> {
           ),
           const SizedBox(height: 10),
           Text(
-            'Procesando audio, video y estructura de respuestas (simulado).',
+            'Generando resultados con IA a partir de tus respuestas.',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: scheme.onSurfaceVariant,
                 ),
@@ -78,7 +113,7 @@ class _InterviewProcessingScreenState extends State<InterviewProcessingScreen> {
           ClipRRect(
             borderRadius: BorderRadius.circular(16),
             child: LinearProgressIndicator(
-              value: _progress,
+              value: _isLoading ? null : 1.0,
               minHeight: 12,
             ),
           ),
@@ -89,26 +124,71 @@ class _InterviewProcessingScreenState extends State<InterviewProcessingScreen> {
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
-                  'Modelo: InterviewSim-v0.1',
+                  'Modelo: Gemini',
                   style: Theme.of(context).textTheme.labelLarge,
                 ),
               ),
-              Text(
-                '${(_progress * 100).round()}%',
-                style: Theme.of(context).textTheme.labelLarge,
-              ),
+              if (_isLoading)
+                Text(
+                  'Procesando...',
+                  style: Theme.of(context).textTheme.labelLarge,
+                )
+              else if (results != null)
+                Text(
+                  '${results.overallScore}/100',
+                  style: Theme.of(context).textTheme.labelLarge,
+                ),
             ],
           ),
           const SizedBox(height: 14),
           _ConfigSummary(config: config),
+          const SizedBox(height: 14),
+          if (_error != null)
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(16),
+                color: scheme.errorContainer.withValues(alpha: 0.5),
+                border:
+                    Border.all(color: scheme.outlineVariant.withValues(alpha: 0.6)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'No se pudieron generar resultados',
+                    style: Theme.of(context).textTheme.titleSmall,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    _error!,
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                  const SizedBox(height: 10),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: TextButton(
+                      onPressed: _isLoading ? null : _generateResults,
+                      child: const Text('Reintentar'),
+                    ),
+                  ),
+                ],
+              ),
+            )
+          else if (results != null)
+            _ResultsSummary(results: results),
           const Spacer(),
           AppPrimaryButton(
             label: 'Ver resultados',
             icon: Icons.insights_rounded,
-            onPressed: () {
-              // TODO: reemplazar por navegación automática tras finalizar análisis real.
-              Navigator.of(context).pushNamed(AppRoutes.generalResults);
-            },
+            onPressed: results == null
+                ? null
+                : () {
+                    Navigator.of(context).pushNamed(
+                      AppRoutes.generalResults,
+                      arguments: results,
+                    );
+                  },
           ),
           const SizedBox(height: 12),
           OutlinedButton(
@@ -123,6 +203,67 @@ class _InterviewProcessingScreenState extends State<InterviewProcessingScreen> {
               ),
             ),
             child: const Text('Volver al Dashboard'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ResultsSummary extends StatelessWidget {
+  const _ResultsSummary({required this.results});
+
+  final InterviewResultsModel results;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final outcomeLabel = switch (results.outcome) {
+      InterviewOutcome.approved => 'Aprobado',
+      InterviewOutcome.improve => 'Mejorar',
+    };
+
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        color: scheme.surfaceContainerHighest.withValues(alpha: 0.45),
+        border: Border.all(color: scheme.outlineVariant.withValues(alpha: 0.6)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(14),
+              color: scheme.primary.withValues(alpha: 0.14),
+            ),
+            child: Icon(Icons.checklist_rounded, color: scheme.primary),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Resumen listo',
+                  style: Theme.of(context).textTheme.titleSmall,
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Estado: $outcomeLabel',
+                  style: Theme.of(context)
+                      .textTheme
+                      .bodyMedium
+                      ?.copyWith(color: scheme.onSurfaceVariant),
+                ),
+              ],
+            ),
+          ),
+          Text(
+            '${results.overallScore}/100',
+            style: Theme.of(context).textTheme.titleMedium,
           ),
         ],
       ),

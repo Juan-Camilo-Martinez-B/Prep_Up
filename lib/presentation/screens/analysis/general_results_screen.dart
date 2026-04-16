@@ -1,17 +1,44 @@
 import 'package:flutter/material.dart';
 import 'package:prep_up/core/navigation/app_routes.dart';
+import 'package:prep_up/domain/entities/interview_results_model.dart';
 import 'package:prep_up/presentation/widgets/app_card.dart';
 import 'package:prep_up/presentation/widgets/app_primary_button.dart';
 import 'package:prep_up/presentation/widgets/app_screen_scaffold.dart';
 
 class GeneralResultsScreen extends StatelessWidget {
-  const GeneralResultsScreen({super.key});
+  const GeneralResultsScreen({super.key, required this.results});
+
+  final InterviewResultsModel? results;
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    const score = 76;
-    const probability = 0.72;
+    final results = this.results;
+    if (results == null) {
+      return AppScreenScaffold(
+        title: 'Resultados',
+        background: const TechBackground(),
+        body: ListView(
+          children: const [
+            AppCard(
+              title: 'Resultados generales',
+              subtitle: 'No se recibieron datos',
+              leading: Icon(Icons.info_outline_rounded),
+              child: Text('Vuelve a finalizar una entrevista para ver resultados.'),
+            ),
+          ],
+        ),
+      );
+    }
+
+    final score = results.overallScore;
+    final outcomeLabel = switch (results.outcome) {
+      InterviewOutcome.approved => 'Aprobado',
+      InterviewOutcome.improve => 'Mejorar',
+    };
+    final outcomeColor = results.outcome == InterviewOutcome.approved
+        ? scheme.primary
+        : scheme.secondary;
 
     return AppScreenScaffold(
       title: 'Resultados',
@@ -20,7 +47,7 @@ class GeneralResultsScreen extends StatelessWidget {
         children: [
           AppCard(
             title: 'Resultados generales',
-            subtitle: 'Resumen rápido (simulado)',
+            subtitle: 'Resumen de tu entrevista',
             leading: Icon(Icons.insights_rounded, color: scheme.primary),
             child: Row(
               children: [
@@ -57,21 +84,21 @@ class GeneralResultsScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 6),
                       Text(
-                        'Muy buen ritmo',
+                        outcomeLabel,
                         style: Theme.of(context).textTheme.titleMedium,
                       ),
                       const SizedBox(height: 10),
                       Text(
-                        'Probabilidad de éxito',
+                        'Estado',
                         style: Theme.of(context).textTheme.labelLarge?.copyWith(
                               color: scheme.onSurfaceVariant,
                             ),
                       ),
                       const SizedBox(height: 6),
                       Text(
-                        '${(probability * 100).round()}%',
+                        outcomeLabel,
                         style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                              color: scheme.secondary,
+                              color: outcomeColor,
                             ),
                       ),
                     ],
@@ -83,24 +110,34 @@ class GeneralResultsScreen extends StatelessWidget {
           const SizedBox(height: 14),
           AppCard(
             title: 'Highlights',
-            subtitle: 'Lo mejor de tu sesión',
+            subtitle: 'Lo más destacado',
             leading: Icon(Icons.star_rounded, color: scheme.secondary),
             child: Column(
-              children: const [
-                _Highlight(text: 'Buena estructura al presentar experiencias.'),
-                SizedBox(height: 8),
-                _Highlight(text: 'Tono seguro y consistente.'),
-                SizedBox(height: 8),
-                _Highlight(text: 'Respuestas claras en el 70% del tiempo.'),
-              ],
+              children: results.highlights.isEmpty
+                  ? [
+                      Text(
+                        'Sin highlights disponibles.',
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              color: scheme.onSurfaceVariant,
+                            ),
+                      ),
+                    ]
+                  : [
+                      for (final h in results.highlights) ...[
+                        _Highlight(text: h),
+                        const SizedBox(height: 8),
+                      ],
+                    ],
             ),
           ),
           const SizedBox(height: 18),
           AppPrimaryButton(
             label: 'Ver análisis detallado',
             icon: Icons.analytics_rounded,
-            onPressed: () =>
-                Navigator.of(context).pushNamed(AppRoutes.detailedAnalysis),
+            onPressed: () => Navigator.of(context).pushNamed(
+              AppRoutes.detailedAnalysis,
+              arguments: results,
+            ),
           ),
           const SizedBox(height: 10),
           OutlinedButton(

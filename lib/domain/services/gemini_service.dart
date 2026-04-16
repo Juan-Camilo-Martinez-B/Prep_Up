@@ -3,7 +3,10 @@ import 'dart:io';
 
 import 'package:prep_up/core/config/app_config.dart';
 import 'package:prep_up/domain/entities/answer_evaluation_model.dart';
+import 'package:prep_up/domain/entities/interview_config.dart';
 import 'package:prep_up/domain/entities/interview_feedback_model.dart';
+import 'package:prep_up/domain/entities/interview_results_model.dart';
+import 'package:prep_up/domain/entities/interview_session.dart';
 import 'package:prep_up/domain/entities/interview_session_model.dart';
 
 class GeminiException implements Exception {
@@ -405,6 +408,99 @@ Reglas:
       keyPhrasesToUse: const [],
     );
   }
+
+  Future<InterviewResultsModel> generateInterviewResults({
+    required InterviewConfig config,
+    required InterviewSession session,
+    String language = 'es',
+  }) async {
+    if (session.turns.isEmpty) {
+      throw const GeminiException(
+        'No hay respuestas suficientes para generar resultados.',
+      );
+    }
+
+    final jobRole = config.jobRole.trim();
+    final type = config.type?.label ?? 'Mixta';
+
+    final total = session.turns.fold<int>(
+      0,
+      (sum, t) => sum + t.evaluation.overallScore,
+    );
+    final overallScore = (total / session.turns.length).round().clamp(0, 100);
+    final outcome = overallScore >= 70
+        ? InterviewOutcome.approved
+        : InterviewOutcome.improve;
+
+    final history = _formatTurnsForResults(session.turns);
+
+    final systemInstruction =
+        'Eres un entrevistador senior. Respondes en $language. '
+        'Devuelve JSON válido sin texto adicional.';
+
+    final prompt = '''
+Genera un reporte de resultados de entrevista basado en el historial real.
+Rol: "$jobRole"
+Tipo: "$type"
+
+OverallScore (calculado): $overallScore
+Outcome esperado (regla): ${outcome == InterviewOutcome.approved ? 'approved' : 'improve'}
+
+Historial:
+$history
+
+Devuelve SOLO JSON con este esquema exacto:
+{
+  "overallScore": $overallScore,
+  "outcome": "${outcome == InterviewOutcome.approved ? 'approved' : 'improve'}",
+  "breakdown": {
+    "communication": 0,
+    "technicalKnowledge": 0,
+    "confidence": 0
+  },
+  "highlights": ["..."],
+  "personalizedFeedback": "...",
+  "recommendations": ["..."],
+  "improvementTips": ["..."]
+}
+
+Reglas:
+- overallScore debe ser exactamente $overallScore
+- outcome debe ser exactamente "${outcome == InterviewOutcome.approved ? 'approved' : 'improve'}"
+- breakdown: enteros 0..100
+- highlights: 3 a 5 puntos, basados en el historial (no genéricos)
+- personalizedFeedback: 3 a 6 frases, específico para el usuario
+- recommendations: 4 a 8 acciones concretas
+- improvementTips: 3 a 6 consejos prácticos y medibles
+- Sin markdown
+''';
+
+    final raw = await sendPrompt(
+      prompt: prompt,
+      systemInstruction: systemInstruction,
+      temperature: 0.4,
+      maxOutputTokens: 1600,
+    );
+
+    final decoded = _tryDecodeJsonMap(_extractJsonText(raw));
+    if (decoded == null) {
+      throw GeminiException(
+        'Respuesta inválida al generar resultados.',
+        details: raw,
+      );
+    }
+
+    final parsed = InterviewResultsModel.fromJson(decoded);
+    return InterviewResultsModel(
+      overallScore: overallScore,
+      outcome: outcome,
+      breakdown: parsed.breakdown,
+      highlights: parsed.highlights,
+      personalizedFeedback: parsed.personalizedFeedback,
+      recommendations: parsed.recommendations,
+      improvementTips: parsed.improvementTips,
+    );
+  }
 }
 
 String? _tryExtractApiErrorMessage(String body) {
@@ -482,4 +578,26 @@ List<String> _fallbackQuestionsFromText(String raw) {
     if (value.isNotEmpty) cleaned.add(value);
   }
   return cleaned;
+}
+
+String _formatTurnsForResults(List<InterviewTurn> turns) {
+  final buffer = StringBuffer();
+  for (var i = 0; i < turns.length; i++) {
+    final t = turns[i];
+    buffer.writeln('Turno ${i + 1}:');
+    buffer.writeln('Pregunta: ${t.question}');
+    buffer.writeln('Respuesta: ${t.answer}');
+    buffer.writeln('Score: ${t.evaluation.overallScore}');
+    if (t.evaluation.strengths.isNotEmpty) {
+      buffer.writeln('Fortalezas: ${t.evaluation.strengths.join(' | ')}');
+    }
+    if (t.evaluation.improvements.isNotEmpty) {
+      buffer.writeln('Mejoras: ${t.evaluation.improvements.join(' | ')}');
+    }
+    if (t.feedback.summary.trim().isNotEmpty) {
+      buffer.writeln('Feedback: ${t.feedback.summary.trim()}');
+    }
+    buffer.writeln('');
+  }
+  return buffer.toString().trim();
 }

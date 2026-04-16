@@ -1,21 +1,35 @@
 import 'package:flutter/material.dart';
 import 'package:prep_up/core/navigation/app_routes.dart';
+import 'package:prep_up/domain/entities/interview_results_model.dart';
 import 'package:prep_up/presentation/widgets/app_card.dart';
 import 'package:prep_up/presentation/widgets/app_primary_button.dart';
 import 'package:prep_up/presentation/widgets/app_screen_scaffold.dart';
 
 class RecommendationsScreen extends StatelessWidget {
-  const RecommendationsScreen({super.key});
+  const RecommendationsScreen({super.key, required this.results});
+
+  final InterviewResultsModel? results;
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    const recommendations = [
-      'Responde con estructura: situación → acción → resultado.',
-      'Reduce muletillas: respira y pausa 1 segundo antes de responder.',
-      'Cierra con impacto: métricas, aprendizajes y siguiente paso.',
-      'Sonríe al iniciar, mejora la percepción de seguridad.',
-    ];
+    final results = this.results;
+    if (results == null) {
+      return AppScreenScaffold(
+        title: 'Recomendaciones',
+        background: const TechBackground(),
+        body: ListView(
+          children: const [
+            AppCard(
+              title: 'Sin datos',
+              subtitle: 'No se recibieron resultados',
+              leading: Icon(Icons.info_outline_rounded),
+              child: Text('Vuelve a finalizar una entrevista para ver recomendaciones.'),
+            ),
+          ],
+        ),
+      );
+    }
 
     return AppScreenScaffold(
       title: 'Recomendaciones',
@@ -24,18 +38,42 @@ class RecommendationsScreen extends StatelessWidget {
         children: [
           AppCard(
             title: 'Sugerencias',
-            subtitle: 'Entrena en 10 minutos al día',
+            subtitle: 'Generadas por IA a partir de tu entrevista',
             leading: Icon(Icons.lightbulb_rounded, color: scheme.primary),
             child: Column(
               children: [
-                for (final r in recommendations) ...[
-                  _RecommendationRow(text: r),
-                  const SizedBox(height: 10),
-                ],
+                if (results.recommendations.isEmpty)
+                  Text(
+                    'Sin recomendaciones disponibles.',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: scheme.onSurfaceVariant,
+                        ),
+                  )
+                else
+                  for (final r in results.recommendations) ...[
+                    _RecommendationRow(text: r),
+                    const SizedBox(height: 10),
+                  ],
               ],
             ),
           ),
           const SizedBox(height: 14),
+          if (results.improvementTips.isNotEmpty) ...[
+            AppCard(
+              title: 'Consejos de mejora',
+              subtitle: 'Acciones rápidas para tu próxima sesión',
+              leading: Icon(Icons.tips_and_updates_rounded, color: scheme.secondary),
+              child: Column(
+                children: [
+                  for (final tip in results.improvementTips) ...[
+                    _RecommendationRow(text: tip),
+                    const SizedBox(height: 10),
+                  ],
+                ],
+              ),
+            ),
+            const SizedBox(height: 14),
+          ],
           AppCard(
             title: 'Siguiente sesión',
             subtitle: 'Repite y sube tu score',

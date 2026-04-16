@@ -1,15 +1,35 @@
 import 'package:flutter/material.dart';
 import 'package:prep_up/core/navigation/app_routes.dart';
+import 'package:prep_up/domain/entities/interview_results_model.dart';
 import 'package:prep_up/presentation/widgets/app_card.dart';
 import 'package:prep_up/presentation/widgets/app_primary_button.dart';
 import 'package:prep_up/presentation/widgets/app_screen_scaffold.dart';
 
 class DetailedAnalysisScreen extends StatelessWidget {
-  const DetailedAnalysisScreen({super.key});
+  const DetailedAnalysisScreen({super.key, required this.results});
+
+  final InterviewResultsModel? results;
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final results = this.results;
+    if (results == null) {
+      return AppScreenScaffold(
+        title: 'Análisis detallado',
+        background: const TechBackground(),
+        body: ListView(
+          children: const [
+            AppCard(
+              title: 'Sin datos',
+              subtitle: 'No se recibieron resultados',
+              leading: Icon(Icons.info_outline_rounded),
+              child: Text('Vuelve a finalizar una entrevista para ver el análisis.'),
+            ),
+          ],
+        ),
+      );
+    }
 
     return AppScreenScaffold(
       title: 'Análisis detallado',
@@ -18,25 +38,25 @@ class DetailedAnalysisScreen extends StatelessWidget {
         children: [
           AppCard(
             title: 'Métricas principales',
-            subtitle: 'Indicadores simulados',
+            subtitle: 'Análisis por categoría',
             leading: Icon(Icons.analytics_outlined, color: scheme.primary),
-            child: const Column(
+            child: Column(
               children: [
                 _MetricBar(
-                  label: 'Lenguaje corporal',
-                  value: 0.74,
-                  icon: Icons.self_improvement_rounded,
-                ),
-                SizedBox(height: 12),
-                _MetricBar(
-                  label: 'Claridad',
-                  value: 0.70,
+                  label: 'Comunicación',
+                  value: results.breakdown.communication / 100,
                   icon: Icons.record_voice_over_rounded,
                 ),
-                SizedBox(height: 12),
+                const SizedBox(height: 12),
+                _MetricBar(
+                  label: 'Conocimiento técnico',
+                  value: results.breakdown.technicalKnowledge / 100,
+                  icon: Icons.code_rounded,
+                ),
+                const SizedBox(height: 12),
                 _MetricBar(
                   label: 'Seguridad',
-                  value: 0.77,
+                  value: results.breakdown.confidence / 100,
                   icon: Icons.shield_rounded,
                 ),
               ],
@@ -44,21 +64,30 @@ class DetailedAnalysisScreen extends StatelessWidget {
           ),
           const SizedBox(height: 14),
           AppCard(
-            title: 'Micro-señales',
-            subtitle: 'Lectura de video (placeholder)',
-            leading: Icon(Icons.face_retouching_natural_rounded, color: scheme.secondary),
+            title: 'Feedback personalizado',
+            subtitle: 'Generado por IA',
+            leading: Icon(
+              Icons.auto_awesome_rounded,
+              color: scheme.secondary,
+            ),
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _ChipRow(
-                  chips: const ['Contacto visual', 'Postura', 'Gestos', 'Sonrisa'],
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  'Pendiente de integración de análisis gestual.',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: scheme.onSurfaceVariant,
-                      ),
-                ),
+                Text(results.personalizedFeedback.trim().isEmpty
+                    ? 'Sin feedback disponible.'
+                    : results.personalizedFeedback.trim()),
+                if (results.improvementTips.isNotEmpty) ...[
+                  const SizedBox(height: 14),
+                  Text(
+                    'Consejos de mejora',
+                    style: Theme.of(context).textTheme.titleSmall,
+                  ),
+                  const SizedBox(height: 8),
+                  for (final tip in results.improvementTips) ...[
+                    _TipRow(text: tip),
+                    const SizedBox(height: 8),
+                  ],
+                ],
               ],
             ),
           ),
@@ -66,8 +95,10 @@ class DetailedAnalysisScreen extends StatelessWidget {
           AppPrimaryButton(
             label: 'Ver recomendaciones',
             icon: Icons.lightbulb_rounded,
-            onPressed: () =>
-                Navigator.of(context).pushNamed(AppRoutes.recommendations),
+            onPressed: () => Navigator.of(context).pushNamed(
+              AppRoutes.recommendations,
+              arguments: results,
+            ),
           ),
           const SizedBox(height: 10),
           OutlinedButton(
@@ -129,17 +160,21 @@ class _MetricBar extends StatelessWidget {
   }
 }
 
-class _ChipRow extends StatelessWidget {
-  const _ChipRow({required this.chips});
+class _TipRow extends StatelessWidget {
+  const _TipRow({required this.text});
 
-  final List<String> chips;
+  final String text;
 
   @override
   Widget build(BuildContext context) {
-    return Wrap(
-      spacing: 10,
-      runSpacing: 10,
-      children: [for (final c in chips) Chip(label: Text(c))],
+    final scheme = Theme.of(context).colorScheme;
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(Icons.check_circle_rounded, size: 18, color: scheme.primary),
+        const SizedBox(width: 10),
+        Expanded(child: Text(text)),
+      ],
     );
   }
 }
