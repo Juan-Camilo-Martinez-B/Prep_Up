@@ -6,7 +6,7 @@ import 'package:prep_up/core/navigation/app_routes.dart';
 import 'package:prep_up/domain/entities/interview_config.dart';
 import 'package:prep_up/domain/services/gemini_service.dart';
 import 'package:prep_up/presentation/controllers/interview_config_controller.dart';
-import 'package:prep_up/presentation/controllers/interview_session_controller.dart';
+import 'package:prep_up/presentation/controllers/interview_voice_controller.dart';
 import 'package:prep_up/presentation/controllers/media_device_controller.dart';
 import 'package:prep_up/presentation/widgets/app_card.dart';
 import 'package:prep_up/presentation/widgets/app_primary_button.dart';
@@ -25,16 +25,14 @@ class _SimulatedCallScreenState extends State<SimulatedCallScreen> {
   Timer? _timer;
 
   late final InterviewConfig _config;
-  late final InterviewSessionController _sessionController;
+  late final InterviewVoiceController _voiceController;
   final _answerController = TextEditingController();
+  String _syncedQuestion = '';
 
   @override
   void initState() {
     super.initState();
     _config = context.read<InterviewConfigController>().config;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<MediaDeviceController>().start();
-    });
     final durationMinutes = _config.durationMinutes ?? 3;
     _secondsLeft = durationMinutes * 60;
     _timer = Timer.periodic(const Duration(seconds: 1), (_) {
@@ -43,15 +41,21 @@ class _SimulatedCallScreenState extends State<SimulatedCallScreen> {
       setState(() => _secondsLeft -= 1);
     });
 
-    _sessionController = InterviewSessionController(
+    _voiceController = InterviewVoiceController(
       geminiService: GeminiService(),
       config: _config,
     );
 
-    _sessionController.addListener(() {
+    _voiceController.addListener(() {
       if (!mounted) return;
-      if (_sessionController.isListening) {
-        final v = _sessionController.voiceDraft;
+      final question = _voiceController.currentQuestion.trim();
+      if (question.isNotEmpty && question != _syncedQuestion) {
+        _syncedQuestion = question;
+        _answerController.clear();
+      }
+
+      if (_voiceController.isListening) {
+        final v = _voiceController.voiceDraft;
         if (v.isNotEmpty && _answerController.text != v) {
           _answerController.value = _answerController.value.copyWith(
             text: v,
@@ -62,15 +66,34 @@ class _SimulatedCallScreenState extends State<SimulatedCallScreen> {
       }
     });
 
-    _sessionController.start();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final media = context.read<MediaDeviceController>();
+      await media.refreshPermissions();
+      if (!media.isCameraPermissionGranted ||
+          !media.isMicrophonePermissionGranted) {
+        await media.requestPermissions();
+      }
+      await media.initCamera();
+      if (!mounted) return;
+      await _voiceController.start();
+    });
   }
 
   @override
   void dispose() {
     _timer?.cancel();
     _answerController.dispose();
-    _sessionController.dispose();
+    _voiceController.dispose();
     super.dispose();
+  }
+
+  Future<void> _finishInterview() async {
+    await _voiceController.stopConversation();
+    if (!mounted) return;
+    Navigator.of(context).pushNamed(
+      AppRoutes.interviewProcessing,
+      arguments: {'config': _config, 'session': _voiceController.session},
+    );
   }
 
   @override
@@ -132,15 +155,42 @@ class _SimulatedCallScreenState extends State<SimulatedCallScreen> {
                   Positioned(
                     left: 14,
                     top: 14,
-                    child: _AiAvatar(scheme: scheme),
+                    child: AnimatedBuilder(
+                      animation: _voiceController,
+                      builder: (context, _) {
+                        return _AiAvatar(
+                          scheme: scheme,
+                          isSpeaking: _voiceController.isSpeaking,
+                        );
+                      },
+                    ),
                   ),
                   Positioned(
                     left: 14,
                     bottom: 14,
-                    child: _LiveStatusChip(
-                      scheme: scheme,
-                      cameraOk: media.isCameraReady,
-                      micOk: media.isMicrophoneReady,
+                    child: AnimatedBuilder(
+                      animation: _voiceController,
+                      builder: (context, _) {
+                        return _LiveStatusChip(
+                          scheme: scheme,
+                          cameraOk: media.isCameraReady,
+                          micOk: media.isMicrophonePermissionGranted,
+                          micActive: _voiceController.isListening,
+                        );
+                      },
+                    ),
+                  ),
+                  Positioned(
+                    right: 14,
+                    top: 14,
+                    child: AnimatedBuilder(
+                      animation: _voiceController,
+                      builder: (context, _) {
+                        return _ConversationBadge(
+                          scheme: scheme,
+                          state: _voiceController.state,
+                        );
+                      },
                     ),
                   ),
                 ],
@@ -149,15 +199,64 @@ class _SimulatedCallScreenState extends State<SimulatedCallScreen> {
           ),
           const SizedBox(height: 14),
           AnimatedBuilder(
-            animation: _sessionController,
+            animation: _voiceController,
             builder: (context, _) {
-              final question = _sessionController.currentQuestion.trim();
-              final hasQuestion = question.isNotEmpty;
-              final isLoading = _sessionController.isStarting && !hasQuestion;
+              final state = _voiceController.state;
+              final isSpeaking = state == InterviewConversationState.speaking;
+              final isListening = state == InterviewConversationState.listening;
+              final isProcessing =
+                  state == InterviewConversationState.processing;
 
               return AppCard(
-                title: 'Pregunta',
-                subtitle: 'Entrevistador IA',
+                title: 'Estado de la llamada',
+                subtitle: 'Interacción por voz en tiempo real',
+                leading: Icon(Icons.graphic_eq_rounded, color: scheme.primary),
+                child: Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    _StatePill(
+                      label: isSpeaking ? 'IA hablando' : 'IA en espera',
+                      active: isSpeaking,
+                      scheme: scheme,
+                      icon: Icons.volume_up_rounded,
+                    ),
+                    _StatePill(
+                      label: isListening
+                          ? 'Usuario respondiendo'
+                          : 'Micrófono en espera',
+                      active: isListening,
+                      scheme: scheme,
+                      icon: Icons.mic_rounded,
+                    ),
+                    _StatePill(
+                      label: isProcessing ? 'Procesando' : 'Listo',
+                      active: isProcessing,
+                      scheme: scheme,
+                      icon: Icons.auto_awesome_rounded,
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+          const SizedBox(height: 14),
+          AnimatedBuilder(
+            animation: _voiceController,
+            builder: (context, _) {
+              final question = _voiceController.currentQuestion.trim();
+              final hasQuestion = question.isNotEmpty;
+              final isLoading =
+                  !hasQuestion &&
+                  _voiceController.statusMessage.toLowerCase().contains(
+                    'preparando',
+                  );
+
+              return AppCard(
+                title: 'Pregunta actual',
+                subtitle: _voiceController.isSpeaking
+                    ? 'La IA la está leyendo en voz alta'
+                    : 'Entrevistador IA',
                 leading: Icon(Icons.smart_toy_outlined, color: scheme.primary),
                 child: isLoading
                     ? const SizedBox(
@@ -173,9 +272,9 @@ class _SimulatedCallScreenState extends State<SimulatedCallScreen> {
           ),
           const SizedBox(height: 14),
           AnimatedBuilder(
-            animation: _sessionController,
+            animation: _voiceController,
             builder: (context, _) {
-              final lastTurn = _sessionController.lastTurn;
+              final lastTurn = _voiceController.lastTurn;
               if (lastTurn == null) return const SizedBox.shrink();
 
               final eval = lastTurn.evaluation;
@@ -208,95 +307,132 @@ class _SimulatedCallScreenState extends State<SimulatedCallScreen> {
           ),
           const SizedBox(height: 14),
           AnimatedBuilder(
-            animation: _sessionController,
+            animation: _voiceController,
             builder: (context, _) {
-              final isBusy =
-                  _sessionController.isSubmitting || _sessionController.isGeneratingNext;
-              final isListening = _sessionController.isListening;
-              final questionReady =
-                  _sessionController.currentQuestion.trim().isNotEmpty;
+              final isBusy = _voiceController.isProcessing;
+              final isListening = _voiceController.isListening;
+              final questionReady = _voiceController.currentQuestion
+                  .trim()
+                  .isNotEmpty;
+              final canInteract = questionReady && _secondsLeft > 0 && !isBusy;
+              final statusMessage = _voiceController.statusMessage.trim();
 
               return AppCard(
                 title: 'Tu respuesta',
-                subtitle: isListening ? 'Escuchando...' : 'Texto o voz',
-                leading: Icon(Icons.record_voice_over_rounded, color: scheme.primary),
+                subtitle: isListening
+                    ? 'Transcripción en tiempo real'
+                    : 'Voz con fallback a texto',
+                leading: Icon(
+                  Icons.record_voice_over_rounded,
+                  color: scheme.primary,
+                ),
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     TextField(
                       controller: _answerController,
                       minLines: 3,
                       maxLines: 6,
-                      decoration: const InputDecoration(
-                        labelText: 'Escribe tu respuesta',
+                      decoration: InputDecoration(
+                        labelText: 'Respuesta detectada o escrita',
                         alignLabelWithHint: true,
+                        helperText: _voiceController.hasTextToSpeech
+                            ? 'Gemini pregunta por voz y texto.'
+                            : 'Fallback activo: lee la pregunta en pantalla.',
                       ),
-                      enabled: questionReady && _secondsLeft > 0 && !isBusy,
+                      enabled: canInteract || isListening,
+                    ),
+                    if (statusMessage.isNotEmpty) ...[
+                      const SizedBox(height: 8),
+                      Text(
+                        statusMessage,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: scheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        OutlinedButton.icon(
+                          onPressed: canInteract || isListening
+                              ? () async {
+                                  await _voiceController.toggleListening();
+                                }
+                              : null,
+                          icon: Icon(
+                            isListening
+                                ? Icons.mic_off_rounded
+                                : Icons.mic_rounded,
+                          ),
+                          label: Text(isListening ? 'Detener' : 'Hablar'),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            onPressed:
+                                questionReady && _secondsLeft > 0 && !isBusy
+                                ? () async {
+                                    await _voiceController
+                                        .repeatCurrentQuestion();
+                                  }
+                                : null,
+                            icon: const Icon(Icons.replay_rounded),
+                            label: const Text('Repetir pregunta'),
+                          ),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 12),
                     ValueListenableBuilder<TextEditingValue>(
                       valueListenable: _answerController,
                       builder: (context, value, _) {
-                        final canSend = questionReady &&
-                            _secondsLeft > 0 &&
-                            !isBusy &&
-                            value.text.trim().isNotEmpty;
+                        final canSend =
+                            canInteract && value.text.trim().isNotEmpty;
 
-                        return Row(
-                          children: [
-                            OutlinedButton.icon(
-                              onPressed:
-                                  (!questionReady || _secondsLeft <= 0 || isBusy)
-                                      ? null
-                                      : () async {
-                                          await _sessionController
-                                              .toggleListening();
-                                        },
-                              icon: Icon(
-                                isListening
-                                    ? Icons.mic_off_rounded
-                                    : Icons.mic_rounded,
-                              ),
-                              label: Text(isListening ? 'Detener' : 'Hablar'),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: AppPrimaryButton(
-                                isExpanded: true,
-                                label: 'Enviar',
-                                icon: Icons.send_rounded,
-                                isLoading: isBusy,
-                                onPressed: canSend
-                                    ? () async {
-                                        final text = value.text;
-                                        await _sessionController
-                                            .submitAnswer(text);
-                                        if (_sessionController.error == null) {
-                                          _answerController.clear();
-                                        }
-                                      }
-                                    : null,
-                              ),
-                            ),
-                          ],
+                        return AppPrimaryButton(
+                          isExpanded: true,
+                          label: 'Enviar a Gemini',
+                          icon: Icons.send_rounded,
+                          isLoading: isBusy,
+                          onPressed: canSend
+                              ? () async {
+                                  await _voiceController.submitAnswer(
+                                    value.text,
+                                  );
+                                }
+                              : null,
                         );
                       },
                     ),
-                    if (_sessionController.error != null) ...[
+                    if (_voiceController.error != null) ...[
                       const SizedBox(height: 10),
                       Text(
-                        _sessionController.error!,
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: scheme.error,
-                            ),
+                        _voiceController.error!,
+                        style: Theme.of(
+                          context,
+                        ).textTheme.bodySmall?.copyWith(color: scheme.error),
                       ),
                       const SizedBox(height: 6),
                       Align(
                         alignment: Alignment.centerRight,
                         child: TextButton(
                           onPressed: () {
-                            _sessionController.clearError();
+                            _voiceController.clearError();
                           },
                           child: const Text('Cerrar'),
+                        ),
+                      ),
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: TextButton.icon(
+                          onPressed: questionReady && _secondsLeft > 0
+                              ? () async {
+                                  await _voiceController.retryListening();
+                                }
+                              : null,
+                          icon: const Icon(Icons.refresh_rounded),
+                          label: const Text('Reintentar voz'),
                         ),
                       ),
                     ],
@@ -311,7 +447,7 @@ class _SimulatedCallScreenState extends State<SimulatedCallScreen> {
               Expanded(
                 child: OutlinedButton.icon(
                   onPressed: () async {
-                    await _sessionController.generateNextQuestion();
+                    await _voiceController.skipQuestion();
                     _answerController.clear();
                   },
                   style: OutlinedButton.styleFrom(
@@ -326,29 +462,28 @@ class _SimulatedCallScreenState extends State<SimulatedCallScreen> {
               ),
               const SizedBox(width: 12),
               Expanded(
-                child: AppPrimaryButton(
-                  isExpanded: true,
-                  label: 'Finalizar',
-                  icon: Icons.check_rounded,
-                  onPressed: () {
-                    Navigator.of(context).pushNamed(
-                      AppRoutes.interviewProcessing,
-                      arguments: {
-                        'config': _config,
-                        'session': _sessionController.session,
-                      },
-                    );
-                  },
+                child: FilledButton.icon(
+                  onPressed: _finishInterview,
+                  style: FilledButton.styleFrom(
+                    minimumSize: const Size(0, 48),
+                    backgroundColor: scheme.error,
+                    foregroundColor: scheme.onError,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                  ),
+                  icon: const Icon(Icons.call_end_rounded),
+                  label: const Text('Colgar'),
                 ),
               ),
             ],
           ),
           const SizedBox(height: 10),
           Text(
-            'Tip: mira a cámara, responde con estructura y mantén un ritmo natural.',
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: scheme.onSurfaceVariant,
-                ),
+            'Tip: mantén respuestas claras; si falla el audio, usa el texto y la conversación seguirá con Gemini.',
+            style: Theme.of(
+              context,
+            ).textTheme.bodySmall?.copyWith(color: scheme.onSurfaceVariant),
           ),
         ],
       ),
@@ -375,10 +510,7 @@ class _TimerChip extends StatelessWidget {
         children: [
           Icon(Icons.timer_rounded, size: 18, color: scheme.primary),
           const SizedBox(width: 8),
-          Text(
-            text,
-            style: Theme.of(context).textTheme.labelLarge,
-          ),
+          Text(text, style: Theme.of(context).textTheme.labelLarge),
         ],
       ),
     );
@@ -411,9 +543,10 @@ class _MiniPreview extends StatelessWidget {
 }
 
 class _AiAvatar extends StatelessWidget {
-  const _AiAvatar({required this.scheme});
+  const _AiAvatar({required this.scheme, required this.isSpeaking});
 
   final ColorScheme scheme;
+  final bool isSpeaking;
 
   @override
   Widget build(BuildContext context) {
@@ -431,12 +564,16 @@ class _AiAvatar extends StatelessWidget {
             height: 34,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: scheme.primary.withValues(alpha: 0.20),
+              color: (isSpeaking ? scheme.primary : scheme.primaryContainer)
+                  .withValues(alpha: 0.30),
             ),
-            child: Icon(Icons.smart_toy_outlined, color: scheme.primary),
+            child: Icon(
+              isSpeaking ? Icons.volume_up_rounded : Icons.smart_toy_outlined,
+              color: scheme.primary,
+            ),
           ),
           const SizedBox(width: 10),
-          const Text('Entrevistador IA'),
+          Text(isSpeaking ? 'IA hablando' : 'Entrevistador IA'),
         ],
       ),
     );
@@ -448,11 +585,13 @@ class _LiveStatusChip extends StatelessWidget {
     required this.scheme,
     required this.cameraOk,
     required this.micOk,
+    required this.micActive,
   });
 
   final ColorScheme scheme;
   final bool cameraOk;
   final bool micOk;
+  final bool micActive;
 
   @override
   Widget build(BuildContext context) {
@@ -474,8 +613,108 @@ class _LiveStatusChip extends StatelessWidget {
           Icon(
             micOk ? Icons.mic_rounded : Icons.mic_off_rounded,
             size: 18,
-            color: micOk ? scheme.primary : scheme.onSurfaceVariant,
+            color: !micOk
+                ? scheme.onSurfaceVariant
+                : micActive
+                ? scheme.secondary
+                : scheme.primary,
           ),
+          const SizedBox(width: 8),
+          Text(
+            micActive ? 'Activo' : 'Mic listo',
+            style: Theme.of(context).textTheme.labelSmall,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ConversationBadge extends StatelessWidget {
+  const _ConversationBadge({required this.scheme, required this.state});
+
+  final ColorScheme scheme;
+  final InterviewConversationState state;
+
+  @override
+  Widget build(BuildContext context) {
+    final (icon, text, color) = switch (state) {
+      InterviewConversationState.speaking => (
+        Icons.volume_up_rounded,
+        'IA hablando',
+        scheme.primary,
+      ),
+      InterviewConversationState.listening => (
+        Icons.mic_rounded,
+        'Escuchando',
+        scheme.secondary,
+      ),
+      InterviewConversationState.processing => (
+        Icons.auto_awesome_rounded,
+        'Procesando',
+        scheme.tertiary,
+      ),
+      InterviewConversationState.idle => (
+        Icons.pause_circle_outline_rounded,
+        'En espera',
+        scheme.onSurfaceVariant,
+      ),
+    };
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(999),
+        color: scheme.surfaceContainerHighest.withValues(alpha: 0.70),
+        border: Border.all(color: scheme.outlineVariant.withValues(alpha: 0.6)),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, size: 18, color: color),
+          const SizedBox(width: 8),
+          Text(text),
+        ],
+      ),
+    );
+  }
+}
+
+class _StatePill extends StatelessWidget {
+  const _StatePill({
+    required this.label,
+    required this.active,
+    required this.scheme,
+    required this.icon,
+  });
+
+  final String label;
+  final bool active;
+  final ColorScheme scheme;
+  final IconData icon;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(999),
+        color: active
+            ? scheme.primary.withValues(alpha: 0.14)
+            : scheme.surfaceContainerHighest.withValues(alpha: 0.60),
+        border: Border.all(
+          color: active ? scheme.primary : scheme.outlineVariant,
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            icon,
+            size: 18,
+            color: active ? scheme.primary : scheme.onSurfaceVariant,
+          ),
+          const SizedBox(width: 8),
+          Text(label),
         ],
       ),
     );
