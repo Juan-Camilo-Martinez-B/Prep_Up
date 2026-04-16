@@ -3,15 +3,17 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:prep_up/core/navigation/app_routes.dart';
 import 'package:prep_up/domain/entities/interview_config.dart';
+import 'package:prep_up/domain/entities/interview_session.dart';
 import 'package:prep_up/presentation/controllers/interview_config_controller.dart';
 import 'package:prep_up/presentation/widgets/app_primary_button.dart';
 import 'package:prep_up/presentation/widgets/app_screen_scaffold.dart';
 import 'package:provider/provider.dart';
 
 class InterviewProcessingScreen extends StatefulWidget {
-  const InterviewProcessingScreen({super.key, this.config});
+  const InterviewProcessingScreen({super.key, this.config, this.session});
 
   final InterviewConfig? config;
+  final InterviewSession? session;
 
   @override
   State<InterviewProcessingScreen> createState() =>
@@ -44,6 +46,7 @@ class _InterviewProcessingScreenState extends State<InterviewProcessingScreen> {
     final scheme = Theme.of(context).colorScheme;
     final providerConfig = context.watch<InterviewConfigController>().config;
     final config = widget.config ?? providerConfig;
+    final session = widget.session;
 
     return AppScreenScaffold(
       title: 'Analizando',
@@ -62,6 +65,15 @@ class _InterviewProcessingScreenState extends State<InterviewProcessingScreen> {
                   color: scheme.onSurfaceVariant,
                 ),
           ),
+          if (session != null) ...[
+            const SizedBox(height: 8),
+            Text(
+              'Respuestas capturadas: ${session.turns.length}',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: scheme.onSurfaceVariant,
+                  ),
+            ),
+          ],
           const SizedBox(height: 22),
           ClipRRect(
             borderRadius: BorderRadius.circular(16),

@@ -153,15 +153,7 @@ class _DeviceCheckScreenState extends State<DeviceCheckScreen> {
                       return;
                     }
 
-                    if (isSimulated) {
-                      Navigator.of(context).pushNamed(AppRoutes.simulatedCall);
-                      return;
-                    }
-
-                    Navigator.of(context).pushNamed(
-                      AppRoutes.interviewProcessing,
-                      arguments: config,
-                    );
+                    Navigator.of(context).pushNamed(AppRoutes.simulatedCall);
                   }
                 : null,
           ),

@@ -4,7 +4,9 @@ import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:prep_up/core/navigation/app_routes.dart';
 import 'package:prep_up/domain/entities/interview_config.dart';
+import 'package:prep_up/domain/services/gemini_service.dart';
 import 'package:prep_up/presentation/controllers/interview_config_controller.dart';
+import 'package:prep_up/presentation/controllers/interview_session_controller.dart';
 import 'package:prep_up/presentation/controllers/media_device_controller.dart';
 import 'package:prep_up/presentation/widgets/app_card.dart';
 import 'package:prep_up/presentation/widgets/app_primary_button.dart';
@@ -22,9 +24,9 @@ class _SimulatedCallScreenState extends State<SimulatedCallScreen> {
   late int _secondsLeft;
   Timer? _timer;
 
-  late final List<String> _questions;
-  var _questionIndex = 0;
   late final InterviewConfig _config;
+  late final InterviewSessionController _sessionController;
+  final _answerController = TextEditingController();
 
   @override
   void initState() {
@@ -35,17 +37,39 @@ class _SimulatedCallScreenState extends State<SimulatedCallScreen> {
     });
     final durationMinutes = _config.durationMinutes ?? 3;
     _secondsLeft = durationMinutes * 60;
-    _questions = _buildQuestions(_config);
     _timer = Timer.periodic(const Duration(seconds: 1), (_) {
       if (!mounted) return;
       if (_secondsLeft <= 0) return;
       setState(() => _secondsLeft -= 1);
     });
+
+    _sessionController = InterviewSessionController(
+      geminiService: GeminiService(),
+      config: _config,
+    );
+
+    _sessionController.addListener(() {
+      if (!mounted) return;
+      if (_sessionController.isListening) {
+        final v = _sessionController.voiceDraft;
+        if (v.isNotEmpty && _answerController.text != v) {
+          _answerController.value = _answerController.value.copyWith(
+            text: v,
+            selection: TextSelection.collapsed(offset: v.length),
+            composing: TextRange.empty,
+          );
+        }
+      }
+    });
+
+    _sessionController.start();
   }
 
   @override
   void dispose() {
     _timer?.cancel();
+    _answerController.dispose();
+    _sessionController.dispose();
     super.dispose();
   }
 
@@ -55,7 +79,6 @@ class _SimulatedCallScreenState extends State<SimulatedCallScreen> {
     final media = context.watch<MediaDeviceController>();
     final minutes = (_secondsLeft ~/ 60).toString().padLeft(2, '0');
     final seconds = (_secondsLeft % 60).toString().padLeft(2, '0');
-    final question = _questions[_questionIndex % _questions.length];
 
     return AppScreenScaffold(
       title: 'Videollamada',
@@ -125,22 +148,171 @@ class _SimulatedCallScreenState extends State<SimulatedCallScreen> {
             ),
           ),
           const SizedBox(height: 14),
-          AppCard(
-            title: 'Pregunta',
-            subtitle: 'Entrevistador IA (simulado)',
-            leading: Icon(Icons.smart_toy_outlined, color: scheme.primary),
-            child: Text(
-              question,
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
+          AnimatedBuilder(
+            animation: _sessionController,
+            builder: (context, _) {
+              final question = _sessionController.currentQuestion.trim();
+              final hasQuestion = question.isNotEmpty;
+              final isLoading = _sessionController.isStarting && !hasQuestion;
+
+              return AppCard(
+                title: 'Pregunta',
+                subtitle: 'Entrevistador IA',
+                leading: Icon(Icons.smart_toy_outlined, color: scheme.primary),
+                child: isLoading
+                    ? const SizedBox(
+                        height: 44,
+                        child: Center(child: CircularProgressIndicator()),
+                      )
+                    : Text(
+                        hasQuestion ? question : 'No hay pregunta aún.',
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+              );
+            },
+          ),
+          const SizedBox(height: 14),
+          AnimatedBuilder(
+            animation: _sessionController,
+            builder: (context, _) {
+              final lastTurn = _sessionController.lastTurn;
+              if (lastTurn == null) return const SizedBox.shrink();
+
+              final eval = lastTurn.evaluation;
+              final feedback = lastTurn.feedback;
+
+              return AppCard(
+                title: 'Evaluación',
+                subtitle: 'Feedback en tiempo real',
+                leading: Icon(Icons.insights_rounded, color: scheme.secondary),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Score: ${eval.overallScore}/100'),
+                    if (eval.strengths.isNotEmpty) ...[
+                      const SizedBox(height: 8),
+                      Text('Fortalezas: ${eval.strengths.join(' • ')}'),
+                    ],
+                    if (eval.improvements.isNotEmpty) ...[
+                      const SizedBox(height: 8),
+                      Text('Mejoras: ${eval.improvements.join(' • ')}'),
+                    ],
+                    if (feedback.summary.trim().isNotEmpty) ...[
+                      const SizedBox(height: 10),
+                      Text('Resumen: ${feedback.summary.trim()}'),
+                    ],
+                  ],
+                ),
+              );
+            },
+          ),
+          const SizedBox(height: 14),
+          AnimatedBuilder(
+            animation: _sessionController,
+            builder: (context, _) {
+              final isBusy =
+                  _sessionController.isSubmitting || _sessionController.isGeneratingNext;
+              final isListening = _sessionController.isListening;
+              final questionReady =
+                  _sessionController.currentQuestion.trim().isNotEmpty;
+
+              return AppCard(
+                title: 'Tu respuesta',
+                subtitle: isListening ? 'Escuchando...' : 'Texto o voz',
+                leading: Icon(Icons.record_voice_over_rounded, color: scheme.primary),
+                child: Column(
+                  children: [
+                    TextField(
+                      controller: _answerController,
+                      minLines: 3,
+                      maxLines: 6,
+                      decoration: const InputDecoration(
+                        labelText: 'Escribe tu respuesta',
+                        alignLabelWithHint: true,
+                      ),
+                      enabled: questionReady && _secondsLeft > 0 && !isBusy,
+                    ),
+                    const SizedBox(height: 12),
+                    ValueListenableBuilder<TextEditingValue>(
+                      valueListenable: _answerController,
+                      builder: (context, value, _) {
+                        final canSend = questionReady &&
+                            _secondsLeft > 0 &&
+                            !isBusy &&
+                            value.text.trim().isNotEmpty;
+
+                        return Row(
+                          children: [
+                            OutlinedButton.icon(
+                              onPressed:
+                                  (!questionReady || _secondsLeft <= 0 || isBusy)
+                                      ? null
+                                      : () async {
+                                          await _sessionController
+                                              .toggleListening();
+                                        },
+                              icon: Icon(
+                                isListening
+                                    ? Icons.mic_off_rounded
+                                    : Icons.mic_rounded,
+                              ),
+                              label: Text(isListening ? 'Detener' : 'Hablar'),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: AppPrimaryButton(
+                                isExpanded: true,
+                                label: 'Enviar',
+                                icon: Icons.send_rounded,
+                                isLoading: isBusy,
+                                onPressed: canSend
+                                    ? () async {
+                                        final text = value.text;
+                                        await _sessionController
+                                            .submitAnswer(text);
+                                        if (_sessionController.error == null) {
+                                          _answerController.clear();
+                                        }
+                                      }
+                                    : null,
+                              ),
+                            ),
+                          ],
+                        );
+                      },
+                    ),
+                    if (_sessionController.error != null) ...[
+                      const SizedBox(height: 10),
+                      Text(
+                        _sessionController.error!,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: scheme.error,
+                            ),
+                      ),
+                      const SizedBox(height: 6),
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: TextButton(
+                          onPressed: () {
+                            _sessionController.clearError();
+                          },
+                          child: const Text('Cerrar'),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              );
+            },
           ),
           const SizedBox(height: 14),
           Row(
             children: [
               Expanded(
                 child: OutlinedButton.icon(
-                  onPressed: () {
-                    setState(() => _questionIndex += 1);
+                  onPressed: () async {
+                    await _sessionController.generateNextQuestion();
+                    _answerController.clear();
                   },
                   style: OutlinedButton.styleFrom(
                     minimumSize: const Size(0, 48),
@@ -149,7 +321,7 @@ class _SimulatedCallScreenState extends State<SimulatedCallScreen> {
                     ),
                   ),
                   icon: const Icon(Icons.skip_next_rounded),
-                  label: const Text('Siguiente'),
+                  label: const Text('Omitir'),
                 ),
               ),
               const SizedBox(width: 12),
@@ -161,7 +333,10 @@ class _SimulatedCallScreenState extends State<SimulatedCallScreen> {
                   onPressed: () {
                     Navigator.of(context).pushNamed(
                       AppRoutes.interviewProcessing,
-                      arguments: _config,
+                      arguments: {
+                        'config': _config,
+                        'session': _sessionController.session,
+                      },
                     );
                   },
                 ),
@@ -179,26 +354,6 @@ class _SimulatedCallScreenState extends State<SimulatedCallScreen> {
       ),
     );
   }
-}
-
-List<String> _buildQuestions(InterviewConfig config) {
-  return switch (config.type) {
-    InterviewConfigType.technical => const [
-        'Explícame una decisión técnica clave que tomaste recientemente.',
-        '¿Cómo diagnosticarías un bug intermitente en producción?',
-        '¿Qué trade-offs evaluas al diseñar una API?',
-      ],
-    InterviewConfigType.rrhh => const [
-        'Cuéntame sobre ti en 60 segundos.',
-        'Describe un conflicto en equipo y cómo lo resolviste.',
-        '¿Cuál es tu mayor fortaleza profesional y por qué?',
-      ],
-    InterviewConfigType.mixed || null => const [
-        'Cuéntame sobre ti en 60 segundos.',
-        '¿Qué proyecto te entusiasma y por qué?',
-        'Describe un reto técnico y cómo lo resolviste.',
-      ],
-  };
 }
 
 class _TimerChip extends StatelessWidget {

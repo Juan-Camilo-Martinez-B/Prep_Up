@@ -27,11 +27,13 @@ class GeminiService {
     String? model,
   })  : _httpClient = httpClient ?? HttpClient(),
         _apiKey = (apiKey ?? AppConfig.geminiApiKey).trim(),
-        _model = (model ?? AppConfig.geminiModel).trim();
+        _model = _normalizeModelName((model ?? AppConfig.geminiModel).trim());
 
   final HttpClient _httpClient;
   final String _apiKey;
   final String _model;
+
+  static final Map<String, String> _resolvedModelByApiKey = {};
 
   Future<String> sendPrompt({
     required String prompt,
@@ -45,10 +47,9 @@ class GeminiService {
       );
     }
 
-    final uri = AppConfig.geminiGenerateContentUri(
-      model: _model,
-      apiKey: _apiKey,
-    );
+    final resolved = _resolvedModelByApiKey[_apiKey];
+    final baseModel = resolved == null ? _model : _normalizeModelName(resolved);
+    final modelsToTry = _modelsToTry(baseModel);
 
     final body = <String, dynamic>{
       'contents': [
@@ -74,85 +75,25 @@ class GeminiService {
     }
 
     try {
-      final request = await _httpClient.postUrl(uri);
-      request.headers.contentType = ContentType.json;
-      request.write(jsonEncode(body));
-
-      final response = await request.close();
-      final responseBody = await utf8.decodeStream(response);
-
-      if (response.statusCode < 200 || response.statusCode >= 300) {
-        final message = _tryExtractApiErrorMessage(responseBody) ??
-            'Error al llamar a Gemini.';
-        throw GeminiException(
-          message,
-          statusCode: response.statusCode,
-          details: responseBody,
-        );
-      }
-
-      final decoded = jsonDecode(responseBody);
-      if (decoded is! Map<String, dynamic>) {
-        throw GeminiException(
-          'Respuesta inválida de Gemini.',
-          statusCode: response.statusCode,
-          details: decoded,
-        );
-      }
-
-      final candidates = decoded['candidates'];
-      if (candidates is! List || candidates.isEmpty) {
-        throw GeminiException(
-          'Gemini no devolvió candidatos.',
-          statusCode: response.statusCode,
-          details: decoded,
-        );
-      }
-
-      final candidate = candidates.first;
-      if (candidate is! Map) {
-        throw GeminiException(
-          'Candidato inválido en respuesta de Gemini.',
-          statusCode: response.statusCode,
-          details: decoded,
-        );
-      }
-
-      final content = candidate['content'];
-      if (content is! Map) {
-        throw GeminiException(
-          'Contenido inválido en respuesta de Gemini.',
-          statusCode: response.statusCode,
-          details: decoded,
-        );
-      }
-
-      final parts = content['parts'];
-      if (parts is! List || parts.isEmpty) {
-        throw GeminiException(
-          'Gemini devolvió una respuesta vacía.',
-          statusCode: response.statusCode,
-          details: decoded,
-        );
-      }
-
-      final buffer = StringBuffer();
-      for (final part in parts) {
-        if (part is Map && part['text'] is String) {
-          buffer.writeln(part['text'] as String);
+      GeminiException? lastModelError;
+      for (final model in modelsToTry) {
+        try {
+          return await _sendPromptOnce(model: model, body: body);
+        } on GeminiException catch (e) {
+          lastModelError = e;
+          if (e.statusCode == 404) continue;
+          rethrow;
         }
       }
-
-      final text = buffer.toString().trim();
-      if (text.isEmpty) {
-        throw GeminiException(
-          'Gemini devolvió una respuesta vacía.',
-          statusCode: response.statusCode,
-          details: decoded,
-        );
+      if (lastModelError?.statusCode == 404) {
+        final discovered = await _discoverBestModel();
+        if (discovered != null) {
+          _resolvedModelByApiKey[_apiKey] = discovered;
+          return await _sendPromptOnce(model: discovered, body: body);
+        }
       }
-
-      return text;
+      if (lastModelError != null) throw lastModelError;
+      throw const GeminiException('No se pudo contactar a Gemini.');
     } on SocketException catch (e) {
       throw GeminiException(
         'No hay conexión a internet o no se pudo contactar a Gemini.',
@@ -162,6 +103,154 @@ class GeminiService {
       throw GeminiException('Error HTTP al contactar a Gemini.', details: e);
     } on FormatException catch (e) {
       throw GeminiException('Error al parsear respuesta de Gemini.', details: e);
+    }
+  }
+
+  Future<String> _sendPromptOnce({
+    required String model,
+    required Map<String, dynamic> body,
+  }) async {
+    final uri = AppConfig.geminiGenerateContentUri(
+      model: _normalizeModelName(model),
+      apiKey: _apiKey,
+    );
+
+    final request = await _httpClient.postUrl(uri);
+    request.headers.contentType = ContentType.json;
+    request.write(jsonEncode(body));
+
+    final response = await request.close();
+    final responseBody = await utf8.decodeStream(response);
+
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      final message =
+          _tryExtractApiErrorMessage(responseBody) ?? 'Error al llamar a Gemini.';
+      throw GeminiException(
+        message,
+        statusCode: response.statusCode,
+        details: responseBody,
+      );
+    }
+
+    final decoded = jsonDecode(responseBody);
+    if (decoded is! Map<String, dynamic>) {
+      throw GeminiException(
+        'Respuesta inválida de Gemini.',
+        statusCode: response.statusCode,
+        details: decoded,
+      );
+    }
+
+    final candidates = decoded['candidates'];
+    if (candidates is! List || candidates.isEmpty) {
+      throw GeminiException(
+        'Gemini no devolvió candidatos.',
+        statusCode: response.statusCode,
+        details: decoded,
+      );
+    }
+
+    final candidate = candidates.first;
+    if (candidate is! Map) {
+      throw GeminiException(
+        'Candidato inválido en respuesta de Gemini.',
+        statusCode: response.statusCode,
+        details: decoded,
+      );
+    }
+
+    final content = candidate['content'];
+    if (content is! Map) {
+      throw GeminiException(
+        'Contenido inválido en respuesta de Gemini.',
+        statusCode: response.statusCode,
+        details: decoded,
+      );
+    }
+
+    final parts = content['parts'];
+    if (parts is! List || parts.isEmpty) {
+      throw GeminiException(
+        'Gemini devolvió una respuesta vacía.',
+        statusCode: response.statusCode,
+        details: decoded,
+      );
+    }
+
+    final buffer = StringBuffer();
+    for (final part in parts) {
+      if (part is Map && part['text'] is String) {
+        buffer.writeln(part['text'] as String);
+      }
+    }
+
+    final text = buffer.toString().trim();
+    if (text.isEmpty) {
+      throw GeminiException(
+        'Gemini devolvió una respuesta vacía.',
+        statusCode: response.statusCode,
+        details: decoded,
+      );
+    }
+
+    return text;
+  }
+
+  Future<String?> _discoverBestModel() async {
+    try {
+      final uri = AppConfig.geminiListModelsUri(apiKey: _apiKey);
+      final request = await _httpClient.getUrl(uri);
+      final response = await request.close();
+      final responseBody = await utf8.decodeStream(response);
+
+      if (response.statusCode < 200 || response.statusCode >= 300) return null;
+
+      final decoded = jsonDecode(responseBody);
+      if (decoded is! Map<String, dynamic>) return null;
+      final models = decoded['models'];
+      if (models is! List) return null;
+
+      final available = <_GeminiModelInfo>[];
+      for (final item in models) {
+        if (item is! Map) continue;
+        final name = item['name'];
+        if (name is! String || name.trim().isEmpty) continue;
+        final supported = item['supportedGenerationMethods'];
+        final methods = supported is List
+            ? supported.whereType<String>().map((e) => e.trim()).toList()
+            : const <String>[];
+        if (!methods.contains('generateContent')) continue;
+        available.add(
+          _GeminiModelInfo(
+            name: _normalizeModelName(name),
+            supportedMethods: methods,
+          ),
+        );
+      }
+
+      if (available.isEmpty) return null;
+
+      final preferences = <String>[
+        _normalizeModelName(_model),
+        'gemini-2.0-flash',
+        'gemini-2.0-flash-lite',
+        'gemini-2.0-flash-exp',
+        'gemini-1.5-flash-latest',
+        'gemini-1.5-flash',
+        'gemini-flash-latest',
+        'gemini-flash',
+        'gemini-1.5-pro-latest',
+        'gemini-1.5-pro',
+      ];
+
+      for (final pref in preferences) {
+        final match = available.where((m) => m.name == pref).toList();
+        if (match.isNotEmpty) return match.first.name;
+      }
+
+      return available.first.name;
+    } catch (_) {
+      return null;
     }
   }
 
@@ -354,6 +443,31 @@ String _extractJsonText(String raw) {
   return inside.trim();
 }
 
+String _normalizeModelName(String model) {
+  final trimmed = model.trim();
+  if (trimmed.startsWith('models/')) return trimmed.substring('models/'.length);
+  if (trimmed == 'gemini-1.5-flash') return 'gemini-1.5-flash-latest';
+  if (trimmed == 'gemini-1.5-pro') return 'gemini-1.5-pro-latest';
+  return trimmed;
+}
+
+Iterable<String> _modelsToTry(String model) sync* {
+  final normalized = _normalizeModelName(model);
+  if (normalized.isNotEmpty) yield normalized;
+  if (!normalized.endsWith('-latest')) {
+    yield '$normalized-latest';
+  }
+  yield 'gemini-1.5-flash-latest';
+  yield 'gemini-flash-latest';
+}
+
+class _GeminiModelInfo {
+  const _GeminiModelInfo({required this.name, required this.supportedMethods});
+
+  final String name;
+  final List<String> supportedMethods;
+}
+
 List<String> _fallbackQuestionsFromText(String raw) {
   final lines = raw
       .split('\n')
@@ -369,4 +483,3 @@ List<String> _fallbackQuestionsFromText(String raw) {
   }
   return cleaned;
 }
-

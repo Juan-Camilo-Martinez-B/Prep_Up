@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:prep_up/core/navigation/app_routes.dart';
 import 'package:prep_up/domain/entities/interview_config.dart';
+import 'package:prep_up/domain/entities/interview_session.dart';
 import 'package:prep_up/presentation/screens/analysis/detailed_analysis_screen.dart';
 import 'package:prep_up/presentation/screens/analysis/general_results_screen.dart';
 import 'package:prep_up/presentation/screens/analysis/interview_processing_screen.dart';
@@ -47,6 +48,23 @@ class AppRouter {
     final routeName = settings.name ?? '';
     final arguments = settings.arguments;
 
+    final InterviewConfig? configArg;
+    final InterviewSession? sessionArg;
+
+    if (arguments is InterviewConfig) {
+      configArg = arguments;
+      sessionArg = null;
+    } else if (arguments is Map) {
+      final map = arguments.cast<String, Object?>();
+      final rawConfig = map['config'];
+      final rawSession = map['session'];
+      configArg = rawConfig is InterviewConfig ? rawConfig : null;
+      sessionArg = rawSession is InterviewSession ? rawSession : null;
+    } else {
+      configArg = null;
+      sessionArg = null;
+    }
+
     return switch (routeName) {
       AppRoutes.splash => const SplashScreen(),
       AppRoutes.login => const LoginScreen(),
@@ -61,7 +79,8 @@ class AppRouter {
       AppRoutes.deviceCheck => const DeviceCheckScreen(),
       AppRoutes.simulatedCall => const SimulatedCallScreen(),
       AppRoutes.interviewProcessing => InterviewProcessingScreen(
-          config: arguments is InterviewConfig ? arguments : null,
+          config: configArg,
+          session: sessionArg,
         ),
       AppRoutes.generalResults => const GeneralResultsScreen(),
       AppRoutes.detailedAnalysis => const DetailedAnalysisScreen(),
