@@ -1,23 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:prep_up/core/navigation/app_routes.dart';
+import 'package:prep_up/domain/entities/interview_config.dart';
+import 'package:prep_up/presentation/controllers/interview_config_controller.dart';
 import 'package:prep_up/presentation/widgets/app_card.dart';
 import 'package:prep_up/presentation/widgets/app_primary_button.dart';
 import 'package:prep_up/presentation/widgets/app_screen_scaffold.dart';
+import 'package:provider/provider.dart';
 
-class SelectInterviewTypeScreen extends StatefulWidget {
+class SelectInterviewTypeScreen extends StatelessWidget {
   const SelectInterviewTypeScreen({super.key});
-
-  @override
-  State<SelectInterviewTypeScreen> createState() =>
-      _SelectInterviewTypeScreenState();
-}
-
-class _SelectInterviewTypeScreenState extends State<SelectInterviewTypeScreen> {
-  _TypeOption _selected = _TypeOption.behavioral;
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final controller = context.watch<InterviewConfigController>();
+    final selected = controller.config.type;
 
     return AppScreenScaffold(
       title: 'Tipo de entrevista',
@@ -36,11 +33,11 @@ class _SelectInterviewTypeScreenState extends State<SelectInterviewTypeScreen> {
                 ),
           ),
           const SizedBox(height: 14),
-          for (final option in _TypeOption.values) ...[
+          for (final option in InterviewConfigType.values) ...[
             _TypeCard(
               option: option,
-              selected: _selected == option,
-              onTap: () => setState(() => _selected = option),
+              selected: selected == option,
+              onTap: () => controller.setType(option),
             ),
             const SizedBox(height: 12),
           ],
@@ -48,7 +45,14 @@ class _SelectInterviewTypeScreenState extends State<SelectInterviewTypeScreen> {
             label: 'Continuar',
             icon: Icons.arrow_forward_rounded,
             onPressed: () {
-              // TODO: guardar preferencia de tipo en sesión de entrevista.
+              if (controller.config.type == null) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Selecciona el tipo de entrevista para continuar.'),
+                  ),
+                );
+                return;
+              }
               Navigator.of(context).pushNamed(AppRoutes.selectJobRole);
             },
           ),
@@ -70,12 +74,6 @@ class _SelectInterviewTypeScreenState extends State<SelectInterviewTypeScreen> {
   }
 }
 
-enum _TypeOption {
-  behavioral,
-  technical,
-  mixed,
-}
-
 class _TypeCard extends StatelessWidget {
   const _TypeCard({
     required this.option,
@@ -83,7 +81,7 @@ class _TypeCard extends StatelessWidget {
     required this.onTap,
   });
 
-  final _TypeOption option;
+  final InterviewConfigType option;
   final bool selected;
   final VoidCallback onTap;
 
@@ -92,17 +90,17 @@ class _TypeCard extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
 
     final (title, subtitle, icon) = switch (option) {
-      _TypeOption.behavioral => (
-          'Conductual',
-          'Comunicación, historias, soft skills',
-          Icons.chat_bubble_outline_rounded
-        ),
-      _TypeOption.technical => (
+      InterviewConfigType.technical => (
           'Técnica',
           'Problemas, conceptos, debugging',
           Icons.code_rounded
         ),
-      _TypeOption.mixed => (
+      InterviewConfigType.rrhh => (
+          'RRHH',
+          'Comunicación, historias, soft skills',
+          Icons.chat_bubble_outline_rounded
+        ),
+      InterviewConfigType.mixed => (
           'Mixta',
           'Combinación equilibrada',
           Icons.auto_awesome_rounded

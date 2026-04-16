@@ -35,8 +35,10 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
   supabase_flutter: ^2.8.1
-  flutter_dotenv: ^5.2.1
+  flutter_dotenv: any # Para cargar el archivo .env
   shared_preferences: ^2.3.2
+  provider: ^6.1.2
+  google_generative_ai: any
 
 dev_dependencies:
   flutter_test:

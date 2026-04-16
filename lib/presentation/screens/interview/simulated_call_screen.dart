@@ -2,9 +2,12 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:prep_up/core/navigation/app_routes.dart';
+import 'package:prep_up/domain/entities/interview_config.dart';
+import 'package:prep_up/presentation/controllers/interview_config_controller.dart';
 import 'package:prep_up/presentation/widgets/app_card.dart';
 import 'package:prep_up/presentation/widgets/app_primary_button.dart';
 import 'package:prep_up/presentation/widgets/app_screen_scaffold.dart';
+import 'package:provider/provider.dart';
 
 class SimulatedCallScreen extends StatefulWidget {
   const SimulatedCallScreen({super.key});
@@ -14,21 +17,20 @@ class SimulatedCallScreen extends StatefulWidget {
 }
 
 class _SimulatedCallScreenState extends State<SimulatedCallScreen> {
-  static const _initialSeconds = 180;
   late int _secondsLeft;
   Timer? _timer;
 
-  final _questions = const [
-    'Cuéntame sobre ti en 60 segundos.',
-    '¿Qué proyecto te entusiasma y por qué?',
-    'Describe un reto y cómo lo resolviste.',
-  ];
+  late final List<String> _questions;
   var _questionIndex = 0;
+  late final InterviewConfig _config;
 
   @override
   void initState() {
     super.initState();
-    _secondsLeft = _initialSeconds;
+    _config = context.read<InterviewConfigController>().config;
+    final durationMinutes = _config.durationMinutes ?? 3;
+    _secondsLeft = durationMinutes * 60;
+    _questions = _buildQuestions(_config);
     _timer = Timer.periodic(const Duration(seconds: 1), (_) {
       if (!mounted) return;
       if (_secondsLeft <= 0) return;
@@ -121,7 +123,6 @@ class _SimulatedCallScreenState extends State<SimulatedCallScreen> {
                 child: OutlinedButton.icon(
                   onPressed: () {
                     setState(() => _questionIndex += 1);
-                    // TODO: conectar con servicio de IA para generar preguntas de entrevista.
                   },
                   style: OutlinedButton.styleFrom(
                     minimumSize: const Size(0, 48),
@@ -140,8 +141,10 @@ class _SimulatedCallScreenState extends State<SimulatedCallScreen> {
                   label: 'Finalizar',
                   icon: Icons.check_rounded,
                   onPressed: () {
-                    // TODO: finalizar captura y guardar referencia de video.
-                    Navigator.of(context).pushNamed(AppRoutes.interviewProcessing);
+                    Navigator.of(context).pushNamed(
+                      AppRoutes.interviewProcessing,
+                      arguments: _config,
+                    );
                   },
                 ),
               ),
@@ -158,6 +161,26 @@ class _SimulatedCallScreenState extends State<SimulatedCallScreen> {
       ),
     );
   }
+}
+
+List<String> _buildQuestions(InterviewConfig config) {
+  return switch (config.type) {
+    InterviewConfigType.technical => const [
+        'Explícame una decisión técnica clave que tomaste recientemente.',
+        '¿Cómo diagnosticarías un bug intermitente en producción?',
+        '¿Qué trade-offs evaluas al diseñar una API?',
+      ],
+    InterviewConfigType.rrhh => const [
+        'Cuéntame sobre ti en 60 segundos.',
+        'Describe un conflicto en equipo y cómo lo resolviste.',
+        '¿Cuál es tu mayor fortaleza profesional y por qué?',
+      ],
+    InterviewConfigType.mixed || null => const [
+        'Cuéntame sobre ti en 60 segundos.',
+        '¿Qué proyecto te entusiasma y por qué?',
+        'Describe un reto técnico y cómo lo resolviste.',
+      ],
+  };
 }
 
 class _TimerChip extends StatelessWidget {

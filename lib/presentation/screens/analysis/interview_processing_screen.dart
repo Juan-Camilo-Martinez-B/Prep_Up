@@ -2,11 +2,16 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:prep_up/core/navigation/app_routes.dart';
+import 'package:prep_up/domain/entities/interview_config.dart';
+import 'package:prep_up/presentation/controllers/interview_config_controller.dart';
 import 'package:prep_up/presentation/widgets/app_primary_button.dart';
 import 'package:prep_up/presentation/widgets/app_screen_scaffold.dart';
+import 'package:provider/provider.dart';
 
 class InterviewProcessingScreen extends StatefulWidget {
-  const InterviewProcessingScreen({super.key});
+  const InterviewProcessingScreen({super.key, this.config});
+
+  final InterviewConfig? config;
 
   @override
   State<InterviewProcessingScreen> createState() =>
@@ -37,6 +42,8 @@ class _InterviewProcessingScreenState extends State<InterviewProcessingScreen> {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final providerConfig = context.watch<InterviewConfigController>().config;
+    final config = widget.config ?? providerConfig;
 
     return AppScreenScaffold(
       title: 'Analizando',
@@ -80,6 +87,8 @@ class _InterviewProcessingScreenState extends State<InterviewProcessingScreen> {
               ),
             ],
           ),
+          const SizedBox(height: 14),
+          _ConfigSummary(config: config),
           const Spacer(),
           AppPrimaryButton(
             label: 'Ver resultados',
@@ -103,6 +112,42 @@ class _InterviewProcessingScreenState extends State<InterviewProcessingScreen> {
             ),
             child: const Text('Volver al Dashboard'),
           ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ConfigSummary extends StatelessWidget {
+  const _ConfigSummary({required this.config});
+
+  final InterviewConfig config;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        color: scheme.surfaceContainerHighest.withValues(alpha: 0.45),
+        border: Border.all(color: scheme.outlineVariant.withValues(alpha: 0.6)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Configuración recibida',
+            style: Theme.of(context).textTheme.titleSmall,
+          ),
+          const SizedBox(height: 10),
+          Text('Tipo: ${config.type?.label ?? '-'}'),
+          Text('Cargo: ${config.jobRole.isEmpty ? '-' : config.jobRole}'),
+          Text(
+            'Duración: ${config.durationMinutes == null ? '-' : '${config.durationMinutes} min'}',
+          ),
+          Text('Modalidad: ${config.mode?.label ?? '-'}'),
         ],
       ),
     );

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:prep_up/core/navigation/app_routes.dart';
+import 'package:prep_up/domain/entities/interview_config.dart';
 import 'package:prep_up/presentation/screens/analysis/detailed_analysis_screen.dart';
 import 'package:prep_up/presentation/screens/analysis/general_results_screen.dart';
 import 'package:prep_up/presentation/screens/analysis/interview_processing_screen.dart';
@@ -34,7 +35,7 @@ class AppRouter {
       );
     }
 
-    final page = _pageFor(name);
+    final page = _pageFor(settings);
 
     return MaterialPageRoute<void>(
       settings: settings,
@@ -42,7 +43,10 @@ class AppRouter {
     );
   }
 
-  static Widget _pageFor(String routeName) {
+  static Widget _pageFor(RouteSettings settings) {
+    final routeName = settings.name ?? '';
+    final arguments = settings.arguments;
+
     return switch (routeName) {
       AppRoutes.splash => const SplashScreen(),
       AppRoutes.login => const LoginScreen(),
@@ -56,7 +60,9 @@ class AppRouter {
       AppRoutes.interviewConfiguration => const InterviewConfigurationScreen(),
       AppRoutes.deviceCheck => const DeviceCheckScreen(),
       AppRoutes.simulatedCall => const SimulatedCallScreen(),
-      AppRoutes.interviewProcessing => const InterviewProcessingScreen(),
+      AppRoutes.interviewProcessing => InterviewProcessingScreen(
+          config: arguments is InterviewConfig ? arguments : null,
+        ),
       AppRoutes.generalResults => const GeneralResultsScreen(),
       AppRoutes.detailedAnalysis => const DetailedAnalysisScreen(),
       AppRoutes.recommendations => const RecommendationsScreen(),

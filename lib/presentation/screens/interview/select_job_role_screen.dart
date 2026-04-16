@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:prep_up/core/navigation/app_routes.dart';
+import 'package:prep_up/presentation/controllers/interview_config_controller.dart';
 import 'package:prep_up/presentation/widgets/app_card.dart';
 import 'package:prep_up/presentation/widgets/app_primary_button.dart';
 import 'package:prep_up/presentation/widgets/app_screen_scaffold.dart';
+import 'package:provider/provider.dart';
 
 class SelectJobRoleScreen extends StatefulWidget {
   const SelectJobRoleScreen({super.key});
@@ -13,7 +15,7 @@ class SelectJobRoleScreen extends StatefulWidget {
 
 class _SelectJobRoleScreenState extends State<SelectJobRoleScreen> {
   final _searchController = TextEditingController();
-  String _selected = 'Frontend Developer';
+  String _selected = '';
 
   final _roles = const [
     'Frontend Developer',
@@ -26,6 +28,12 @@ class _SelectJobRoleScreenState extends State<SelectJobRoleScreen> {
     'DevOps',
     'Product Manager',
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    _selected = context.read<InterviewConfigController>().config.jobRole;
+  }
 
   @override
   void dispose() {
@@ -77,7 +85,15 @@ class _SelectJobRoleScreenState extends State<SelectJobRoleScreen> {
             label: 'Continuar',
             icon: Icons.arrow_forward_rounded,
             onPressed: () {
-              // TODO: guardar rol elegido en sesión de entrevista.
+              if (_selected.trim().isEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Selecciona un cargo para continuar.'),
+                  ),
+                );
+                return;
+              }
+              context.read<InterviewConfigController>().setJobRole(_selected);
               Navigator.of(context).pushNamed(AppRoutes.interviewConfiguration);
             },
           ),

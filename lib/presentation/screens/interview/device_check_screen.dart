@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:prep_up/core/navigation/app_routes.dart';
+import 'package:prep_up/domain/entities/interview_config.dart';
+import 'package:prep_up/presentation/controllers/interview_config_controller.dart';
 import 'package:prep_up/presentation/widgets/app_card.dart';
 import 'package:prep_up/presentation/widgets/app_primary_button.dart';
 import 'package:prep_up/presentation/widgets/app_screen_scaffold.dart';
+import 'package:provider/provider.dart';
 
 class DeviceCheckScreen extends StatefulWidget {
   const DeviceCheckScreen({super.key});
@@ -18,6 +21,9 @@ class _DeviceCheckScreenState extends State<DeviceCheckScreen> {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final controller = context.watch<InterviewConfigController>();
+    final config = controller.config;
+    final isSimulated = config.mode == InterviewMode.simulated;
 
     return AppScreenScaffold(
       title: 'Preparación',
@@ -78,12 +84,31 @@ class _DeviceCheckScreenState extends State<DeviceCheckScreen> {
           ),
           const SizedBox(height: 18),
           AppPrimaryButton(
-            label: 'Iniciar simulación',
+            label: isSimulated
+                ? 'Iniciar simulación'
+                : 'Iniciar entrevista',
             icon: Icons.play_arrow_rounded,
             onPressed: (_cameraOk && _micOk)
                 ? () {
-                    // TODO: validar permisos de cámara/micrófono y configurar captura.
-                    Navigator.of(context).pushNamed(AppRoutes.simulatedCall);
+                    if (!controller.isComplete) {
+                      final missing = controller.config.missingFields.join(', ');
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Completa estos campos: $missing'),
+                        ),
+                      );
+                      return;
+                    }
+
+                    if (isSimulated) {
+                      Navigator.of(context).pushNamed(AppRoutes.simulatedCall);
+                      return;
+                    }
+
+                    Navigator.of(context).pushNamed(
+                      AppRoutes.interviewProcessing,
+                      arguments: config,
+                    );
                   }
                 : null,
           ),

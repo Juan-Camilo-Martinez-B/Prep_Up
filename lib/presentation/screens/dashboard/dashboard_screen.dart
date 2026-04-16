@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:prep_up/core/navigation/app_routes.dart';
+import 'package:prep_up/presentation/controllers/interview_config_controller.dart';
 import 'package:prep_up/presentation/widgets/app_card.dart';
 import 'package:prep_up/presentation/widgets/app_primary_button.dart';
 import 'package:prep_up/presentation/widgets/app_screen_scaffold.dart';
+import 'package:provider/provider.dart';
 
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
@@ -46,9 +48,10 @@ class DashboardScreen extends StatelessWidget {
                 AppPrimaryButton(
                   label: 'Empezar entrevista',
                   icon: Icons.play_arrow_rounded,
-                  onPressed: () => Navigator.of(
-                    context,
-                  ).pushNamed(AppRoutes.selectInterviewType),
+                  onPressed: () {
+                    context.read<InterviewConfigController>().reset();
+                    Navigator.of(context).pushNamed(AppRoutes.selectInterviewType);
+                  },
                 ),
               ],
             ),
