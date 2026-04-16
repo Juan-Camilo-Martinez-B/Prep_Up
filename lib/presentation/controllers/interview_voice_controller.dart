@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_tts/flutter_tts.dart';
@@ -154,7 +155,7 @@ class InterviewVoiceController extends ChangeNotifier {
       _session = _session.copyWith(turns: [..._session.turns, turn]);
       _notifySafely();
 
-      final nextQuestion = await _generateAdaptiveNextQuestion();
+      final nextQuestion = await _generateAdaptiveNextQuestion(turn);
       await _deliverQuestion(nextQuestion);
     } catch (e) {
       _setIdle();
@@ -327,43 +328,103 @@ class InterviewVoiceController extends ChangeNotifier {
     return question;
   }
 
-  Future<String> _generateAdaptiveNextQuestion() async {
+  Future<String> _generateAdaptiveNextQuestion(InterviewTurn lastTurn) async {
     final jobRole = _config.jobRole.trim();
     final type = _config.type ?? InterviewConfigType.mixed;
     final history = _formatHistoryForPrompt(_session.turns);
+    final followUps = lastTurn.evaluation.followUpQuestions
+        .map(_sanitizeQuestion)
+        .where((q) => q.isNotEmpty)
+        .toList();
+    final lastSummary = lastTurn.feedback.summary.trim();
+    final lastStrengths = lastTurn.evaluation.strengths.join(' | ');
+    final lastImprovements = lastTurn.evaluation.improvements.join(' | ');
+    final followUpSeed = followUps.isEmpty
+        ? '- (sin sugerencias)'
+        : followUps.join('\n- ');
 
     final prompt =
         '''
-Actua como entrevistador experto para el rol "$jobRole".
+Actua como entrevistador senior para el rol "$jobRole".
 Tipo de entrevista: ${type.label}.
+
+Tu objetivo es formular la siguiente pregunta de forma inteligente, completa y conversacional.
+
+Ultima pregunta:
+"${lastTurn.question}"
+
+Ultima respuesta del candidato:
+"${lastTurn.answer}"
+
+Evaluacion de la ultima respuesta:
+- Score: ${lastTurn.evaluation.overallScore}/100
+- Fortalezas: ${lastStrengths.isEmpty ? 'ninguna relevante' : lastStrengths}
+- Mejoras: ${lastImprovements.isEmpty ? 'ninguna relevante' : lastImprovements}
+- Resumen de feedback: ${lastSummary.isEmpty ? 'sin resumen adicional' : lastSummary}
+
+Sugerencias de follow-up ya propuestas por Gemini:
+- $followUpSeed
 
 Historial real:
 $history
 
-Genera la siguiente pregunta en espanol.
-Reglas:
-- Debe ser una sola pregunta.
-- Debe adaptarse a la ultima respuesta.
-- Si el score fue bajo, pide aclaracion o un ejemplo concreto.
-- Si el score fue alto, incrementa la dificultad o profundiza.
-- Debe sonar natural, como una videollamada real.
-- Sin numeracion.
+Devuelve SOLO JSON con este esquema exacto:
+{"nextQuestion":"..."}
+
+Reglas obligatorias para nextQuestion:
+- Debe ser una sola pregunta en espanol.
+- Debe sonar como una pregunta real de entrevista, no como una frase incompleta.
+- Debe tener contexto suficiente por si se escucha en voz alta.
+- Debe referirse a algo concreto de la ultima respuesta o pedir un ejemplo, decision, metrica, trade-off o resultado.
+- Si el score fue bajo, pide precision, evidencia o un caso puntual.
+- Si el score fue alto, profundiza con mas dificultad o impacto.
+- No repitas la pregunta anterior.
+- Evita preguntas vagas como "puedes profundizar?" o "me cuentas mas?" sin contexto.
 - Sin markdown.
-Devuelve SOLO el texto de la pregunta.
 ''';
 
     final next = await _geminiService.sendPrompt(
       prompt: prompt,
       systemInstruction: 'Eres un entrevistador humano. Se natural y directo.',
-      temperature: 0.8,
-      maxOutputTokens: 256,
+      temperature: 0.65,
+      maxOutputTokens: 320,
     );
 
-    final cleaned = next.trim();
-    if (cleaned.isEmpty) {
-      throw const GeminiException('No se pudo generar la siguiente pregunta.');
+    final parsedFromJson = _tryExtractNextQuestion(next);
+    final cleaned = _sanitizeQuestion(parsedFromJson ?? next);
+    if (_isSmartInterviewQuestion(
+      cleaned,
+      previousQuestion: lastTurn.question,
+    )) {
+      return cleaned;
     }
-    return cleaned;
+
+    for (final candidate in followUps) {
+      if (_isSmartInterviewQuestion(
+        candidate,
+        previousQuestion: lastTurn.question,
+      )) {
+        return candidate;
+      }
+    }
+
+    final rewritten = await _rewriteAsStrongerQuestion(
+      weakQuestion: cleaned.isEmpty
+          ? (followUps.isEmpty ? lastTurn.question : followUps.first)
+          : cleaned,
+      lastTurn: lastTurn,
+      geminiService: _geminiService,
+    );
+    if (_isSmartInterviewQuestion(
+      rewritten,
+      previousQuestion: lastTurn.question,
+    )) {
+      return rewritten;
+    }
+
+    throw const GeminiException(
+      'No se pudo generar una siguiente pregunta de calidad.',
+    );
   }
 
   Future<String> _generateAlternativeQuestion() async {
@@ -649,6 +710,121 @@ Devuelve SOLO el texto de la pregunta.
     _tts.stop();
     super.dispose();
   }
+}
+
+String? _tryExtractNextQuestion(String raw) {
+  final trimmed = raw.trim();
+  try {
+    final decoded = jsonDecode(trimmed);
+    if (decoded is Map<String, dynamic>) {
+      final value = decoded['nextQuestion'];
+      if (value is String && value.trim().isNotEmpty) {
+        return value.trim();
+      }
+    }
+  } catch (_) {}
+
+  final start = trimmed.indexOf('{');
+  final end = trimmed.lastIndexOf('}');
+  if (start >= 0 && end > start) {
+    try {
+      final decoded = jsonDecode(trimmed.substring(start, end + 1));
+      if (decoded is Map<String, dynamic>) {
+        final value = decoded['nextQuestion'];
+        if (value is String && value.trim().isNotEmpty) {
+          return value.trim();
+        }
+      }
+    } catch (_) {}
+  }
+
+  return null;
+}
+
+String _sanitizeQuestion(String raw) {
+  var value = raw.trim();
+  value = value.replaceAll(RegExp("^[\"'`]+|[\"'`]+\$"), '');
+  value = value.replaceAll(RegExp(r'\s+'), ' ').trim();
+  value = value.replaceFirst(
+    RegExp(r'^(Pregunta|Question)\s*:\s*', caseSensitive: false),
+    '',
+  );
+  if (value.isEmpty) return value;
+  if (!value.endsWith('?')) {
+    value = '$value?';
+  }
+  return value;
+}
+
+bool _isSmartInterviewQuestion(
+  String question, {
+  required String previousQuestion,
+}) {
+  final normalized = question.trim().toLowerCase();
+  final previous = previousQuestion.trim().toLowerCase();
+  if (normalized.isEmpty || normalized == previous) return false;
+
+  final wordCount = normalized
+      .split(RegExp(r'\s+'))
+      .where((w) => w.isNotEmpty)
+      .length;
+  if (wordCount < 8) return false;
+
+  const vaguePatterns = <String>[
+    'puedes profundizar',
+    'me cuentas mas',
+    'cuentame mas',
+    'podrias ampliar',
+    'explica mas',
+    'por que',
+  ];
+
+  if (vaguePatterns.any((pattern) => normalized == '$pattern?')) {
+    return false;
+  }
+
+  return normalized.contains('?');
+}
+
+Future<String> _rewriteAsStrongerQuestion({
+  required String weakQuestion,
+  required InterviewTurn lastTurn,
+  required GeminiService geminiService,
+}) async {
+  final prompt =
+      '''
+Reescribe esta pregunta de entrevista para que sea mas completa, especifica y natural.
+
+Pregunta debil:
+"$weakQuestion"
+
+Pregunta anterior:
+"${lastTurn.question}"
+
+Ultima respuesta del candidato:
+"${lastTurn.answer}"
+
+Score de la respuesta: ${lastTurn.evaluation.overallScore}/100
+Mejoras detectadas: ${lastTurn.evaluation.improvements.join(' | ')}
+
+Devuelve SOLO una pregunta en espanol.
+Reglas:
+- Una sola pregunta.
+- Debe pedir contexto concreto, ejemplo, decision, impacto o resultado.
+- No puede repetir la pregunta anterior.
+- No debe ser vaga ni demasiado corta.
+- Sin markdown.
+''';
+
+  final rewritten = await geminiService.sendPrompt(
+    prompt: prompt,
+    systemInstruction:
+        'Eres un entrevistador humano. Formula preguntas orales claras y especificas.',
+    temperature: 0.55,
+    maxOutputTokens: 180,
+  );
+
+  return _sanitizeQuestion(rewritten);
 }
 
 InterviewType _mapType(InterviewConfigType type) {
