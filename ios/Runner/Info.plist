@@ -56,5 +56,9 @@
 			</array>
 		</dict>
 	</array>
+	<key>NSCameraUsageDescription</key>
+	<string>Necesitamos acceso a la cámara para la entrevista en tiempo real.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Necesitamos acceso al micrófono para la entrevista en tiempo real.</string>
 </dict>
 </plist>

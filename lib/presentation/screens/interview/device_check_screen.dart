@@ -1,10 +1,13 @@
+import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:prep_up/core/navigation/app_routes.dart';
 import 'package:prep_up/domain/entities/interview_config.dart';
 import 'package:prep_up/presentation/controllers/interview_config_controller.dart';
+import 'package:prep_up/presentation/controllers/media_device_controller.dart';
 import 'package:prep_up/presentation/widgets/app_card.dart';
 import 'package:prep_up/presentation/widgets/app_primary_button.dart';
 import 'package:prep_up/presentation/widgets/app_screen_scaffold.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 
 class DeviceCheckScreen extends StatefulWidget {
@@ -15,14 +18,20 @@ class DeviceCheckScreen extends StatefulWidget {
 }
 
 class _DeviceCheckScreenState extends State<DeviceCheckScreen> {
-  var _cameraOk = true;
-  var _micOk = true;
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<MediaDeviceController>().start();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final controller = context.watch<InterviewConfigController>();
-    final config = controller.config;
+    final interviewController = context.watch<InterviewConfigController>();
+    final media = context.watch<MediaDeviceController>();
+    final config = interviewController.config;
     final isSimulated = config.mode == InterviewMode.simulated;
 
     return AppScreenScaffold(
@@ -32,22 +41,30 @@ class _DeviceCheckScreenState extends State<DeviceCheckScreen> {
         children: [
           AppCard(
             title: 'Checklist de equipo',
-            subtitle: 'Cámara y micrófono (placeholders)',
+            subtitle: 'Cámara y micrófono',
             leading: Icon(Icons.checklist_rounded, color: scheme.primary),
             child: Column(
               children: [
-                _CheckTile(
+                _DeviceStatusTile(
                   icon: Icons.videocam_rounded,
                   title: 'Cámara',
-                  value: _cameraOk,
-                  onChanged: (v) => setState(() => _cameraOk = v),
+                  isActive: media.isCameraReady,
+                  permissionStatus: media.cameraPermission,
+                  isBusy: media.isInitializingCamera,
+                  onRequest: media.requestPermissions,
+                  onRetry: media.initCamera,
+                  onOpenSettings: media.openSettings,
                 ),
                 const SizedBox(height: 10),
-                _CheckTile(
+                _DeviceStatusTile(
                   icon: Icons.mic_rounded,
                   title: 'Micrófono',
-                  value: _micOk,
-                  onChanged: (v) => setState(() => _micOk = v),
+                  isActive: media.isMicrophoneReady,
+                  permissionStatus: media.microphonePermission,
+                  isBusy: media.isStartingMicrophone,
+                  onRequest: media.requestPermissions,
+                  onRetry: media.startMicrophone,
+                  onOpenSettings: media.openSettings,
                 ),
               ],
             ),
@@ -55,29 +72,64 @@ class _DeviceCheckScreenState extends State<DeviceCheckScreen> {
           const SizedBox(height: 14),
           AppCard(
             title: 'Vista previa',
-            subtitle: 'Tu cámara (simulada)',
+            subtitle: media.isCameraReady ? 'Cámara activa' : 'Cámara no disponible',
             leading: Icon(Icons.camera_alt_outlined, color: scheme.secondary),
             child: AspectRatio(
               aspectRatio: 16 / 9,
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(18),
-                  gradient: LinearGradient(
-                    colors: [
-                      scheme.primary.withValues(alpha: 0.22),
-                      scheme.secondary.withValues(alpha: 0.18),
-                    ],
-                  ),
-                  border: Border.all(
-                    color: scheme.outlineVariant.withValues(alpha: 0.55),
-                  ),
-                ),
-                child: Center(
-                  child: Icon(
-                    Icons.videocam_outlined,
-                    size: 42,
-                    color: scheme.onSurface.withValues(alpha: 0.6),
-                  ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(18),
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    if (media.isCameraReady && media.cameraController != null)
+                      CameraPreview(media.cameraController!)
+                    else
+                      DecoratedBox(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [
+                              scheme.primary.withValues(alpha: 0.22),
+                              scheme.secondary.withValues(alpha: 0.18),
+                            ],
+                          ),
+                          border: Border.all(
+                            color: scheme.outlineVariant.withValues(alpha: 0.55),
+                          ),
+                        ),
+                        child: Center(
+                          child: Icon(
+                            Icons.videocam_off_rounded,
+                            size: 42,
+                            color: scheme.onSurface.withValues(alpha: 0.6),
+                          ),
+                        ),
+                      ),
+                    if (media.lastError != null)
+                      Align(
+                        alignment: Alignment.bottomCenter,
+                        child: Container(
+                          margin: const EdgeInsets.all(10),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 10,
+                          ),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(14),
+                            color: scheme.surfaceContainerHighest
+                                .withValues(alpha: 0.85),
+                            border: Border.all(
+                              color:
+                                  scheme.outlineVariant.withValues(alpha: 0.6),
+                            ),
+                          ),
+                          child: Text(
+                            media.lastError!,
+                            style: Theme.of(context).textTheme.bodySmall,
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
               ),
             ),
@@ -88,10 +140,11 @@ class _DeviceCheckScreenState extends State<DeviceCheckScreen> {
                 ? 'Iniciar simulación'
                 : 'Iniciar entrevista',
             icon: Icons.play_arrow_rounded,
-            onPressed: (_cameraOk && _micOk)
+            onPressed: (media.isCameraReady && media.isMicrophoneReady)
                 ? () {
-                    if (!controller.isComplete) {
-                      final missing = controller.config.missingFields.join(', ');
+                    if (!interviewController.isComplete) {
+                      final missing =
+                          interviewController.config.missingFields.join(', ');
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
                           content: Text('Completa estos campos: $missing'),
@@ -129,22 +182,43 @@ class _DeviceCheckScreenState extends State<DeviceCheckScreen> {
   }
 }
 
-class _CheckTile extends StatelessWidget {
-  const _CheckTile({
+class _DeviceStatusTile extends StatelessWidget {
+  const _DeviceStatusTile({
     required this.icon,
     required this.title,
-    required this.value,
-    required this.onChanged,
+    required this.isActive,
+    required this.permissionStatus,
+    required this.isBusy,
+    required this.onRequest,
+    required this.onRetry,
+    required this.onOpenSettings,
   });
 
   final IconData icon;
   final String title;
-  final bool value;
-  final ValueChanged<bool> onChanged;
+  final bool isActive;
+  final PermissionStatus permissionStatus;
+  final bool isBusy;
+  final Future<void> Function() onRequest;
+  final Future<void> Function() onRetry;
+  final Future<void> Function() onOpenSettings;
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final status = permissionStatus;
+    final isDenied = status.isDenied;
+    final isPermanentlyDenied = status.isPermanentlyDenied || status.isRestricted;
+
+    final subtitle = isActive
+        ? 'Activo'
+        : isBusy
+            ? 'Activando...'
+            : isPermanentlyDenied
+                ? 'Permiso bloqueado'
+                : isDenied
+                    ? 'Permiso denegado'
+                    : 'No disponible';
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -155,10 +229,38 @@ class _CheckTile extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Icon(icon, color: value ? scheme.primary : scheme.onSurfaceVariant),
+          Icon(icon, color: isActive ? scheme.primary : scheme.onSurfaceVariant),
           const SizedBox(width: 12),
-          Expanded(child: Text(title)),
-          Switch.adaptive(value: value, onChanged: onChanged),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title),
+                Text(
+                  subtitle,
+                  style: Theme.of(context)
+                      .textTheme
+                      .bodySmall
+                      ?.copyWith(color: scheme.onSurfaceVariant),
+                ),
+              ],
+            ),
+          ),
+          if (isPermanentlyDenied)
+            TextButton(
+              onPressed: () => onOpenSettings(),
+              child: const Text('Ajustes'),
+            )
+          else if (!isActive)
+            TextButton(
+              onPressed: () async {
+                await onRequest();
+                await onRetry();
+              },
+              child: const Text('Permitir'),
+            )
+          else
+            Icon(Icons.check_circle_rounded, color: scheme.primary),
         ],
       ),
     );

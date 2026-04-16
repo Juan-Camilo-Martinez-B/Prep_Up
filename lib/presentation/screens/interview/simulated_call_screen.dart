@@ -1,9 +1,11 @@
 import 'dart:async';
 
+import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:prep_up/core/navigation/app_routes.dart';
 import 'package:prep_up/domain/entities/interview_config.dart';
 import 'package:prep_up/presentation/controllers/interview_config_controller.dart';
+import 'package:prep_up/presentation/controllers/media_device_controller.dart';
 import 'package:prep_up/presentation/widgets/app_card.dart';
 import 'package:prep_up/presentation/widgets/app_primary_button.dart';
 import 'package:prep_up/presentation/widgets/app_screen_scaffold.dart';
@@ -28,6 +30,9 @@ class _SimulatedCallScreenState extends State<SimulatedCallScreen> {
   void initState() {
     super.initState();
     _config = context.read<InterviewConfigController>().config;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<MediaDeviceController>().start();
+    });
     final durationMinutes = _config.durationMinutes ?? 3;
     _secondsLeft = durationMinutes * 60;
     _questions = _buildQuestions(_config);
@@ -47,6 +52,7 @@ class _SimulatedCallScreenState extends State<SimulatedCallScreen> {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final media = context.watch<MediaDeviceController>();
     final minutes = (_secondsLeft ~/ 60).toString().padLeft(2, '0');
     final seconds = (_secondsLeft % 60).toString().padLeft(2, '0');
     final question = _questions[_questionIndex % _questions.length];
@@ -75,23 +81,26 @@ class _SimulatedCallScreenState extends State<SimulatedCallScreen> {
               borderRadius: BorderRadius.circular(20),
               child: Stack(
                 children: [
-                  DecoratedBox(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          scheme.primary.withValues(alpha: 0.22),
-                          scheme.secondary.withValues(alpha: 0.18),
-                        ],
+                  if (media.isCameraReady && media.cameraController != null)
+                    CameraPreview(media.cameraController!)
+                  else
+                    DecoratedBox(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            scheme.primary.withValues(alpha: 0.22),
+                            scheme.secondary.withValues(alpha: 0.18),
+                          ],
+                        ),
+                      ),
+                      child: Center(
+                        child: Icon(
+                          Icons.videocam_off_rounded,
+                          size: 56,
+                          color: scheme.onSurface.withValues(alpha: 0.55),
+                        ),
                       ),
                     ),
-                    child: Center(
-                      child: Icon(
-                        Icons.videocam_outlined,
-                        size: 56,
-                        color: scheme.onSurface.withValues(alpha: 0.55),
-                      ),
-                    ),
-                  ),
                   Positioned(
                     right: 14,
                     bottom: 14,
@@ -101,6 +110,15 @@ class _SimulatedCallScreenState extends State<SimulatedCallScreen> {
                     left: 14,
                     top: 14,
                     child: _AiAvatar(scheme: scheme),
+                  ),
+                  Positioned(
+                    left: 14,
+                    bottom: 14,
+                    child: _LiveStatusChip(
+                      scheme: scheme,
+                      cameraOk: media.isCameraReady,
+                      micOk: media.isMicrophoneReady,
+                    ),
                   ),
                 ],
               ),
@@ -264,6 +282,45 @@ class _AiAvatar extends StatelessWidget {
           ),
           const SizedBox(width: 10),
           const Text('Entrevistador IA'),
+        ],
+      ),
+    );
+  }
+}
+
+class _LiveStatusChip extends StatelessWidget {
+  const _LiveStatusChip({
+    required this.scheme,
+    required this.cameraOk,
+    required this.micOk,
+  });
+
+  final ColorScheme scheme;
+  final bool cameraOk;
+  final bool micOk;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(999),
+        color: scheme.surfaceContainerHighest.withValues(alpha: 0.60),
+        border: Border.all(color: scheme.outlineVariant.withValues(alpha: 0.6)),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            cameraOk ? Icons.videocam_rounded : Icons.videocam_off_rounded,
+            size: 18,
+            color: cameraOk ? scheme.primary : scheme.onSurfaceVariant,
+          ),
+          const SizedBox(width: 8),
+          Icon(
+            micOk ? Icons.mic_rounded : Icons.mic_off_rounded,
+            size: 18,
+            color: micOk ? scheme.primary : scheme.onSurfaceVariant,
+          ),
         ],
       ),
     );

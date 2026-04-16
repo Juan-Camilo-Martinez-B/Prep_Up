@@ -5,6 +5,7 @@ import 'package:prep_up/core/navigation/app_routes.dart';
 import 'package:prep_up/domain/entities/app_settings_model.dart';
 import 'package:prep_up/domain/services/auth_preferences.dart';
 import 'package:prep_up/presentation/controllers/interview_config_controller.dart';
+import 'package:prep_up/presentation/controllers/media_device_controller.dart';
 import 'package:prep_up/theme/app_theme.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -54,8 +55,11 @@ class _AiInterviewTrainerAppState extends State<AiInterviewTrainerApp> {
     const lightBackground = Color(0xFFF3F5F7);
     const lightSurface = Color(0xFFFFFFFF);
 
-    return ChangeNotifierProvider(
-      create: (_) => InterviewConfigController(),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => InterviewConfigController()),
+        ChangeNotifierProvider(create: (_) => MediaDeviceController()),
+      ],
       child: AppThemeScope(
         controller: _themeController,
         child: AnimatedBuilder(
