@@ -25,42 +25,130 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final themeMode = themeController.themeMode;
 
     return AppScreenScaffold(
-      title: 'Configuración',
+      title: 'Ajustes',
+      centerTitle: true,
       background: const TechBackground(),
       body: ListView(
+        padding: const EdgeInsets.only(bottom: 60),
         children: [
-          AppCard(
-            title: 'Estilo',
-            subtitle: 'Personaliza tu experiencia',
-            leading: Icon(Icons.palette_outlined, color: scheme.primary),
+          // Header del perfil creativo
+          Center(
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                Container(
+                  width: 100,
+                  height: 100,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: LinearGradient(
+                      colors: [scheme.primary, scheme.secondary],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: scheme.primary.withValues(alpha: 0.4),
+                        blurRadius: 20,
+                        offset: const Offset(0, 10),
+                      ),
+                    ],
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(4.0),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Theme.of(context).scaffoldBackgroundColor,
+                      ),
+                      child: Center(
+                        child: Icon(
+                          Icons.person_rounded,
+                          size: 50,
+                          color: scheme.primary,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Mi Perfil',
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                ),
+                const SizedBox(height: 4),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: scheme.primary.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    'Cuenta Gratuita',
+                    style: TextStyle(
+                      color: scheme.primary,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 12,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 32),
+
+          Text(
+            'Personalización',
+            style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: scheme.onSurfaceVariant,
+                ),
+          ),
+          const SizedBox(height: 12),
+          AppCard(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: scheme.primary.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Icon(Icons.color_lens_rounded, color: scheme.primary),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Text(
+                        'Tema Visual',
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
                 SegmentedButton<AppThemeMode>(
+                  style: SegmentedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  ),
                   segments: const [
                     ButtonSegment(
                       value: AppThemeMode.system,
-                      label: FittedBox(
-                        fit: BoxFit.scaleDown,
-                        child: Text('Sistema'),
-                      ),
-                      icon: Icon(Icons.phone_android_rounded),
+                      label: Text('Sistema', style: TextStyle(fontSize: 12)),
+                      icon: Icon(Icons.phone_android_rounded, size: 16),
                     ),
                     ButtonSegment(
                       value: AppThemeMode.light,
-                      label: FittedBox(
-                        fit: BoxFit.scaleDown,
-                        child: Text('Claro'),
-                      ),
-                      icon: Icon(Icons.light_mode_rounded),
+                      label: Text('Claro', style: TextStyle(fontSize: 12)),
+                      icon: Icon(Icons.light_mode_rounded, size: 16),
                     ),
                     ButtonSegment(
                       value: AppThemeMode.dark,
-                      label: FittedBox(
-                        fit: BoxFit.scaleDown,
-                        child: Text('Oscuro'),
-                      ),
-                      icon: Icon(Icons.dark_mode_rounded),
+                      label: Text('Oscuro', style: TextStyle(fontSize: 12)),
+                      icon: Icon(Icons.dark_mode_rounded, size: 16),
                     ),
                   ],
                   selected: {themeMode},
@@ -68,109 +156,142 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     themeController.setThemeMode(selection.first);
                   },
                 ),
-                const SizedBox(height: 14),
-                SwitchListTile.adaptive(
-                  value: _haptics,
-                  onChanged: (v) {
-                    setState(() => _haptics = v);
-                    // TODO: persistir settings en base de datos relacional.
-                  },
-                  title: const Text('Haptics'),
-                  subtitle: const Text('Feedback sutil al interactuar'),
-                  secondary: const Icon(Icons.vibration_rounded),
-                  contentPadding: EdgeInsets.zero,
-                ),
-                SwitchListTile.adaptive(
-                  value: _notifications,
-                  onChanged: (v) {
-                    setState(() => _notifications = v);
-                    // TODO: persistir settings en base de datos relacional.
-                  },
-                  title: const Text('Notificaciones'),
-                  subtitle: const Text('Recordatorios de práctica'),
-                  secondary: const Icon(Icons.notifications_active_rounded),
-                  contentPadding: EdgeInsets.zero,
-                ),
               ],
             ),
           ),
-          const SizedBox(height: 14),
+
+          const SizedBox(height: 16),
           AppCard(
-            title: 'Privacidad',
-            subtitle: 'Videos y análisis',
-            leading: Icon(Icons.security_rounded, color: scheme.secondary),
+            padding: EdgeInsets.zero,
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  leading: Icon(
-                    Icons.video_camera_back_rounded,
-                    color: scheme.secondary,
+                SwitchListTile(
+                  value: _haptics,
+                  onChanged: (v) => setState(() => _haptics = v),
+                  title: const Text('Respuesta Háptica'),
+                  subtitle: Text(
+                    'Vibración al interactuar',
+                    style: TextStyle(color: scheme.onSurfaceVariant, fontSize: 12),
                   ),
-                  title: const Text('Almacenamiento de videos'),
-                  subtitle: const Text('Pendiente de integración'),
-                  trailing: Icon(
-                    Icons.hourglass_top_rounded,
-                    color: scheme.onSurfaceVariant,
-                  ),
-                ),
-                ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  leading: Icon(
-                    Icons.face_retouching_natural_rounded,
-                    color: scheme.secondary,
-                  ),
-                  title: const Text('Análisis gestual'),
-                  subtitle: const Text('Pendiente de integración'),
-                  trailing: Icon(
-                    Icons.hourglass_top_rounded,
-                    color: scheme.onSurfaceVariant,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 14),
-          AppCard(
-            title: 'Cuenta',
-            subtitle: 'Sesión y seguridad',
-            leading: Icon(Icons.person_rounded, color: scheme.primary),
-            child: Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: () async {
-                      final auth = AuthService();
-                      final navigator = Navigator.of(context);
-                      await auth.signOut();
-                      if (!mounted) return;
-                      navigator.pushNamedAndRemoveUntil(
-                        AppRoutes.login,
-                        (r) => false,
-                      );
-                    },
-                    style: OutlinedButton.styleFrom(
-                      minimumSize: const Size(0, 48),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14),
-                      ),
+                  secondary: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: scheme.secondary.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(8),
                     ),
-                    icon: const Icon(Icons.logout_rounded),
-                    label: const Text('Cerrar sesión'),
+                    child: Icon(Icons.vibration_rounded, color: scheme.secondary),
                   ),
+                  activeColor: scheme.primary,
+                ),
+                const Divider(height: 1, indent: 64),
+                SwitchListTile(
+                  value: _notifications,
+                  onChanged: (v) => setState(() => _notifications = v),
+                  title: const Text('Notificaciones Push'),
+                  subtitle: Text(
+                    'Recordatorios y avisos',
+                    style: TextStyle(color: scheme.onSurfaceVariant, fontSize: 12),
+                  ),
+                  secondary: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.orangeAccent.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Icon(Icons.notifications_active_rounded, color: Colors.orangeAccent),
+                  ),
+                  activeColor: scheme.primary,
                 ),
               ],
             ),
           ),
-          const SizedBox(height: 14),
-          AppPrimaryButton(
-            label: 'Volver al Dashboard',
-            icon: Icons.home_rounded,
-            onPressed: () => Navigator.of(
-              context,
-            ).pushNamedAndRemoveUntil(AppRoutes.dashboard, (route) => false),
+
+          const SizedBox(height: 24),
+          Text(
+            'Privacidad y Análisis',
+            style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: scheme.onSurfaceVariant,
+                ),
           ),
+          const SizedBox(height: 12),
+          AppCard(
+            padding: EdgeInsets.zero,
+            child: Column(
+              children: [
+                ListTile(
+                  leading: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: scheme.tertiary.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Icon(Icons.video_camera_front_rounded, color: scheme.tertiary),
+                  ),
+                  title: const Text('Mis grabaciones (Beta)'),
+                  trailing: const Icon(Icons.chevron_right_rounded),
+                  onTap: () {},
+                ),
+                const Divider(height: 1, indent: 64),
+                ListTile(
+                  leading: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.pinkAccent.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Icon(Icons.face_retouching_natural_rounded, color: Colors.pinkAccent),
+                  ),
+                  title: const Text('Análisis Facial Experto'),
+                  trailing: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: scheme.onSurface.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Text('Próximamente', style: TextStyle(fontSize: 10)),
+                  ),
+                  onTap: () {},
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 32),
+          AppCard(
+            padding: EdgeInsets.zero,
+            child: InkWell(
+              borderRadius: BorderRadius.circular(20),
+              onTap: () async {
+                final auth = AuthService();
+                final navigator = Navigator.of(context);
+                await auth.signOut();
+                if (!mounted) return;
+                navigator.pushNamedAndRemoveUntil(
+                  AppRoutes.login,
+                  (r) => false,
+                );
+              },
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.logout_rounded, color: Colors.redAccent),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Cerrar Sesión',
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            color: Colors.redAccent,
+                            fontWeight: FontWeight.bold,
+                          ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 24),
         ],
       ),
     );
