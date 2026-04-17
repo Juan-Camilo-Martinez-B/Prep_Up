@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:prep_up/core/navigation/app_routes.dart';
 import 'package:prep_up/domain/entities/interview_config.dart';
+import 'package:prep_up/domain/entities/interview_tags.dart';
 import 'package:prep_up/domain/entities/interview_results_model.dart';
 import 'package:prep_up/domain/entities/interview_session.dart';
 import 'package:prep_up/presentation/controllers/interview_config_controller.dart';
@@ -292,7 +293,7 @@ class _ConfigSummary extends StatelessWidget {
           ),
           const SizedBox(height: 10),
           Text('Tipo: ${config.type?.label ?? '-'}'),
-          Text('Cargo: ${config.jobRole.isEmpty ? '-' : config.jobRole}'),
+          Text('Cargo: ${config.jobRole == null ? '-' : config.jobRole!.label}'),
           Text(
             'Duración: ${config.durationMinutes == null ? '-' : '${config.durationMinutes} min'}',
           ),

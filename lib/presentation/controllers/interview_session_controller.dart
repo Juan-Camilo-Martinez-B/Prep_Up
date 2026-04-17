@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:prep_up/domain/entities/interview_config.dart';
+import 'package:prep_up/domain/entities/interview_tags.dart';
 import 'package:prep_up/domain/entities/interview_session.dart';
 import 'package:prep_up/domain/entities/interview_session_model.dart';
 import 'package:prep_up/domain/services/gemini_service.dart';
@@ -57,12 +58,12 @@ class InterviewSessionController extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final jobRole = _config.jobRole.trim();
-      if (jobRole.isEmpty) {
+      if (_config.jobRole == null) {
         throw const GeminiException(
           'Falta el cargo para iniciar la entrevista.',
         );
       }
+      final jobRole = _config.jobRole!.label;
       if (_config.type == null) {
         throw const GeminiException('Falta el tipo de entrevista.');
       }
@@ -100,7 +101,7 @@ class InterviewSessionController extends ChangeNotifier {
       final evaluation = await _geminiService.evaluateUserAnswer(
         question: question,
         userAnswer: safeAnswer,
-        jobRole: _config.jobRole.trim(),
+        jobRole: _config.jobRole?.label ?? '',
         type: _mapType(_config.type ?? InterviewConfigType.mixed),
       );
 
@@ -147,7 +148,7 @@ class InterviewSessionController extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final jobRole = _config.jobRole.trim();
+      final jobRole = _config.jobRole?.label ?? '';
       final type = _config.type ?? InterviewConfigType.mixed;
       final history = _formatHistoryForPrompt(_session.turns);
 

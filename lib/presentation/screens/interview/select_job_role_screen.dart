@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:prep_up/core/navigation/app_routes.dart';
+import 'package:prep_up/domain/entities/interview_tags.dart';
 import 'package:prep_up/presentation/controllers/interview_config_controller.dart';
 import 'package:prep_up/presentation/widgets/app_card.dart';
 import 'package:prep_up/presentation/widgets/app_primary_button.dart';
@@ -15,19 +16,7 @@ class SelectJobRoleScreen extends StatefulWidget {
 
 class _SelectJobRoleScreenState extends State<SelectJobRoleScreen> {
   final _searchController = TextEditingController();
-  String _selected = '';
-
-  final _roles = const [
-    'Frontend Developer',
-    'Backend Developer',
-    'Mobile Developer',
-    'UI/UX Designer',
-    'Data Analyst',
-    'Data Scientist',
-    'QA Tester',
-    'DevOps',
-    'Product Manager',
-  ];
+  JobRole? _selected;
 
   @override
   void initState() {
@@ -45,8 +34,8 @@ class _SelectJobRoleScreenState extends State<SelectJobRoleScreen> {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final query = _searchController.text.trim().toLowerCase();
-    final filtered = _roles
-        .where((r) => query.isEmpty || r.toLowerCase().contains(query))
+    final filtered = JobRole.values
+        .where((r) => query.isEmpty || r.label.toLowerCase().contains(query))
         .toList();
 
     return AppScreenScaffold(
@@ -74,7 +63,7 @@ class _SelectJobRoleScreenState extends State<SelectJobRoleScreen> {
             children: [
               for (final role in filtered)
                 ChoiceChip(
-                  label: Text(role),
+                  label: Text(role.label),
                   selected: _selected == role,
                   onSelected: (_) => setState(() => _selected = role),
                 ),
@@ -85,7 +74,7 @@ class _SelectJobRoleScreenState extends State<SelectJobRoleScreen> {
             label: 'Continuar',
             icon: Icons.arrow_forward_rounded,
             onPressed: () {
-              if (_selected.trim().isEmpty) {
+              if (_selected == null) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
                     content: Text('Selecciona un cargo para continuar.'),
@@ -93,7 +82,7 @@ class _SelectJobRoleScreenState extends State<SelectJobRoleScreen> {
                 );
                 return;
               }
-              context.read<InterviewConfigController>().setJobRole(_selected);
+              context.read<InterviewConfigController>().setJobRole(_selected!);
               Navigator.of(context).pushNamed(AppRoutes.interviewConfiguration);
             },
           ),

@@ -1,30 +1,21 @@
-enum InterviewConfigType {
-  technical,
-  rrhh,
-  mixed,
-}
-
-enum InterviewMode {
-  simulated,
-  realtime,
-}
+import 'package:prep_up/domain/entities/interview_tags.dart';
 
 class InterviewConfig {
   const InterviewConfig({
     this.type,
-    this.jobRole = '',
+    this.jobRole,
     this.durationMinutes,
     this.mode,
   });
 
   final InterviewConfigType? type;
-  final String jobRole;
+  final JobRole? jobRole;
   final int? durationMinutes;
   final InterviewMode? mode;
 
   bool get isComplete =>
       type != null &&
-      jobRole.trim().isNotEmpty &&
+      jobRole != null &&
       durationMinutes != null &&
       durationMinutes! > 0 &&
       mode != null;
@@ -32,7 +23,7 @@ class InterviewConfig {
   List<String> get missingFields {
     final fields = <String>[];
     if (type == null) fields.add('tipo de entrevista');
-    if (jobRole.trim().isEmpty) fields.add('cargo');
+    if (jobRole == null) fields.add('cargo');
     if (durationMinutes == null || durationMinutes! <= 0) {
       fields.add('duración');
     }
@@ -42,39 +33,20 @@ class InterviewConfig {
 
   InterviewConfig copyWith({
     InterviewConfigType? type,
-    String? jobRole,
+    JobRole? jobRole,
     int? durationMinutes,
     InterviewMode? mode,
     bool clearType = false,
     bool clearDuration = false,
     bool clearMode = false,
+    bool clearJobRole = false,
   }) {
     return InterviewConfig(
       type: clearType ? null : (type ?? this.type),
-      jobRole: jobRole ?? this.jobRole,
+      jobRole: clearJobRole ? null : (jobRole ?? this.jobRole),
       durationMinutes:
           clearDuration ? null : (durationMinutes ?? this.durationMinutes),
       mode: clearMode ? null : (mode ?? this.mode),
     );
   }
 }
-
-extension InterviewConfigTypeLabel on InterviewConfigType {
-  String get label {
-    return switch (this) {
-      InterviewConfigType.technical => 'Técnica',
-      InterviewConfigType.rrhh => 'RRHH',
-      InterviewConfigType.mixed => 'Mixta',
-    };
-  }
-}
-
-extension InterviewModeLabel on InterviewMode {
-  String get label {
-    return switch (this) {
-      InterviewMode.simulated => 'Simulada',
-      InterviewMode.realtime => 'Tiempo real',
-    };
-  }
-}
-

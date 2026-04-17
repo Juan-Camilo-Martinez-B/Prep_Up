@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'package:prep_up/core/config/app_config.dart';
 import 'package:prep_up/domain/entities/answer_evaluation_model.dart';
 import 'package:prep_up/domain/entities/interview_config.dart';
+import 'package:prep_up/domain/entities/interview_tags.dart';
 import 'package:prep_up/domain/entities/interview_feedback_model.dart';
 import 'package:prep_up/domain/entities/interview_results_model.dart';
 import 'package:prep_up/domain/entities/interview_session.dart';
@@ -417,7 +418,7 @@ Reglas:
       );
     }
 
-    final jobRole = config.jobRole.trim();
+    final jobRole = config.jobRole?.label ?? '';
     final type = config.type?.label ?? 'Mixta';
 
     final total = session.turns.fold<int>(

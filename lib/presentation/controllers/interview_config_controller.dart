@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:prep_up/domain/entities/interview_config.dart';
+import 'package:prep_up/domain/entities/interview_tags.dart';
 
 class InterviewConfigController extends ChangeNotifier {
   InterviewConfig _config = const InterviewConfig();
@@ -18,8 +19,8 @@ class InterviewConfigController extends ChangeNotifier {
     notifyListeners();
   }
 
-  void setJobRole(String value) {
-    _config = _config.copyWith(jobRole: value.trim());
+  void setJobRole(JobRole value) {
+    _config = _config.copyWith(jobRole: value);
     notifyListeners();
   }
 

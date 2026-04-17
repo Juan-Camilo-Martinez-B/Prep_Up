@@ -5,6 +5,7 @@ import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:prep_up/domain/entities/interview_config.dart';
+import 'package:prep_up/domain/entities/interview_tags.dart';
 import 'package:prep_up/domain/entities/interview_session.dart';
 import 'package:prep_up/domain/entities/interview_session_model.dart';
 import 'package:prep_up/domain/services/gemini_service.dart';
@@ -168,7 +169,7 @@ class InterviewVoiceController extends ChangeNotifier {
       final evaluation = await _geminiService.evaluateUserAnswer(
         question: question,
         userAnswer: safeAnswer,
-        jobRole: _config.jobRole.trim(),
+        jobRole: _config.jobRole?.label ?? '',
         type: _mapType(_config.type ?? InterviewConfigType.mixed),
       );
 
@@ -356,7 +357,7 @@ class InterviewVoiceController extends ChangeNotifier {
   }
 
   Future<String> _generateOpeningQuestion() async {
-    final jobRole = _config.jobRole.trim();
+    final jobRole = _config.jobRole?.label ?? '';
     if (jobRole.isEmpty) {
       throw const GeminiException('Falta el cargo para iniciar la entrevista.');
     }
@@ -378,7 +379,7 @@ class InterviewVoiceController extends ChangeNotifier {
   }
 
   Future<String> _generateAdaptiveNextQuestion(InterviewTurn lastTurn) async {
-    final jobRole = _config.jobRole.trim();
+    final jobRole = _config.jobRole?.label ?? '';
     final type = _config.type ?? InterviewConfigType.mixed;
     final history = _formatHistoryForPrompt(_session.turns);
     final followUps = lastTurn.evaluation.followUpQuestions
@@ -477,7 +478,7 @@ Reglas obligatorias para nextQuestion:
   }
 
   Future<String> _generateAlternativeQuestion() async {
-    final jobRole = _config.jobRole.trim();
+    final jobRole = _config.jobRole?.label ?? '';
     final type = _config.type ?? InterviewConfigType.mixed;
     final history = _formatHistoryForPrompt(_session.turns);
 
