@@ -30,6 +30,7 @@ class InterviewSessionController extends ChangeNotifier {
   String _voiceDraft = '';
   String? _error;
   DateTime? _currentQuestionAskedAt;
+  bool _isInterviewComplete = false;
 
   InterviewSession get session => _session;
   String get currentQuestion => _currentQuestion;
@@ -42,6 +43,9 @@ class InterviewSessionController extends ChangeNotifier {
   String get voiceDraft => _voiceDraft;
 
   String? get error => _error;
+  bool get isInterviewComplete => _isInterviewComplete;
+  int get targetQuestionCount =>
+      _estimateQuestionCount(_config.durationMinutes ?? 3);
 
   InterviewTurn? get lastTurn =>
       _session.turns.isEmpty ? null : _session.turns.last;
@@ -127,6 +131,12 @@ class InterviewSessionController extends ChangeNotifier {
     }
 
     if (_error != null) return;
+    if (_shouldFinishAfterTurn()) {
+      _isInterviewComplete = true;
+      _currentQuestion = '';
+      notifyListeners();
+      return;
+    }
     await generateNextQuestion();
   }
 
@@ -227,6 +237,23 @@ Devuelve SOLO el texto de la pregunta.
     notifyListeners();
   }
 
+  bool _shouldFinishAfterTurn() {
+    final answered = _session.turns.length;
+    if (answered >= targetQuestionCount) {
+      return true;
+    }
+
+    final totalInterviewSeconds = (_config.durationMinutes ?? 3) * 60;
+    final elapsed = DateTime.now()
+        .toUtc()
+        .difference(_session.startedAt)
+        .inSeconds;
+    final remaining = totalInterviewSeconds - elapsed;
+    final averageBudgetPerQuestion =
+        (totalInterviewSeconds / targetQuestionCount).round().clamp(45, 180);
+    return remaining < averageBudgetPerQuestion;
+  }
+
   @override
   void dispose() {
     _speech.stop();
@@ -238,6 +265,12 @@ int _calculateResponseDurationSeconds(DateTime? askedAt) {
   if (askedAt == null) return 0;
   final elapsed = DateTime.now().toUtc().difference(askedAt).inSeconds;
   return elapsed < 0 ? 0 : elapsed;
+}
+
+int _estimateQuestionCount(int durationMinutes) {
+  final safeMinutes = durationMinutes <= 0 ? 3 : durationMinutes;
+  final estimated = (safeMinutes * 60 / 95).round();
+  return estimated.clamp(1, 12).toInt();
 }
 
 InterviewType _mapType(InterviewConfigType type) {

@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_tts/flutter_tts.dart';
@@ -54,6 +55,8 @@ class InterviewVoiceController extends ChangeNotifier {
   double _soundLevel = 0;
   String? _speechLocaleId;
   DateTime? _currentQuestionAskedAt;
+  bool _isInterviewComplete = false;
+  String? _completionReason;
 
   InterviewSession get session => _session;
   InterviewConversationState get state => _state;
@@ -63,6 +66,19 @@ class InterviewVoiceController extends ChangeNotifier {
   String get statusMessage => _statusMessage;
   String? get error => _error;
   double get soundLevel => _soundLevel;
+  bool get isInterviewComplete => _isInterviewComplete;
+  String? get completionReason => _completionReason;
+  int get targetQuestionCount =>
+      _estimateQuestionCount(_config.durationMinutes ?? 3);
+  int get answeredQuestionCount => _session.turns.length;
+  int get remainingQuestionCount =>
+      math.max(0, targetQuestionCount - answeredQuestionCount);
+  int get totalInterviewSeconds => (_config.durationMinutes ?? 3) * 60;
+  int get remainingInterviewSeconds {
+    final elapsed = DateTime.now().toUtc().difference(_session.startedAt).inSeconds;
+    final remaining = totalInterviewSeconds - elapsed;
+    return remaining < 0 ? 0 : remaining;
+  }
 
   bool get hasSpeechRecognition => _isSpeechAvailable;
   bool get hasTextToSpeech => _isTtsAvailable;
@@ -77,6 +93,8 @@ class InterviewVoiceController extends ChangeNotifier {
   Future<void> start() async {
     if (_isStarting || _hasStarted) return;
     _isStarting = true;
+    _isInterviewComplete = false;
+    _completionReason = null;
     _error = null;
     _statusMessage = 'Preparando la entrevista...';
     _notifySafely();
@@ -117,7 +135,9 @@ class InterviewVoiceController extends ChangeNotifier {
   Future<void> submitAnswer(String answer) async {
     final question = _currentQuestion.trim();
     final safeAnswer = answer.trim();
-    if (question.isEmpty || safeAnswer.isEmpty || isProcessing) return;
+    if (question.isEmpty || safeAnswer.isEmpty || isProcessing || _isInterviewComplete) {
+      return;
+    }
 
     _handledListeningCycle = _activeListeningCycle;
     _emptyVoiceRetries = 0;
@@ -157,6 +177,13 @@ class InterviewVoiceController extends ChangeNotifier {
       _session = _session.copyWith(turns: [..._session.turns, turn]);
       _notifySafely();
 
+      if (_shouldFinishAfterTurn()) {
+        _completeInterview(
+          reason: _buildCompletionReason(),
+        );
+        return;
+      }
+
       final nextQuestion = await _generateAdaptiveNextQuestion(turn);
       await _deliverQuestion(nextQuestion);
     } catch (e) {
@@ -169,7 +196,9 @@ class InterviewVoiceController extends ChangeNotifier {
   }
 
   Future<void> skipQuestion() async {
-    if (_currentQuestion.trim().isEmpty || isProcessing) return;
+    if (_currentQuestion.trim().isEmpty || isProcessing || _isInterviewComplete) {
+      return;
+    }
 
     _error = null;
     _state = InterviewConversationState.processing;
@@ -194,7 +223,7 @@ class InterviewVoiceController extends ChangeNotifier {
 
   Future<void> repeatCurrentQuestion() async {
     final question = _currentQuestion.trim();
-    if (question.isEmpty || isProcessing) return;
+    if (question.isEmpty || isProcessing || _isInterviewComplete) return;
 
     await _speech.stop();
     _voiceDraft = '';
@@ -203,12 +232,15 @@ class InterviewVoiceController extends ChangeNotifier {
   }
 
   Future<void> retryListening() async {
-    if (isProcessing || _currentQuestion.trim().isEmpty) return;
+    if (isProcessing || _currentQuestion.trim().isEmpty || _isInterviewComplete) {
+      return;
+    }
     await _beginListening(clearDraft: true);
   }
 
   Future<void> stopConversation() async {
     _hasStarted = false;
+    _isInterviewComplete = false;
     _setIdle();
     _statusMessage = '';
     _voiceDraft = '';
@@ -471,6 +503,7 @@ Devuelve SOLO el texto de la pregunta.
   }
 
   Future<void> _deliverQuestion(String question, {String? introMessage}) async {
+    if (_isInterviewComplete) return;
     _currentQuestion = question.trim();
     _currentQuestionAskedAt = DateTime.now().toUtc();
     _voiceDraft = '';
@@ -521,7 +554,11 @@ Devuelve SOLO el texto de la pregunta.
   }
 
   Future<void> _beginListening({required bool clearDraft}) async {
-    if (!_isSpeechAvailable || _currentQuestion.trim().isEmpty) return;
+    if (!_isSpeechAvailable ||
+        _currentQuestion.trim().isEmpty ||
+        _isInterviewComplete) {
+      return;
+    }
 
     try {
       await _tts.stop();
@@ -705,6 +742,51 @@ Devuelve SOLO el texto de la pregunta.
     return _calculateResponseDurationSeconds(_currentQuestionAskedAt);
   }
 
+  bool _shouldFinishAfterTurn() {
+    final answered = _session.turns.length;
+    if (answered >= targetQuestionCount) {
+      return true;
+    }
+
+    final remaining = remainingInterviewSeconds;
+    final averageBudgetPerQuestion = (totalInterviewSeconds / targetQuestionCount)
+        .round()
+        .clamp(45, 180);
+    final measuredAverage = answered == 0
+        ? averageBudgetPerQuestion
+        : (_session.turns.fold<int>(
+                  0,
+                  (sum, turn) => sum + turn.responseDurationSeconds,
+                ) /
+                answered)
+            .round()
+            .clamp(30, 180);
+    final minimumNeededForAnotherQuestion = math.max(
+      40,
+      math.min(averageBudgetPerQuestion, measuredAverage + 15),
+    );
+
+    return remaining < minimumNeededForAnotherQuestion;
+  }
+
+  void _completeInterview({required String reason}) {
+    _isInterviewComplete = true;
+    _completionReason = reason;
+    _currentQuestion = '';
+    _currentQuestionAskedAt = null;
+    _voiceDraft = '';
+    _setIdle();
+    _statusMessage = reason;
+    _notifySafely();
+  }
+
+  String _buildCompletionReason() {
+    if (answeredQuestionCount >= targetQuestionCount) {
+      return 'Entrevista completada: se alcanzaron $targetQuestionCount preguntas para ${_config.durationMinutes ?? 3} minutos.';
+    }
+    return 'Entrevista completada: el tiempo restante ya no alcanza para una nueva pregunta con buena calidad.';
+  }
+
   void _notifySafely() {
     if (_isDisposed) return;
     notifyListeners();
@@ -723,6 +805,12 @@ int _calculateResponseDurationSeconds(DateTime? askedAt) {
   if (askedAt == null) return 0;
   final elapsed = DateTime.now().toUtc().difference(askedAt).inSeconds;
   return elapsed < 0 ? 0 : elapsed;
+}
+
+int _estimateQuestionCount(int durationMinutes) {
+  final safeMinutes = durationMinutes <= 0 ? 3 : durationMinutes;
+  final estimated = (safeMinutes * 60 / 95).round();
+  return estimated.clamp(1, 12).toInt();
 }
 
 String? _tryExtractNextQuestion(String raw) {

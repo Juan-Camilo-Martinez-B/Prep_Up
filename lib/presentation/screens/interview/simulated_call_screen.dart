@@ -28,6 +28,7 @@ class _SimulatedCallScreenState extends State<SimulatedCallScreen> {
   late final InterviewVoiceController _voiceController;
   final _answerController = TextEditingController();
   String _syncedQuestion = '';
+  var _isFinishingInterview = false;
 
   @override
   void initState() {
@@ -39,6 +40,9 @@ class _SimulatedCallScreenState extends State<SimulatedCallScreen> {
       if (!mounted) return;
       if (_secondsLeft <= 0) return;
       setState(() => _secondsLeft -= 1);
+      if (_secondsLeft <= 0) {
+        unawaited(_finishInterview());
+      }
     });
 
     _voiceController = InterviewVoiceController(
@@ -52,6 +56,10 @@ class _SimulatedCallScreenState extends State<SimulatedCallScreen> {
       if (question.isNotEmpty && question != _syncedQuestion) {
         _syncedQuestion = question;
         _answerController.clear();
+      }
+
+      if (_voiceController.isInterviewComplete) {
+        unawaited(_finishInterview());
       }
 
       if (_voiceController.isListening) {
@@ -88,6 +96,8 @@ class _SimulatedCallScreenState extends State<SimulatedCallScreen> {
   }
 
   Future<void> _finishInterview() async {
+    if (_isFinishingInterview) return;
+    _isFinishingInterview = true;
     await _voiceController.stopConversation();
     if (!mounted) return;
     Navigator.of(context).pushNamed(
@@ -209,7 +219,8 @@ class _SimulatedCallScreenState extends State<SimulatedCallScreen> {
 
               return AppCard(
                 title: 'Estado de la llamada',
-                subtitle: 'Interacción por voz en tiempo real',
+                subtitle:
+                    'Objetivo: ${_voiceController.targetQuestionCount} preguntas para ${_config.durationMinutes ?? 3} min',
                 leading: Icon(Icons.graphic_eq_rounded, color: scheme.primary),
                 child: Wrap(
                   spacing: 8,
@@ -234,6 +245,13 @@ class _SimulatedCallScreenState extends State<SimulatedCallScreen> {
                       active: isProcessing,
                       scheme: scheme,
                       icon: Icons.auto_awesome_rounded,
+                    ),
+                    _StatePill(
+                      label:
+                          '${_voiceController.answeredQuestionCount}/${_voiceController.targetQuestionCount} preguntas',
+                      active: false,
+                      scheme: scheme,
+                      icon: Icons.quiz_rounded,
                     ),
                   ],
                 ),
@@ -311,10 +329,12 @@ class _SimulatedCallScreenState extends State<SimulatedCallScreen> {
             builder: (context, _) {
               final isBusy = _voiceController.isProcessing;
               final isListening = _voiceController.isListening;
+              final isComplete = _voiceController.isInterviewComplete;
               final questionReady = _voiceController.currentQuestion
                   .trim()
                   .isNotEmpty;
-              final canInteract = questionReady && _secondsLeft > 0 && !isBusy;
+              final canInteract =
+                  questionReady && _secondsLeft > 0 && !isBusy && !isComplete;
               final statusMessage = _voiceController.statusMessage.trim();
 
               return AppCard(
@@ -340,7 +360,7 @@ class _SimulatedCallScreenState extends State<SimulatedCallScreen> {
                             ? 'Gemini pregunta por voz y texto.'
                             : 'Fallback activo: lee la pregunta en pantalla.',
                       ),
-                      enabled: canInteract || isListening,
+                      enabled: (canInteract || isListening) && !isComplete,
                     ),
                     if (statusMessage.isNotEmpty) ...[
                       const SizedBox(height: 8),
@@ -371,7 +391,10 @@ class _SimulatedCallScreenState extends State<SimulatedCallScreen> {
                         Expanded(
                           child: OutlinedButton.icon(
                             onPressed:
-                                questionReady && _secondsLeft > 0 && !isBusy
+                                questionReady &&
+                                    _secondsLeft > 0 &&
+                                    !isBusy &&
+                                    !isComplete
                                 ? () async {
                                     await _voiceController
                                         .repeatCurrentQuestion();
@@ -427,6 +450,7 @@ class _SimulatedCallScreenState extends State<SimulatedCallScreen> {
                         alignment: Alignment.centerRight,
                         child: TextButton.icon(
                           onPressed: questionReady && _secondsLeft > 0
+                              && !isComplete
                               ? () async {
                                   await _voiceController.retryListening();
                                 }
@@ -446,10 +470,12 @@ class _SimulatedCallScreenState extends State<SimulatedCallScreen> {
             children: [
               Expanded(
                 child: OutlinedButton.icon(
-                  onPressed: () async {
-                    await _voiceController.skipQuestion();
-                    _answerController.clear();
-                  },
+                  onPressed: _voiceController.isInterviewComplete
+                      ? null
+                      : () async {
+                          await _voiceController.skipQuestion();
+                          _answerController.clear();
+                        },
                   style: OutlinedButton.styleFrom(
                     minimumSize: const Size(0, 48),
                     shape: RoundedRectangleBorder(
