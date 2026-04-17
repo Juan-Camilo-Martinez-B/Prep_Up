@@ -71,11 +71,21 @@ class InterviewVoiceController extends ChangeNotifier {
   int get targetQuestionCount =>
       _estimateQuestionCount(_config.durationMinutes ?? 3);
   int get answeredQuestionCount => _session.turns.length;
+  int get currentQuestionNumber {
+    if (_isInterviewComplete) {
+      return answeredQuestionCount == 0 ? 1 : answeredQuestionCount;
+    }
+    return math.min(targetQuestionCount, answeredQuestionCount + 1);
+  }
+
   int get remainingQuestionCount =>
       math.max(0, targetQuestionCount - answeredQuestionCount);
   int get totalInterviewSeconds => (_config.durationMinutes ?? 3) * 60;
   int get remainingInterviewSeconds {
-    final elapsed = DateTime.now().toUtc().difference(_session.startedAt).inSeconds;
+    final elapsed = DateTime.now()
+        .toUtc()
+        .difference(_session.startedAt)
+        .inSeconds;
     final remaining = totalInterviewSeconds - elapsed;
     return remaining < 0 ? 0 : remaining;
   }
@@ -135,7 +145,10 @@ class InterviewVoiceController extends ChangeNotifier {
   Future<void> submitAnswer(String answer) async {
     final question = _currentQuestion.trim();
     final safeAnswer = answer.trim();
-    if (question.isEmpty || safeAnswer.isEmpty || isProcessing || _isInterviewComplete) {
+    if (question.isEmpty ||
+        safeAnswer.isEmpty ||
+        isProcessing ||
+        _isInterviewComplete) {
       return;
     }
 
@@ -178,9 +191,7 @@ class InterviewVoiceController extends ChangeNotifier {
       _notifySafely();
 
       if (_shouldFinishAfterTurn()) {
-        _completeInterview(
-          reason: _buildCompletionReason(),
-        );
+        _completeInterview(reason: _buildCompletionReason());
         return;
       }
 
@@ -196,7 +207,9 @@ class InterviewVoiceController extends ChangeNotifier {
   }
 
   Future<void> skipQuestion() async {
-    if (_currentQuestion.trim().isEmpty || isProcessing || _isInterviewComplete) {
+    if (_currentQuestion.trim().isEmpty ||
+        isProcessing ||
+        _isInterviewComplete) {
       return;
     }
 
@@ -232,7 +245,9 @@ class InterviewVoiceController extends ChangeNotifier {
   }
 
   Future<void> retryListening() async {
-    if (isProcessing || _currentQuestion.trim().isEmpty || _isInterviewComplete) {
+    if (isProcessing ||
+        _currentQuestion.trim().isEmpty ||
+        _isInterviewComplete) {
       return;
     }
     await _beginListening(clearDraft: true);
@@ -749,18 +764,17 @@ Devuelve SOLO el texto de la pregunta.
     }
 
     final remaining = remainingInterviewSeconds;
-    final averageBudgetPerQuestion = (totalInterviewSeconds / targetQuestionCount)
-        .round()
-        .clamp(45, 180);
+    final averageBudgetPerQuestion =
+        (totalInterviewSeconds / targetQuestionCount).round().clamp(45, 180);
     final measuredAverage = answered == 0
         ? averageBudgetPerQuestion
         : (_session.turns.fold<int>(
-                  0,
-                  (sum, turn) => sum + turn.responseDurationSeconds,
-                ) /
-                answered)
-            .round()
-            .clamp(30, 180);
+                    0,
+                    (sum, turn) => sum + turn.responseDurationSeconds,
+                  ) /
+                  answered)
+              .round()
+              .clamp(30, 180);
     final minimumNeededForAnotherQuestion = math.max(
       40,
       math.min(averageBudgetPerQuestion, measuredAverage + 15),

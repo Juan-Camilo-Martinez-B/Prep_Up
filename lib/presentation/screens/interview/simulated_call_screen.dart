@@ -216,6 +216,8 @@ class _SimulatedCallScreenState extends State<SimulatedCallScreen> {
               final isListening = state == InterviewConversationState.listening;
               final isProcessing =
                   state == InterviewConversationState.processing;
+              final currentQuestionNumber = _voiceController.currentQuestionNumber;
+              final totalQuestions = _voiceController.targetQuestionCount;
 
               return AppCard(
                 title: 'Estado de la llamada',
@@ -248,8 +250,8 @@ class _SimulatedCallScreenState extends State<SimulatedCallScreen> {
                     ),
                     _StatePill(
                       label:
-                          '${_voiceController.answeredQuestionCount}/${_voiceController.targetQuestionCount} preguntas',
-                      active: false,
+                          'Pregunta $currentQuestionNumber de $totalQuestions',
+                      active: true,
                       scheme: scheme,
                       icon: Icons.quiz_rounded,
                     ),
@@ -264,6 +266,8 @@ class _SimulatedCallScreenState extends State<SimulatedCallScreen> {
             builder: (context, _) {
               final question = _voiceController.currentQuestion.trim();
               final hasQuestion = question.isNotEmpty;
+              final currentQuestionNumber = _voiceController.currentQuestionNumber;
+              final totalQuestions = _voiceController.targetQuestionCount;
               final isLoading =
                   !hasQuestion &&
                   _voiceController.statusMessage.toLowerCase().contains(
@@ -271,20 +275,47 @@ class _SimulatedCallScreenState extends State<SimulatedCallScreen> {
                   );
 
               return AppCard(
-                title: 'Pregunta actual',
+                title: 'Pregunta $currentQuestionNumber de $totalQuestions',
                 subtitle: _voiceController.isSpeaking
                     ? 'La IA la está leyendo en voz alta'
                     : 'Entrevistador IA',
                 leading: Icon(Icons.smart_toy_outlined, color: scheme.primary),
-                child: isLoading
-                    ? const SizedBox(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(999),
+                      child: LinearProgressIndicator(
+                        value: totalQuestions <= 0
+                            ? 0
+                            : (currentQuestionNumber / totalQuestions).clamp(
+                                0.0,
+                                1.0,
+                              ),
+                        minHeight: 8,
+                        backgroundColor: scheme.surfaceContainerHighest,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    Text(
+                      'Vas en la pregunta $currentQuestionNumber de $totalQuestions.',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: scheme.onSurfaceVariant,
+                          ),
+                    ),
+                    const SizedBox(height: 10),
+                    if (isLoading)
+                      const SizedBox(
                         height: 44,
                         child: Center(child: CircularProgressIndicator()),
                       )
-                    : Text(
+                    else
+                      Text(
                         hasQuestion ? question : 'No hay pregunta aún.',
                         style: Theme.of(context).textTheme.titleMedium,
                       ),
+                  ],
+                ),
               );
             },
           ),
