@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:prep_up/core/localization/interview_l10n.dart';
+import 'package:prep_up/core/localization/l10n_extensions.dart';
 import 'package:prep_up/core/navigation/app_routes.dart';
-import 'package:prep_up/domain/entities/interview_config.dart';
 import 'package:prep_up/domain/entities/interview_tags.dart';
 import 'package:prep_up/presentation/controllers/interview_config_controller.dart';
 import 'package:prep_up/presentation/widgets/app_card.dart';
@@ -34,29 +35,38 @@ class _InterviewConfigurationScreenState
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final l10n = context.l10n;
     final controller = context.watch<InterviewConfigController>();
     final config = controller.config;
     final timeLimitSeconds = (_timeLimitMinutes.round()) * 60;
 
     return AppScreenScaffold(
-      title: 'Configurar entrevista',
+      title: l10n.interviewConfigTitle,
       background: const TechBackground(),
       body: ListView(
         children: [
           AppCard(
-            title: 'Ajustes rápidos',
-            subtitle: 'Define duración y modalidad',
+            title: l10n.interviewQuickSettingsTitle,
+            subtitle: l10n.interviewQuickSettingsSubtitle,
             leading: Icon(Icons.tune_rounded, color: scheme.primary),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Tiempo límite: ${_timeLimitMinutes.round()} min'),
+                Text(
+                  l10n.interviewTimeLimitMinutes(
+                    _timeLimitMinutes.round(),
+                    l10n.minutesShort,
+                  ),
+                ),
                 Slider(
                   value: _timeLimitMinutes,
                   min: 5,
                   max: 20,
                   divisions: 15,
-                  label: '${_timeLimitMinutes.round()} min',
+                  label: l10n.interviewTimeLimitMinutes(
+                    _timeLimitMinutes.round(),
+                    l10n.minutesShort,
+                  ),
                   onChanged: (v) {
                     setState(() => _timeLimitMinutes = v);
                     controller.setDurationMinutes(v.round());
@@ -64,7 +74,7 @@ class _InterviewConfigurationScreenState
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Modalidad',
+                  l10n.interviewModeLabel,
                   style: Theme.of(context).textTheme.titleSmall,
                 ),
                 const SizedBox(height: 8),
@@ -74,7 +84,7 @@ class _InterviewConfigurationScreenState
                   children: [
                     for (final mode in InterviewMode.values)
                       ChoiceChip(
-                        label: Text(mode.label),
+                        label: Text(mode.label(l10n)),
                         selected: config.mode == mode,
                         onSelected: (_) => controller.setMode(mode),
                       ),
@@ -85,47 +95,54 @@ class _InterviewConfigurationScreenState
           ),
           const SizedBox(height: 14),
           AppCard(
-            title: 'Vista previa',
-            subtitle: 'Lo que vas a entrenar',
+            title: l10n.interviewPreviewTitle,
+            subtitle: l10n.interviewPreviewSubtitle,
             leading: Icon(Icons.preview_rounded, color: scheme.secondary),
             child: Column(
               children: [
                 _PreviewTile(
                   icon: Icons.record_voice_over_rounded,
-                  title: 'Tipo',
-                  value: config.type?.label ?? '-',
+                  title: l10n.interviewPreviewType,
+                  value: config.type == null ? '-' : config.type!.label(l10n),
                 ),
                 const SizedBox(height: 10),
                 _PreviewTile(
                   icon: Icons.timer_rounded,
-                  title: 'Tiempo',
-                  value: '${timeLimitSeconds ~/ 60} min',
+                  title: l10n.interviewPreviewTime,
+                  value: l10n.interviewTimeLimitMinutes(
+                    timeLimitSeconds ~/ 60,
+                    l10n.minutesShort,
+                  ),
                 ),
                 const SizedBox(height: 10),
                 _PreviewTile(
                   icon: Icons.work_outline_rounded,
-                  title: 'Cargo',
-                  value: config.jobRole == null ? '-' : config.jobRole!.label,
+                  title: l10n.interviewPreviewJobRole,
+                  value: config.jobRole == null
+                      ? '-'
+                      : config.jobRole!.label(l10n),
                 ),
                 const SizedBox(height: 10),
                 _PreviewTile(
                   icon: Icons.smart_toy_outlined,
-                  title: 'Modalidad',
-                  value: config.mode?.label ?? '-',
+                  title: l10n.interviewPreviewMode,
+                  value: config.mode == null ? '-' : config.mode!.label(l10n),
                 ),
               ],
             ),
           ),
           const SizedBox(height: 18),
           AppPrimaryButton(
-            label: 'Continuar',
+            label: l10n.genericContinue,
             icon: Icons.arrow_forward_rounded,
             onPressed: () {
               if (!controller.isComplete) {
-                final missing = controller.config.missingFields.join(', ');
+                final missing = controller.config.missingFields
+                    .map((f) => f.label(l10n))
+                    .join(', ');
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text('Completa estos campos: $missing'),
+                    content: Text(l10n.interviewCompleteMissingFields(missing)),
                   ),
                 );
                 return;
@@ -142,7 +159,7 @@ class _InterviewConfigurationScreenState
                 borderRadius: BorderRadius.circular(14),
               ),
             ),
-            child: const Text('Atrás'),
+            child: Text(l10n.genericBack),
           ),
         ],
       ),
@@ -180,10 +197,9 @@ class _PreviewTile extends StatelessWidget {
         Expanded(child: Text(title)),
         Text(
           value,
-          style: Theme.of(context)
-              .textTheme
-              .titleSmall
-              ?.copyWith(color: scheme.onSurface),
+          style: Theme.of(
+            context,
+          ).textTheme.titleSmall?.copyWith(color: scheme.onSurface),
         ),
       ],
     );

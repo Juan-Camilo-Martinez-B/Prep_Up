@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:prep_up/core/localization/l10n_extensions.dart';
 import 'package:prep_up/core/navigation/app_routes.dart';
 import 'package:prep_up/presentation/widgets/app_card.dart';
 import 'package:prep_up/presentation/widgets/app_primary_button.dart';
@@ -10,26 +11,27 @@ class RepeatInterviewScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final l10n = context.l10n;
 
     return AppScreenScaffold(
-      title: 'Repetir entrevista',
+      title: l10n.repeatInterviewTitle,
       background: const TechBackground(),
       body: ListView(
         children: [
           AppCard(
-            title: 'Modo remix',
-            subtitle: 'Repite con ajustes y mejora tu score',
+            title: l10n.repeatInterviewCardTitle,
+            subtitle: l10n.repeatInterviewCardSubtitle,
             leading: Icon(Icons.replay_rounded, color: scheme.primary),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Sugerencia rápida',
+                  l10n.repeatInterviewQuickSuggestionTitle,
                   style: Theme.of(context).textTheme.labelLarge,
                 ),
                 const SizedBox(height: 6),
                 Text(
-                  'Cambia el tipo de entrevista o el rol para practicar distintos escenarios.',
+                  l10n.repeatInterviewQuickSuggestionBody,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: scheme.onSurfaceVariant,
                       ),
@@ -39,7 +41,7 @@ class RepeatInterviewScreen extends StatelessWidget {
           ),
           const SizedBox(height: 18),
           AppPrimaryButton(
-            label: 'Iniciar nueva simulación',
+            label: l10n.repeatInterviewStartNewSimulation,
             icon: Icons.play_arrow_rounded,
             onPressed: () =>
                 Navigator.of(context).pushNamed(AppRoutes.selectInterviewType),
@@ -56,7 +58,7 @@ class RepeatInterviewScreen extends StatelessWidget {
                 borderRadius: BorderRadius.circular(14),
               ),
             ),
-            child: const Text('Volver al Dashboard'),
+            child: Text(l10n.backToDashboard),
           ),
         ],
       ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:ui';
+import 'package:prep_up/core/localization/l10n_extensions.dart';
 import 'package:prep_up/core/navigation/app_routes.dart';
 import 'package:prep_up/domain/services/auth_service.dart';
 import 'package:prep_up/presentation/widgets/app_primary_button.dart';
@@ -35,6 +36,7 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = context.l10n;
     final scheme = theme.colorScheme;
     final isDark = theme.brightness == Brightness.dark;
 
@@ -88,7 +90,7 @@ class _SplashScreenState extends State<SplashScreen> {
                     child: Column(
                       children: [
                         Text(
-                          'El Futuro de las\nEntrevistas IA',
+                          l10n.splashHeadline,
                           textAlign: TextAlign.center,
                           style: theme.textTheme.headlineLarge?.copyWith(
                             fontWeight: FontWeight.w800,
@@ -98,7 +100,7 @@ class _SplashScreenState extends State<SplashScreen> {
                         ),
                         const SizedBox(height: 16),
                         Text(
-                          'Preparación inteligente que eleva tu carrera al próximo nivel.',
+                          l10n.splashSubtitle,
                           textAlign: TextAlign.center,
                           style: theme.textTheme.bodyLarge?.copyWith(
                             color: scheme.onSurfaceVariant,
@@ -114,7 +116,7 @@ class _SplashScreenState extends State<SplashScreen> {
             const Spacer(flex: 3),
             // Action Buttons
             AppPrimaryButton(
-              label: 'Iniciar Sesión',
+              label: l10n.loginButton,
               icon: Icons.login_rounded,
               onPressed: () => Navigator.of(context).pushNamed(AppRoutes.login),
             ),
@@ -133,7 +135,7 @@ class _SplashScreenState extends State<SplashScreen> {
                 onTap: () => Navigator.of(context).pushNamed(AppRoutes.register),
                 child: Center(
                   child: Text(
-                    'Crear una Cuenta',
+                    l10n.createAccountButton,
                     style: TextStyle(
                       color: isDark ? Colors.white : scheme.onSurface,
                       fontWeight: FontWeight.w600,
@@ -151,7 +153,7 @@ class _SplashScreenState extends State<SplashScreen> {
                   Icon(Icons.shield_rounded, size: 14, color: scheme.primary),
                   const SizedBox(width: 6),
                   Text(
-                    'Operación segura por Supabase',
+                    l10n.secureBySupabase,
                     style: theme.textTheme.labelMedium?.copyWith(
                       color: scheme.onSurfaceVariant,
                       letterSpacing: 0.5,

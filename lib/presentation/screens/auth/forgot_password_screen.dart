@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:prep_up/core/localization/l10n_extensions.dart';
 import 'package:prep_up/core/navigation/app_routes.dart';
 import 'package:prep_up/domain/services/auth_service.dart';
 import 'package:prep_up/presentation/widgets/app_card.dart';
@@ -25,9 +26,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   }
 
   Future<void> _handleResetPassword() async {
+    final l10n = context.l10n;
     if (_emailController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Por favor ingresa tu email')),
+        SnackBar(content: Text(l10n.forgotPasswordEnterEmail)),
       );
       return;
     }
@@ -39,13 +41,13 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       setState(() => _sent = true);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Enlace de recuperación enviado')),
+          SnackBar(content: Text(l10n.forgotPasswordSent)),
         );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: ${e.toString()}')),
+          SnackBar(content: Text('${l10n.errorLabel}: ${e.toString()}')),
         );
       }
     } finally {
@@ -57,14 +59,15 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return AppScreenScaffold(
-      title: 'Recuperar contraseña',
+      title: l10n.forgotPasswordTitle,
       background: const TechBackground(),
       body: ListView(
         children: [
           AppCard(
-            title: 'Reinicia tu acceso',
-            subtitle: 'Te enviaremos un enlace',
+            title: l10n.forgotPasswordCardTitle,
+            subtitle: l10n.forgotPasswordCardSubtitle,
             leading: Icon(
               Icons.refresh_rounded,
               color: Theme.of(context).colorScheme.primary,
@@ -74,9 +77,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 TextField(
                   controller: _emailController,
                   keyboardType: TextInputType.emailAddress,
-                  decoration: const InputDecoration(
-                    labelText: 'Email',
-                    prefixIcon: Icon(Icons.alternate_email_rounded),
+                  decoration: InputDecoration(
+                    labelText: l10n.emailLabel,
+                    prefixIcon: const Icon(Icons.alternate_email_rounded),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -84,7 +87,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                   const CircularProgressIndicator()
                 else
                   AppPrimaryButton(
-                    label: _sent ? 'Enviado' : 'Enviar enlace',
+                    label: _sent
+                        ? l10n.forgotPasswordSentShort
+                        : l10n.forgotPasswordSendLink,
                     icon: _sent ? Icons.check_circle_rounded : Icons.send_rounded,
                     onPressed: _sent ? null : _handleResetPassword,
                   ),
@@ -92,7 +97,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 TextButton(
                   onPressed: () => Navigator.of(context)
                       .pushNamedAndRemoveUntil(AppRoutes.login, (r) => false),
-                  child: const Text('Volver a Login'),
+                  child: Text(l10n.forgotPasswordBackToLogin),
                 ),
               ],
             ),

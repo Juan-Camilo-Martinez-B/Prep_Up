@@ -1,0 +1,485 @@
+{
+  "@@locale": "es",
+  "appTitle": "AI Interview Trainer",
+  "language": "Idioma",
+  "languageOptionSpanish": "Español / Spanish",
+  "languageOptionEnglish": "English / Inglés",
+  "spanish": "Español",
+  "english": "Inglés",
+  "settingsTitle": "Ajustes",
+  "myProfile": "Mi Perfil",
+  "freeAccount": "Cuenta Gratuita",
+  "personalization": "Personalización",
+  "visualTheme": "Tema Visual",
+  "themeSystem": "Sistema",
+  "themeLight": "Claro",
+  "themeDark": "Oscuro",
+  "hapticFeedback": "Respuesta Háptica",
+  "hapticSubtitle": "Vibración al interactuar",
+  "pushNotifications": "Notificaciones Push",
+  "pushNotificationsSubtitle": "Recordatorios y avisos",
+  "privacyAndAnalytics": "Privacidad y Análisis",
+  "myRecordingsBeta": "Mis grabaciones (Beta)",
+  "expertFacialAnalysis": "Análisis Facial Experto",
+  "comingSoon": "Próximamente",
+  "accountAndSession": "Cuenta y Sesión",
+  "myProfileButton": "Mi perfil",
+  "signOutButton": "Cerrar sesión",
+  "splashHeadline": "El Futuro de las\nEntrevistas IA",
+  "splashSubtitle": "Preparación inteligente que eleva tu carrera al próximo nivel.",
+  "createAccountButton": "Crear una Cuenta",
+  "secureBySupabase": "Operación segura por Supabase",
+  "loginButton": "Iniciar Sesión",
+  "authFillAllFields": "Por favor completa todos los campos",
+  "authInvalidEmail": "Por favor ingresa un correo electrónico válido",
+  "loginErrorGeneric": "Error al iniciar sesión",
+  "loginErrorEmailNotConfirmed": "Tu cuenta aún no ha sido confirmada. Por favor verifica tu bandeja de entrada.",
+  "loginErrorInvalidCredentials": "Credenciales incorrectas. Inténtalo de nuevo.",
+  "unexpectedError": "Error inesperado",
+  "loginWelcomeBack": "Bienvenido de vuelta",
+  "loginSubtitle": "Continúa tu entrenamiento donde lo dejaste.",
+  "emailLabel": "Correo electrónico",
+  "passwordLabel": "Contraseña",
+  "rememberSession": "Mantener sesión",
+  "forgotPasswordLink": "¿Olvidaste tu contraseña?",
+  "loginNoAccount": "¿No tienes cuenta?",
+  "loginRegisterHere": "Regístrate aquí",
+  "loginEmailVerified": "¡Correo verificado con éxito! Ya puedes iniciar sesión.",
+  "forgotPasswordEnterEmail": "Por favor ingresa tu email",
+  "forgotPasswordSent": "Enlace de recuperación enviado",
+  "forgotPasswordTitle": "Recuperar contraseña",
+  "forgotPasswordCardTitle": "Reinicia tu acceso",
+  "forgotPasswordCardSubtitle": "Te enviaremos un enlace",
+  "forgotPasswordSentShort": "Enviado",
+  "forgotPasswordSendLink": "Enviar enlace",
+  "forgotPasswordBackToLogin": "Volver a Login",
+  "errorLabel": "Error",
+  "registerInvalidEmail": "Por favor ingresa un correo electrónico con dominio válido (ej: usuario@dominio.com)",
+  "registerPhoneLengthError": "El número de teléfono debe tener 10 dígitos",
+  "registerWeakPassword": "La contraseña debe tener al menos 8 caracteres, incluir una mayúscula, una minúscula, un número y un carácter especial.",
+  "registerEmailAlreadyExists": "Este correo electrónico ya está registrado.",
+  "registerSuccess": "Registro exitoso. Se ha enviado un correo de confirmación. Por favor verifícalo antes de iniciar sesión.",
+  "registerError": "Error al registrarse",
+  "registerTitle": "Únete a la plataforma",
+  "registerSubtitle": "Crea tu perfil profesional y comienza el entrenamiento.",
+  "fullNameLabel": "Nombre Completo",
+  "phoneLabel": "Número de Teléfono",
+  "occupationLabel": "Ocupación / Cargo",
+  "registerButton": "Registrarse",
+  "registerAlreadyMember": "¿Ya eres miembro?",
+  "interviewTypeTechnical": "Técnica",
+  "interviewTypeBehavioral": "Conductual",
+  "interviewTypeMixed": "Mixta",
+  "interviewTypeTechnicalSubtitle": "Problemas, conceptos y debugging",
+  "interviewTypeBehavioralSubtitle": "Soft skills, historias y liderazgo",
+  "interviewTypeMixedSubtitle": "El equilibrio perfecto de ambas",
+  "interviewModeSimulated": "Simulada",
+  "interviewModeRealtime": "Tiempo real",
+  "jobRoleFrontendDeveloper": "Desarrollador Frontend",
+  "jobRoleBackendDeveloper": "Desarrollador Backend",
+  "jobRoleMobileDeveloper": "Desarrollador Mobile",
+  "jobRoleUiUxDesigner": "Diseñador UI/UX",
+  "jobRoleDataAnalyst": "Analista de Datos",
+  "jobRoleDataScientist": "Científico de Datos",
+  "jobRoleQaTester": "QA Tester",
+  "jobRoleDevOps": "DevOps",
+  "jobRoleProductManager": "Product Manager",
+  "interviewMissingFieldType": "tipo de entrevista",
+  "interviewMissingFieldJobRole": "cargo",
+  "interviewMissingFieldDuration": "duración",
+  "interviewMissingFieldMode": "modalidad",
+  "minutesShort": "min",
+  "interviewConfigTitle": "Configurar entrevista",
+  "interviewQuickSettingsTitle": "Ajustes rápidos",
+  "interviewQuickSettingsSubtitle": "Define duración y modalidad",
+  "interviewModeLabel": "Modalidad",
+  "interviewPreviewTitle": "Vista previa",
+  "interviewPreviewSubtitle": "Lo que vas a entrenar",
+  "interviewPreviewType": "Tipo",
+  "interviewPreviewTime": "Tiempo",
+  "interviewPreviewJobRole": "Cargo",
+  "interviewPreviewMode": "Modalidad",
+  "interviewTimeLimitMinutes": "Tiempo límite: {minutes} {unit}",
+  "@interviewTimeLimitMinutes": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "interviewCompleteMissingFields": "Completa estos campos: {fields}",
+  "@interviewCompleteMissingFields": {
+    "placeholders": {
+      "fields": {
+        "type": "String"
+      }
+    }
+  },
+  "dangerZone": "Zona de Peligro",
+  "interviewSelectTypeTitle": "Tipo de entrevista",
+  "interviewSelectTypeHeadline": "Elige tu modo\nde entrenamiento",
+  "interviewSelectTypeSubtitle": "Ajusta la simulación según el enfoque\nde tu próximo proceso de selección.",
+  "interviewSelectTypeError": "Por favor, selecciona un tipo de entrevista.",
+  "backToHome": "Volver al inicio",
+  "selectJobRoleTitle": "Puesto / área",
+  "selectJobRoleHeadline": "Elige tu rol",
+  "selectJobRoleSubtitle": "Selecciona la especialidad de la vacante para enfocar las preguntas de tu entrevista.",
+  "selectJobRoleSearchHint": "Ej. Backend Developer...",
+  "selectJobRoleSuggested": "Roles sugeridos",
+  "selectJobRoleNoResults": "No encontramos roles con esa búsqueda.",
+  "selectJobRoleError": "Por favor, selecciona un cargo.",
+  "processingTitle": "Analizando",
+  "processingHeadline": "Analizando tu entrevista con IA...",
+  "processingSubtitle": "Generando resultados con IA a partir de tus respuestas.",
+  "processingAnswersCaptured": "Respuestas capturadas: {count}",
+  "@processingAnswersCaptured": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "processingWorking": "Procesando...",
+  "processingNotEnoughData": "No hay datos suficientes para generar resultados.",
+  "processingErrorTitle": "No se pudieron generar resultados",
+  "processingViewResults": "Ver resultados",
+  "processingBackToDashboard": "Volver al Dashboard",
+  "processingSummaryReady": "Resumen listo",
+  "processingOutcomeStatus": "Estado: {status}",
+  "@processingOutcomeStatus": {
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "outcomeApproved": "Aprobado",
+  "outcomeImprove": "Mejorar",
+  "processingConfigReceived": "Configuración recibida",
+  "processingConfigType": "Tipo: {value}",
+  "@processingConfigType": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "processingConfigJobRole": "Cargo: {value}",
+  "@processingConfigJobRole": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "processingConfigDuration": "Duración: {value}",
+  "@processingConfigDuration": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "processingConfigMode": "Modalidad: {value}",
+  "@processingConfigMode": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "deviceCheckTitle": "Preparación",
+  "deviceCheckChecklistTitle": "Checklist de equipo",
+  "deviceCheckChecklistSubtitle": "Cámara y micrófono",
+  "deviceCheckCamera": "Cámara",
+  "deviceCheckMicrophone": "Micrófono",
+  "deviceCheckPreviewTitle": "Vista previa",
+  "deviceCheckCameraActive": "Cámara activa",
+  "deviceCheckCameraUnavailable": "Cámara no disponible",
+  "deviceCheckStartSimulation": "Iniciar simulación",
+  "deviceCheckStartInterview": "Iniciar entrevista",
+  "deviceStatusActive": "Activo",
+  "deviceStatusEnabling": "Activando...",
+  "deviceStatusPermissionBlocked": "Permiso bloqueado",
+  "deviceStatusPermissionDenied": "Permiso denegado",
+  "deviceStatusUnavailable": "No disponible",
+  "deviceStatusOpenSettings": "Ajustes",
+  "deviceStatusAllow": "Permitir",
+  "simulatedCallTitle": "Videollamada",
+  "simulatedCallLiveHeadline": "Simulación en vivo",
+  "callStatusTitle": "Estado de la llamada",
+  "callStatusObjective": "Objetivo: {questions} preguntas para {minutes} min",
+  "@callStatusObjective": {
+    "placeholders": {
+      "questions": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "callStateAiSpeaking": "IA hablando",
+  "callStateAiWaiting": "IA en espera",
+  "callStateUserAnswering": "Usuario respondiendo",
+  "callStateMicWaiting": "Micrófono en espera",
+  "callStateProcessing": "Procesando",
+  "callStateReady": "Listo",
+  "callStateQuestionProgress": "Pregunta {current} de {total}",
+  "@callStateQuestionProgress": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "callQuestionCardTitle": "Pregunta {current} de {total}",
+  "@callQuestionCardTitle": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "callQuestionSubtitleSpeaking": "La IA la está leyendo en voz alta",
+  "callQuestionSubtitleDefault": "Entrevistador IA",
+  "callQuestionProgressText": "Vas en la pregunta {current} de {total}.",
+  "@callQuestionProgressText": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "callQuestionNoneYet": "No hay pregunta aún.",
+  "callEvaluationTitle": "Evaluación",
+  "callEvaluationSubtitle": "Feedback en tiempo real",
+  "callScoreLabel": "Score: {score}/100",
+  "@callScoreLabel": {
+    "placeholders": {
+      "score": {
+        "type": "int"
+      }
+    }
+  },
+  "callStrengthsLabel": "Fortalezas: {items}",
+  "@callStrengthsLabel": {
+    "placeholders": {
+      "items": {
+        "type": "String"
+      }
+    }
+  },
+  "callImprovementsLabel": "Mejoras: {items}",
+  "@callImprovementsLabel": {
+    "placeholders": {
+      "items": {
+        "type": "String"
+      }
+    }
+  },
+  "callSummaryLabel": "Resumen: {text}",
+  "@callSummaryLabel": {
+    "placeholders": {
+      "text": {
+        "type": "String"
+      }
+    }
+  },
+  "callYourAnswerTitle": "Tu respuesta",
+  "callYourAnswerSubtitleListening": "Transcripción en tiempo real",
+  "callYourAnswerSubtitleFallback": "Voz con fallback a texto",
+  "callAnswerFieldLabel": "Respuesta detectada o escrita",
+  "callAnswerHelperTts": "Gemini pregunta por voz y texto.",
+  "callAnswerHelperFallback": "Fallback activo: lee la pregunta en pantalla.",
+  "callMicStop": "Detener",
+  "callMicTalk": "Hablar",
+  "callRepeatQuestion": "Repetir pregunta",
+  "callSendToGemini": "Enviar a Gemini",
+  "callRetryVoice": "Reintentar voz",
+  "callSkip": "Omitir",
+  "callHangUp": "Colgar",
+  "callTip": "Tip: mantén respuestas claras; si falla el audio, usa el texto y la conversación seguirá con Gemini.",
+  "callMicActive": "Activo",
+  "callMicReady": "Mic listo",
+  "callBadgeSpeaking": "IA hablando",
+  "callBadgeListening": "Escuchando",
+  "callBadgeProcessing": "Procesando",
+  "callBadgeIdle": "En espera",
+  "callAiInterviewerLabel": "Entrevistador IA",
+  "dashboardMyAccount": "Mi Cuenta",
+  "dashboardMenuTooltip": "Menú",
+  "dashboardNavProfile": "Perfil",
+  "dashboardNavHistory": "Historial",
+  "dashboardDailyStats": "Estadísticas Diarias",
+  "dashboardStatTechnicalAccuracyTitle": "Precisión Técnica",
+  "dashboardStatTechnicalAccuracySubtitle": "Tu precisión al responder preguntas de código ha subido un 15% estadísticamente.",
+  "dashboardStatVerbalFluencyTitle": "Fluidez Verbal",
+  "dashboardStatVerbalFluencySubtitle": "Muestras una gran cadencia. Continúa reduciendo las muletillas durante la entrevista.",
+  "dashboardPracticeModes": "Modos de Práctica",
+  "dashboardActionTrain": "Entrenar",
+  "dashboardActionMetrics": "Métricas",
+  "dashboardActionTips": "Consejos",
+  "dashboardActionSettings": "Ajustes",
+  "statsScreenTitle": "Estadísticas",
+  "statsNoDataTitle": "Sin datos",
+  "statsNoDataSubtitle": "No hay una entrevista analizada seleccionada",
+  "statsNoDataBody": "Finaliza una entrevista para ver gráficos reales de score, calidad y tiempo por respuesta.",
+  "statsMainCardTitle": "Tu desempeño",
+  "statsMainCardSubtitle": "Gráficos reales de la entrevista",
+  "statsPieTitle": "Evaluación global",
+  "statsPieSubtitle": "Peso relativo de las principales dimensiones",
+  "statsBarScoreTitle": "Score por respuesta",
+  "statsBarScoreSubtitle": "Comparativa de puntaje en cada turno",
+  "statsBarQualityTitle": "Calidad por respuesta",
+  "statsBarQualitySubtitle": "Estimación basada en score y riqueza de contenido",
+  "statsBarTimeTitle": "Tiempo por respuesta",
+  "statsBarTimeSubtitle": "Segundos utilizados en cada pregunta",
+  "statsQuickReadTitle": "Lectura rápida",
+  "statsQuickReadSubtitle": "Interpretación del rendimiento",
+  "statsQuickReadOverallScore": "Score general: {score}/100",
+  "@statsQuickReadOverallScore": {
+    "placeholders": {
+      "score": {
+        "type": "int"
+      }
+    }
+  },
+  "statsQuickReadAvgQuality": "Calidad promedio de respuesta: {quality}/100",
+  "@statsQuickReadAvgQuality": {
+    "placeholders": {
+      "quality": {
+        "type": "int"
+      }
+    }
+  },
+  "statsQuickReadAvgTime": "Tiempo promedio por respuesta: {seconds} segundos",
+  "@statsQuickReadAvgTime": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "statsQuickReadSlow": "Tu ritmo fue reflexivo; intenta sintetizar un poco mas tus respuestas.",
+  "statsQuickReadFast": "Tu ritmo fue agil; cuida mantener suficiente profundidad en cada ejemplo.",
+  "backToDashboard": "Volver al Dashboard",
+  "generalResultsTitle": "Resultados",
+  "generalResultsCardTitle": "Resultados generales",
+  "generalResultsNoDataSubtitle": "No se recibieron datos",
+  "generalResultsNoDataBody": "Vuelve a finalizar una entrevista para ver resultados.",
+  "generalResultsSummarySubtitle": "Resumen de tu entrevista",
+  "generalResultsScoreLabel": "Score",
+  "generalResultsStatusLabel": "Estado",
+  "generalResultsStatsTitle": "Estadísticas",
+  "generalResultsStatsSubtitle": "Resumen visual de tu desempeño",
+  "generalResultsDistributionTitle": "Distribución evaluativa",
+  "generalResultsDistributionSubtitle": "Comunicación, técnico y confianza",
+  "generalResultsAnswerQualityTitle": "Calidad de respuestas",
+  "generalResultsAnswerQualitySubtitle": "Estimación por turno según score y riqueza de la respuesta",
+  "generalResultsTimePerAnswerTitle": "Tiempo por respuesta",
+  "generalResultsTimePerAnswerSubtitle": "Segundos que tomaste en responder cada pregunta",
+  "generalResultsHighlightsTitle": "Highlights",
+  "generalResultsHighlightsSubtitle": "Lo más destacado",
+  "generalResultsNoHighlights": "Sin highlights disponibles.",
+  "generalResultsViewFullStats": "Ver estadísticas completas",
+  "generalResultsViewDetailedAnalysis": "Ver análisis detallado",
+  "detailedAnalysisTitle": "Análisis detallado",
+  "detailedAnalysisNoDataSubtitle": "No se recibieron resultados",
+  "detailedAnalysisNoDataBody": "Vuelve a finalizar una entrevista para ver el análisis.",
+  "detailedAnalysisMainMetricsTitle": "Métricas principales",
+  "detailedAnalysisMainMetricsSubtitle": "Análisis por categoría",
+  "metricCommunication": "Comunicación",
+  "metricTechnicalKnowledge": "Conocimiento técnico",
+  "metricConfidence": "Seguridad",
+  "detailedAnalysisChartsTitle": "Gráficos por respuesta",
+  "detailedAnalysisChartsSubtitle": "Evolución de score, calidad y tiempo",
+  "detailedAnalysisScorePerAnswerTitle": "Score por respuesta",
+  "detailedAnalysisScorePerAnswerSubtitle": "Puntuación obtenida en cada turno",
+  "detailedAnalysisTimePerAnswerTitle": "Tiempo por respuesta",
+  "detailedAnalysisTimePerAnswerSubtitle": "Comparativa del tiempo invertido por turno",
+  "detailedAnalysisPersonalizedFeedbackTitle": "Feedback personalizado",
+  "detailedAnalysisPersonalizedFeedbackSubtitle": "Generado por IA",
+  "detailedAnalysisNoFeedback": "Sin feedback disponible.",
+  "detailedAnalysisImprovementTipsTitle": "Consejos de mejora",
+  "detailedAnalysisViewRecommendations": "Ver recomendaciones",
+  "recommendationsTitle": "Recomendaciones",
+  "recommendationsNoDataSubtitle": "No se recibieron resultados",
+  "recommendationsNoDataBody": "Vuelve a finalizar una entrevista para ver recomendaciones.",
+  "recommendationsSuggestionsTitle": "Sugerencias",
+  "recommendationsSuggestionsSubtitle": "Generadas por IA a partir de tu entrevista",
+  "recommendationsNone": "Sin recomendaciones disponibles.",
+  "recommendationsTipsTitle": "Consejos de mejora",
+  "recommendationsTipsSubtitle": "Acciones rápidas para tu próxima sesión",
+  "recommendationsNextSessionTitle": "Siguiente sesión",
+  "recommendationsNextSessionSubtitle": "Repite y sube tu score",
+  "repeatButton": "Repetir",
+  "dashboardButton": "Dashboard",
+  "repeatInterviewTitle": "Repetir entrevista",
+  "repeatInterviewCardTitle": "Modo remix",
+  "repeatInterviewCardSubtitle": "Repite con ajustes y mejora tu score",
+  "repeatInterviewQuickSuggestionTitle": "Sugerencia rápida",
+  "repeatInterviewQuickSuggestionBody": "Cambia el tipo de entrevista o el rol para practicar distintos escenarios.",
+  "repeatInterviewStartNewSimulation": "Iniciar nueva simulación",
+  "historyTitle": "Historial",
+  "historyWhenDaysAgo": "Hace {days} días",
+  "@historyWhenDaysAgo": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "historyWhenWeeksAgo": "Hace {weeks} semanas",
+  "@historyWhenWeeksAgo": {
+    "placeholders": {
+      "weeks": {
+        "type": "int"
+      }
+    }
+  },
+  "profileTitle": "Perfil",
+  "profileDemoName": "Alex",
+  "profileDemoSubtitle": "Frontend Jr • en modo crecimiento",
+  "profileStatInterviews": "Entrevistas",
+  "profileStatAvgScore": "Score prom.",
+  "profileStatStreak": "Racha",
+  "profileStatLevel": "Nivel",
+  "profileAchievementsTitle": "Logros",
+  "profileAchievementsSubtitle": "Streaks y progreso",
+  "profileAchievementFirstWeekTitle": "Primera semana",
+  "profileAchievementFirstWeekSubtitle": "7 días practicando",
+  "profileAchievementAiModeTitle": "Modo IA",
+  "profileAchievementAiModeSubtitle": "10 entrevistas simuladas",
+  "deleteMyAccount": "Eliminar mi cuenta",
+  "genericBack": "Atrás",
+  "genericContinue": "Continuar",
+  "genericRetry": "Reintentar",
+  "genericCancel": "Cancelar",
+  "genericClose": "Cerrar",
+  "genericSave": "Guardar",
+  "genericLoading": "Cargando...",
+  "modelGemini": "Modelo: Gemini",
+  "interviewPreparing": "Preparando la entrevista...",
+  "interviewStarted": "La entrevista ha comenzado.",
+  "interviewAnalyzeAndNext": "Analizando tu respuesta y preparando la siguiente pregunta...",
+  "interviewListening": "Escuchando tu respuesta...",
+  "interviewAiSpeaking": "La IA está hablando...",
+  "interviewWaitingAnswer": "Esperando tu respuesta...",
+  "interviewNoClearVoice": "No se detectó una respuesta clara. Responde nuevamente por favor.",
+  "interviewCouldNotStart": "No se pudo iniciar la entrevista.",
+  "interviewCouldNotProcess": "No se pudo procesar la respuesta. Puedes intentarlo de nuevo.",
+  "interviewTimeCompleted": "Entrevista completada: el tiempo restante ya no alcanza para una nueva pregunta con buena calidad."
+}

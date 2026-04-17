@@ -2,13 +2,15 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:math' as math;
 
-import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_tts/flutter_tts.dart';
+import 'package:prep_up/core/localization/interview_l10n.dart';
 import 'package:prep_up/domain/entities/interview_config.dart';
 import 'package:prep_up/domain/entities/interview_tags.dart';
 import 'package:prep_up/domain/entities/interview_session.dart';
 import 'package:prep_up/domain/entities/interview_session_model.dart';
 import 'package:prep_up/domain/services/gemini_service.dart';
+import 'package:prep_up/l10n/app_localizations.dart';
 import 'package:speech_to_text/speech_recognition_error.dart';
 import 'package:speech_to_text/speech_recognition_result.dart';
 import 'package:speech_to_text/speech_to_text.dart';
@@ -19,10 +21,12 @@ class InterviewVoiceController extends ChangeNotifier {
   InterviewVoiceController({
     required GeminiService geminiService,
     required InterviewConfig config,
+    String languageCode = 'es',
     FlutterTts? flutterTts,
     SpeechToText? speech,
   }) : _geminiService = geminiService,
        _config = config,
+       _languageCode = languageCode,
        _tts = flutterTts ?? FlutterTts(),
        _speech = speech ?? SpeechToText(),
        _session = InterviewSession(
@@ -34,6 +38,7 @@ class InterviewVoiceController extends ChangeNotifier {
 
   final GeminiService _geminiService;
   final InterviewConfig _config;
+  final String _languageCode;
   final FlutterTts _tts;
   final SpeechToText _speech;
 
@@ -97,6 +102,9 @@ class InterviewVoiceController extends ChangeNotifier {
   bool get isSpeaking => _state == InterviewConversationState.speaking;
   bool get isProcessing => _state == InterviewConversationState.processing;
   bool get isIdle => _state == InterviewConversationState.idle;
+  bool get _isEnglish => _languageCode.toLowerCase().startsWith('en');
+  String get _aiLanguage => _isEnglish ? 'en' : 'es';
+  AppLocalizations get _l10n => lookupAppLocalizations(Locale(_aiLanguage));
 
   InterviewTurn? get lastTurn =>
       _session.turns.isEmpty ? null : _session.turns.last;
@@ -107,7 +115,9 @@ class InterviewVoiceController extends ChangeNotifier {
     _isInterviewComplete = false;
     _completionReason = null;
     _error = null;
-    _statusMessage = 'Preparando la entrevista...';
+    _statusMessage = _isEnglish
+        ? 'Preparing interview...'
+        : 'Preparando la entrevista...';
     _notifySafely();
 
     try {
@@ -116,12 +126,16 @@ class InterviewVoiceController extends ChangeNotifier {
       _hasStarted = true;
       await _deliverQuestion(
         openingQuestion,
-        introMessage: 'La entrevista ha comenzado.',
+        introMessage: _isEnglish
+            ? 'The interview has started.'
+            : 'La entrevista ha comenzado.',
       );
     } catch (e) {
       _setIdle();
       _error = e.toString();
-      _statusMessage = 'No se pudo iniciar la entrevista.';
+      _statusMessage = _isEnglish
+          ? 'Could not start the interview.'
+          : 'No se pudo iniciar la entrevista.';
       _notifySafely();
     } finally {
       _isStarting = false;
@@ -134,8 +148,12 @@ class InterviewVoiceController extends ChangeNotifier {
       await _speech.stop();
       _state = InterviewConversationState.idle;
       _statusMessage = _voiceDraft.trim().isEmpty
-          ? 'Escucha detenida. Puedes volver a intentarlo.'
-          : 'Puedes revisar la transcripción o enviarla.';
+          ? (_isEnglish
+                ? 'Listening stopped. You can try again.'
+                : 'Escucha detenida. Puedes volver a intentarlo.')
+          : (_isEnglish
+                ? 'You can review the transcript or submit it.'
+                : 'Puedes revisar la transcripción o enviarla.');
       _notifySafely();
       return;
     }
@@ -158,8 +176,9 @@ class InterviewVoiceController extends ChangeNotifier {
     _voiceDraft = safeAnswer;
     _lastSubmittedAnswer = safeAnswer;
     _state = InterviewConversationState.processing;
-    _statusMessage =
-        'Analizando tu respuesta y preparando la siguiente pregunta...';
+    _statusMessage = _isEnglish
+        ? 'Analyzing your answer and preparing the next question...'
+        : 'Analizando tu respuesta y preparando la siguiente pregunta...';
     _error = null;
     _notifySafely();
 
@@ -169,14 +188,16 @@ class InterviewVoiceController extends ChangeNotifier {
       final evaluation = await _geminiService.evaluateUserAnswer(
         question: question,
         userAnswer: safeAnswer,
-        jobRole: _config.jobRole?.label ?? '',
+        jobRole: _config.jobRole == null ? '' : _config.jobRole!.label(_l10n),
         type: _mapType(_config.type ?? InterviewConfigType.mixed),
+        language: _aiLanguage,
       );
 
       final feedback = await _geminiService.generateFeedback(
         question: question,
         userAnswer: safeAnswer,
         evaluation: evaluation,
+        language: _aiLanguage,
       );
 
       final turn = InterviewTurn(
@@ -201,8 +222,9 @@ class InterviewVoiceController extends ChangeNotifier {
     } catch (e) {
       _setIdle();
       _error = e.toString();
-      _statusMessage =
-          'No se pudo procesar la respuesta. Puedes intentarlo de nuevo.';
+      _statusMessage = _isEnglish
+          ? 'Could not process the answer. You can try again.'
+          : 'No se pudo procesar la respuesta. Puedes intentarlo de nuevo.';
       _notifySafely();
     }
   }
@@ -216,7 +238,9 @@ class InterviewVoiceController extends ChangeNotifier {
 
     _error = null;
     _state = InterviewConversationState.processing;
-    _statusMessage = 'Pidiendo a Gemini una pregunta diferente...';
+    _statusMessage = _isEnglish
+        ? 'Asking Gemini for a different question...'
+        : 'Pidiendo a Gemini una pregunta diferente...';
     _notifySafely();
 
     try {
@@ -225,12 +249,16 @@ class InterviewVoiceController extends ChangeNotifier {
       final nextQuestion = await _generateAlternativeQuestion();
       await _deliverQuestion(
         nextQuestion,
-        introMessage: 'Vamos con una pregunta distinta.',
+        introMessage: _isEnglish
+            ? "Let's go with a different question."
+            : 'Vamos con una pregunta distinta.',
       );
     } catch (e) {
       _setIdle();
       _error = e.toString();
-      _statusMessage = 'No se pudo omitir la pregunta actual.';
+      _statusMessage = _isEnglish
+          ? 'Could not skip the current question.'
+          : 'No se pudo omitir la pregunta actual.';
       _notifySafely();
     }
   }
@@ -242,7 +270,12 @@ class InterviewVoiceController extends ChangeNotifier {
     await _speech.stop();
     _voiceDraft = '';
     _emptyVoiceRetries = 0;
-    await _deliverQuestion(question, introMessage: 'Repito la pregunta.');
+    await _deliverQuestion(
+      question,
+      introMessage: _isEnglish
+          ? 'Repeating the question.'
+          : 'Repito la pregunta.',
+    );
   }
 
   Future<void> retryListening() async {
@@ -297,8 +330,9 @@ class InterviewVoiceController extends ChangeNotifier {
       }
     } catch (_) {
       _isTtsAvailable = false;
-      _statusMessage =
-          'No se pudo activar la voz de la IA. La pregunta seguirá visible en pantalla.';
+      _statusMessage = _isEnglish
+          ? 'Could not enable AI voice. The question remains visible on screen.'
+          : 'No se pudo activar la voz de la IA. La pregunta seguirá visible en pantalla.';
       _notifySafely();
     }
   }
@@ -306,13 +340,18 @@ class InterviewVoiceController extends ChangeNotifier {
   void _configureTtsCallbacks() {
     _tts.setStartHandler(() {
       _state = InterviewConversationState.speaking;
-      _statusMessage = 'La IA está hablando...';
+      _statusMessage = _isEnglish
+          ? 'AI is speaking...'
+          : 'La IA está hablando...';
       _notifySafely();
     });
 
     _tts.setCompletionHandler(() {
       if (_state == InterviewConversationState.speaking) {
         _statusMessage = 'Esperando tu respuesta...';
+        if (_isEnglish) {
+          _statusMessage = 'Waiting for your answer...';
+        }
         _notifySafely();
       }
     });
@@ -330,8 +369,9 @@ class InterviewVoiceController extends ChangeNotifier {
       if (_state == InterviewConversationState.speaking) {
         _setIdle();
       }
-      _statusMessage =
-          'No se pudo reproducir el audio. La pregunta queda disponible en texto.';
+      _statusMessage = _isEnglish
+          ? 'Could not play audio. The question remains available in text.'
+          : 'No se pudo reproducir el audio. La pregunta queda disponible en texto.';
       _notifySafely();
     });
   }
@@ -344,10 +384,12 @@ class InterviewVoiceController extends ChangeNotifier {
     );
 
     if (!_isSpeechAvailable) {
-      _error =
-          'El reconocimiento de voz no está disponible en este dispositivo.';
-      _statusMessage =
-          'Puedes continuar escribiendo tu respuesta mientras se mantiene la conversación.';
+      _error = _isEnglish
+          ? 'Speech recognition is not available on this device.'
+          : 'El reconocimiento de voz no está disponible en este dispositivo.';
+      _statusMessage = _isEnglish
+          ? 'You can continue by typing your answer while the interview continues.'
+          : 'Puedes continuar escribiendo tu respuesta mientras se mantiene la conversación.';
       _notifySafely();
       return;
     }
@@ -357,7 +399,9 @@ class InterviewVoiceController extends ChangeNotifier {
   }
 
   Future<String> _generateOpeningQuestion() async {
-    final jobRole = _config.jobRole?.label ?? '';
+    final jobRole = _config.jobRole == null
+        ? ''
+        : _config.jobRole!.label(_l10n);
     if (jobRole.isEmpty) {
       throw const GeminiException('Falta el cargo para iniciar la entrevista.');
     }
@@ -369,6 +413,7 @@ class InterviewVoiceController extends ChangeNotifier {
       type: _mapType(_config.type!),
       jobRole: jobRole,
       count: 1,
+      language: _aiLanguage,
     );
 
     final question = questions.isNotEmpty ? questions.first.trim() : '';
@@ -379,7 +424,9 @@ class InterviewVoiceController extends ChangeNotifier {
   }
 
   Future<String> _generateAdaptiveNextQuestion(InterviewTurn lastTurn) async {
-    final jobRole = _config.jobRole?.label ?? '';
+    final jobRole = _config.jobRole == null
+        ? ''
+        : _config.jobRole!.label(_l10n);
     final type = _config.type ?? InterviewConfigType.mixed;
     final history = _formatHistoryForPrompt(_session.turns);
     final followUps = lastTurn.evaluation.followUpQuestions
@@ -393,10 +440,48 @@ class InterviewVoiceController extends ChangeNotifier {
         ? '- (sin sugerencias)'
         : followUps.join('\n- ');
 
-    final prompt =
-        '''
+    final prompt = _isEnglish
+        ? '''
+Act as a senior interviewer for the "$jobRole" role.
+Interview type: ${type.label(_l10n)}.
+
+Your goal is to formulate the next question in an intelligent, complete, and conversational way.
+
+Last question:
+"${lastTurn.question}"
+
+Last candidate answer:
+"${lastTurn.answer}"
+
+Evaluation of the last answer:
+- Score: ${lastTurn.evaluation.overallScore}/100
+- Strengths: ${lastStrengths.isEmpty ? 'none relevant' : lastStrengths}
+- Improvements: ${lastImprovements.isEmpty ? 'none relevant' : lastImprovements}
+- Feedback summary: ${lastSummary.isEmpty ? 'no additional summary' : lastSummary}
+
+Follow-up suggestions already proposed by Gemini:
+- $followUpSeed
+
+Real history:
+$history
+
+Return ONLY JSON with this exact schema:
+{"nextQuestion":"..."}
+
+Mandatory rules for nextQuestion:
+- It must be a single question in English.
+- It must sound like a real interview question.
+- It must have enough context to be spoken out loud.
+- It must refer to something concrete from the last answer or ask for an example, decision, metric, trade-off, or result.
+- If the score was low, ask for precision, evidence, or a concrete case.
+- If the score was high, go deeper with more difficulty or impact.
+- Do not repeat the previous question.
+- Avoid vague questions like "can you elaborate?" without context.
+- No markdown.
+'''
+        : '''
 Actua como entrevistador senior para el rol "$jobRole".
-Tipo de entrevista: ${type.label}.
+Tipo de entrevista: ${type.label(_l10n)}.
 
 Tu objetivo es formular la siguiente pregunta de forma inteligente, completa y conversacional.
 
@@ -435,7 +520,9 @@ Reglas obligatorias para nextQuestion:
 
     final next = await _geminiService.sendPrompt(
       prompt: prompt,
-      systemInstruction: 'Eres un entrevistador humano. Se natural y directo.',
+      systemInstruction: _isEnglish
+          ? 'You are a human interviewer. Be natural and direct.'
+          : 'Eres un entrevistador humano. Se natural y directo.',
       temperature: 0.65,
       maxOutputTokens: 320,
     );
@@ -463,6 +550,7 @@ Reglas obligatorias para nextQuestion:
           ? (followUps.isEmpty ? lastTurn.question : followUps.first)
           : cleaned,
       lastTurn: lastTurn,
+      isEnglish: _isEnglish,
       geminiService: _geminiService,
     );
     if (_isSmartInterviewQuestion(
@@ -478,14 +566,35 @@ Reglas obligatorias para nextQuestion:
   }
 
   Future<String> _generateAlternativeQuestion() async {
-    final jobRole = _config.jobRole?.label ?? '';
+    final jobRole = _config.jobRole == null
+        ? ''
+        : _config.jobRole!.label(_l10n);
     final type = _config.type ?? InterviewConfigType.mixed;
     final history = _formatHistoryForPrompt(_session.turns);
 
-    final prompt =
-        '''
+    final prompt = _isEnglish
+        ? '''
+Act as an expert interviewer for the "$jobRole" role.
+Interview type: ${type.label(_l10n)}.
+
+Current question:
+"$_currentQuestion"
+
+Real history:
+$history
+
+Generate a new question in English to replace the current one.
+Rules:
+- It must be different from the current question.
+- It must keep continuity with the history.
+- It must sound natural, concise, and direct.
+- No numbering.
+- No markdown.
+Return ONLY the question text.
+'''
+        : '''
 Actua como entrevistador experto para el rol "$jobRole".
-Tipo de entrevista: ${type.label}.
+Tipo de entrevista: ${type.label(_l10n)}.
 
 Pregunta actual:
 "$_currentQuestion"
@@ -505,8 +614,9 @@ Devuelve SOLO el texto de la pregunta.
 
     final next = await _geminiService.sendPrompt(
       prompt: prompt,
-      systemInstruction:
-          'Eres un entrevistador humano. Se natural y mantienes la entrevista fluida.',
+      systemInstruction: _isEnglish
+          ? 'You are a human interviewer. Be natural and keep the interview flowing.'
+          : 'Eres un entrevistador humano. Se natural y mantienes la entrevista fluida.',
       temperature: 0.85,
       maxOutputTokens: 256,
     );
@@ -525,12 +635,16 @@ Devuelve SOLO el texto de la pregunta.
     _voiceDraft = '';
     _error = null;
     _emptyVoiceRetries = 0;
-    _statusMessage = introMessage ?? 'Nueva pregunta lista.';
+    _statusMessage =
+        introMessage ??
+        (_isEnglish ? 'New question ready.' : 'Nueva pregunta lista.');
     _notifySafely();
 
     if (_currentQuestion.isEmpty) {
       _setIdle();
-      _error = 'Gemini devolvio una pregunta vacia.';
+      _error = _isEnglish
+          ? 'Gemini returned an empty question.'
+          : 'Gemini devolvio una pregunta vacia.';
       _notifySafely();
       return;
     }
@@ -541,21 +655,25 @@ Devuelve SOLO el texto de la pregunta.
             ? _currentQuestion
             : '$introMessage $_currentQuestion';
         _state = InterviewConversationState.speaking;
-        _statusMessage = 'La IA esta hablando...';
+        _statusMessage = _isEnglish
+            ? 'AI is speaking...'
+            : 'La IA esta hablando...';
         _notifySafely();
         await _tts.speak(speechText);
       } catch (e) {
         _isTtsAvailable = false;
         _error = 'Falló TTS: $e';
-        _statusMessage =
-            'No se pudo reproducir la pregunta. Continuamos con la version en texto.';
+        _statusMessage = _isEnglish
+            ? 'Could not play the question. Continuing with text mode.'
+            : 'No se pudo reproducir la pregunta. Continuamos con la version en texto.';
         _setIdle();
         _notifySafely();
       }
     } else {
       _setIdle();
-      _statusMessage =
-          'La pregunta esta disponible en texto. Responde por voz o por escrito.';
+      _statusMessage = _isEnglish
+          ? 'The question is available in text. Reply by voice or typing.'
+          : 'La pregunta esta disponible en texto. Responde por voz o por escrito.';
       _notifySafely();
     }
 
@@ -563,8 +681,9 @@ Devuelve SOLO el texto de la pregunta.
       await _beginListening(clearDraft: true);
     } else {
       _setIdle();
-      _statusMessage =
-          'Escribe tu respuesta para que Gemini genere la siguiente pregunta.';
+      _statusMessage = _isEnglish
+          ? 'Type your answer so Gemini can generate the next question.'
+          : 'Escribe tu respuesta para que Gemini genere la siguiente pregunta.';
       _notifySafely();
     }
   }
@@ -588,7 +707,9 @@ Devuelve SOLO el texto de la pregunta.
       _handledListeningCycle = 0;
       _soundLevel = 0;
       _state = InterviewConversationState.listening;
-      _statusMessage = 'Escuchando tu respuesta...';
+      _statusMessage = _isEnglish
+          ? 'Listening to your answer...'
+          : 'Escuchando tu respuesta...';
       _error = null;
       _notifySafely();
 
@@ -608,8 +729,9 @@ Devuelve SOLO el texto de la pregunta.
     } catch (e) {
       _setIdle();
       _error = 'No se pudo activar el micrófono: $e';
-      _statusMessage =
-          'Puedes volver a intentar o responder por escrito para continuar.';
+      _statusMessage = _isEnglish
+          ? 'You can try again or answer by typing to continue.'
+          : 'Puedes volver a intentar o responder por escrito para continuar.';
       _notifySafely();
     }
   }
@@ -637,8 +759,9 @@ Devuelve SOLO el texto de la pregunta.
     if (!isListening) return;
     _setIdle();
     _error = 'Falló STT: ${error.errorMsg}';
-    _statusMessage =
-        'No se pudo transcribir tu respuesta. Puedes intentarlo otra vez.';
+    _statusMessage = _isEnglish
+        ? 'Could not transcribe your answer. You can try again.'
+        : 'No se pudo transcribir tu respuesta. Puedes intentarlo otra vez.';
     _notifySafely();
   }
 
@@ -671,21 +794,30 @@ Devuelve SOLO el texto de la pregunta.
     if (_emptyVoiceRetries > 1) {
       _error =
           'No se detectó voz. Puedes intentar otra vez o escribir la respuesta.';
-      _statusMessage = 'Esperando tu respuesta.';
+      _statusMessage = _isEnglish
+          ? 'Waiting for your answer.'
+          : 'Esperando tu respuesta.';
       _notifySafely();
       return;
     }
 
-    _statusMessage = 'No detecte voz. Intentare escuchar de nuevo.';
-    _error =
-        'No se detectó una respuesta clara. Responde nuevamente por favor.';
+    _statusMessage = _isEnglish
+        ? 'No voice detected. I will listen again.'
+        : 'No detecte voz. Intentare escuchar de nuevo.';
+    _error = _isEnglish
+        ? 'No clear response detected. Please answer again.'
+        : 'No se detectó una respuesta clara. Responde nuevamente por favor.';
     _notifySafely();
 
     if (_isTtsAvailable) {
       try {
         _state = InterviewConversationState.speaking;
         _notifySafely();
-        await _tts.speak('No te escuche con claridad. Responde nuevamente.');
+        await _tts.speak(
+          _isEnglish
+              ? "I couldn't hear you clearly. Please answer again."
+              : 'No te escuche con claridad. Responde nuevamente.',
+        );
       } catch (_) {
         _isTtsAvailable = false;
       }
@@ -700,7 +832,10 @@ Devuelve SOLO el texto de la pregunta.
       if (languages is! List) return null;
 
       final normalized = languages.map((e) => '$e').toList();
-      for (final candidate in const ['es-ES', 'es-MX', 'es-US', 'es']) {
+      final preferredCandidates = _isEnglish
+          ? const ['en-US', 'en-GB', 'en', 'es-ES', 'es-MX', 'es']
+          : const ['es-ES', 'es-MX', 'es-US', 'es', 'en-US', 'en'];
+      for (final candidate in preferredCandidates) {
         if (normalized.any(
           (lang) => lang.toLowerCase() == candidate.toLowerCase(),
         )) {
@@ -709,7 +844,8 @@ Devuelve SOLO el texto de la pregunta.
       }
 
       for (final language in normalized) {
-        if (language.toLowerCase().startsWith('es')) {
+        final prefix = _isEnglish ? 'en' : 'es';
+        if (language.toLowerCase().startsWith(prefix)) {
           return language;
         }
       }
@@ -726,11 +862,12 @@ Devuelve SOLO el texto de la pregunta.
         if (voice is! Map) continue;
         final locale = '${voice['locale'] ?? ''}'.toLowerCase();
         final name = '${voice['name'] ?? ''}';
-        if (!locale.startsWith('es')) continue;
+        final prefix = _isEnglish ? 'en' : 'es';
+        if (!locale.startsWith(prefix)) continue;
         if (name.isEmpty) continue;
         return <String, String>{
           'name': name,
-          'locale': '${voice['locale'] ?? 'es-ES'}',
+          'locale': '${voice['locale'] ?? (_isEnglish ? 'en-US' : 'es-ES')}',
         };
       }
     } catch (_) {}
@@ -739,10 +876,12 @@ Devuelve SOLO el texto de la pregunta.
 
   String? _pickPreferredSpeechLocale(List<LocaleName> locales) {
     for (final locale in locales) {
-      if (locale.localeId.toLowerCase() == 'es_es') return locale.localeId;
+      final primary = _isEnglish ? 'en_us' : 'es_es';
+      if (locale.localeId.toLowerCase() == primary) return locale.localeId;
     }
     for (final locale in locales) {
-      if (locale.localeId.toLowerCase().startsWith('es_')) {
+      final prefix = _isEnglish ? 'en_' : 'es_';
+      if (locale.localeId.toLowerCase().startsWith(prefix)) {
         return locale.localeId;
       }
     }
@@ -797,9 +936,13 @@ Devuelve SOLO el texto de la pregunta.
 
   String _buildCompletionReason() {
     if (answeredQuestionCount >= targetQuestionCount) {
-      return 'Entrevista completada: se alcanzaron $targetQuestionCount preguntas para ${_config.durationMinutes ?? 3} minutos.';
+      return _isEnglish
+          ? 'Interview completed: reached $targetQuestionCount questions for ${_config.durationMinutes ?? 3} minutes.'
+          : 'Entrevista completada: se alcanzaron $targetQuestionCount preguntas para ${_config.durationMinutes ?? 3} minutos.';
     }
-    return 'Entrevista completada: el tiempo restante ya no alcanza para una nueva pregunta con buena calidad.';
+    return _isEnglish
+        ? 'Interview completed: not enough remaining time for a quality new question.'
+        : 'Entrevista completada: el tiempo restante ya no alcanza para una nueva pregunta con buena calidad.';
   }
 
   void _notifySafely() {
@@ -905,10 +1048,34 @@ bool _isSmartInterviewQuestion(
 Future<String> _rewriteAsStrongerQuestion({
   required String weakQuestion,
   required InterviewTurn lastTurn,
+  required bool isEnglish,
   required GeminiService geminiService,
 }) async {
-  final prompt =
-      '''
+  final prompt = isEnglish
+      ? '''
+Rewrite this interview question so it is more complete, specific, and natural.
+
+Weak question:
+"$weakQuestion"
+
+Previous question:
+"${lastTurn.question}"
+
+Last candidate answer:
+"${lastTurn.answer}"
+
+Answer score: ${lastTurn.evaluation.overallScore}/100
+Detected improvements: ${lastTurn.evaluation.improvements.join(' | ')}
+
+Return ONLY one question in English.
+Rules:
+- Exactly one question.
+- It must ask for concrete context, example, decision, impact, or result.
+- It must not repeat the previous question.
+- It should not be vague or too short.
+- No markdown.
+'''
+      : '''
 Reescribe esta pregunta de entrevista para que sea mas completa, especifica y natural.
 
 Pregunta debil:
@@ -934,8 +1101,9 @@ Reglas:
 
   final rewritten = await geminiService.sendPrompt(
     prompt: prompt,
-    systemInstruction:
-        'Eres un entrevistador humano. Formula preguntas orales claras y especificas.',
+    systemInstruction: isEnglish
+        ? 'You are a human interviewer. Create clear and specific spoken questions.'
+        : 'Eres un entrevistador humano. Formula preguntas orales claras y especificas.',
     temperature: 0.55,
     maxOutputTokens: 180,
   );

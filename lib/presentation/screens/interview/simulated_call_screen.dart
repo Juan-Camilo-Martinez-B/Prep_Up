@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
+import 'package:prep_up/core/localization/app_locale.dart';
+import 'package:prep_up/core/localization/l10n_extensions.dart';
 import 'package:prep_up/core/navigation/app_routes.dart';
 import 'package:prep_up/domain/entities/interview_config.dart';
 import 'package:prep_up/domain/services/gemini_service.dart';
@@ -48,6 +50,7 @@ class _SimulatedCallScreenState extends State<SimulatedCallScreen> {
     _voiceController = InterviewVoiceController(
       geminiService: GeminiService(),
       config: _config,
+      languageCode: AppLocaleScope.of(context).languageCode,
     );
 
     _voiceController.addListener(() {
@@ -109,12 +112,13 @@ class _SimulatedCallScreenState extends State<SimulatedCallScreen> {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final l10n = context.l10n;
     final media = context.watch<MediaDeviceController>();
     final minutes = (_secondsLeft ~/ 60).toString().padLeft(2, '0');
     final seconds = (_secondsLeft % 60).toString().padLeft(2, '0');
 
     return AppScreenScaffold(
-      title: 'Videollamada',
+      title: l10n.simulatedCallTitle,
       background: const TechBackground(),
       actions: [
         Center(
@@ -127,7 +131,7 @@ class _SimulatedCallScreenState extends State<SimulatedCallScreen> {
       body: ListView(
         children: [
           Text(
-            'Simulación en vivo',
+            l10n.simulatedCallLiveHeadline,
             style: Theme.of(context).textTheme.titleLarge,
           ),
           const SizedBox(height: 12),
@@ -216,41 +220,50 @@ class _SimulatedCallScreenState extends State<SimulatedCallScreen> {
               final isListening = state == InterviewConversationState.listening;
               final isProcessing =
                   state == InterviewConversationState.processing;
-              final currentQuestionNumber = _voiceController.currentQuestionNumber;
+              final currentQuestionNumber =
+                  _voiceController.currentQuestionNumber;
               final totalQuestions = _voiceController.targetQuestionCount;
 
               return AppCard(
-                title: 'Estado de la llamada',
-                subtitle:
-                    'Objetivo: ${_voiceController.targetQuestionCount} preguntas para ${_config.durationMinutes ?? 3} min',
+                title: l10n.callStatusTitle,
+                subtitle: l10n.callStatusObjective(
+                  _voiceController.targetQuestionCount,
+                  _config.durationMinutes ?? 3,
+                ),
                 leading: Icon(Icons.graphic_eq_rounded, color: scheme.primary),
                 child: Wrap(
                   spacing: 8,
                   runSpacing: 8,
                   children: [
                     _StatePill(
-                      label: isSpeaking ? 'IA hablando' : 'IA en espera',
+                      label: isSpeaking
+                          ? l10n.callStateAiSpeaking
+                          : l10n.callStateAiWaiting,
                       active: isSpeaking,
                       scheme: scheme,
                       icon: Icons.volume_up_rounded,
                     ),
                     _StatePill(
                       label: isListening
-                          ? 'Usuario respondiendo'
-                          : 'Micrófono en espera',
+                          ? l10n.callStateUserAnswering
+                          : l10n.callStateMicWaiting,
                       active: isListening,
                       scheme: scheme,
                       icon: Icons.mic_rounded,
                     ),
                     _StatePill(
-                      label: isProcessing ? 'Procesando' : 'Listo',
+                      label: isProcessing
+                          ? l10n.callStateProcessing
+                          : l10n.callStateReady,
                       active: isProcessing,
                       scheme: scheme,
                       icon: Icons.auto_awesome_rounded,
                     ),
                     _StatePill(
-                      label:
-                          'Pregunta $currentQuestionNumber de $totalQuestions',
+                      label: l10n.callStateQuestionProgress(
+                        currentQuestionNumber,
+                        totalQuestions,
+                      ),
                       active: true,
                       scheme: scheme,
                       icon: Icons.quiz_rounded,
@@ -266,7 +279,8 @@ class _SimulatedCallScreenState extends State<SimulatedCallScreen> {
             builder: (context, _) {
               final question = _voiceController.currentQuestion.trim();
               final hasQuestion = question.isNotEmpty;
-              final currentQuestionNumber = _voiceController.currentQuestionNumber;
+              final currentQuestionNumber =
+                  _voiceController.currentQuestionNumber;
               final totalQuestions = _voiceController.targetQuestionCount;
               final isLoading =
                   !hasQuestion &&
@@ -275,10 +289,13 @@ class _SimulatedCallScreenState extends State<SimulatedCallScreen> {
                   );
 
               return AppCard(
-                title: 'Pregunta $currentQuestionNumber de $totalQuestions',
+                title: l10n.callQuestionCardTitle(
+                  currentQuestionNumber,
+                  totalQuestions,
+                ),
                 subtitle: _voiceController.isSpeaking
-                    ? 'La IA la está leyendo en voz alta'
-                    : 'Entrevistador IA',
+                    ? l10n.callQuestionSubtitleSpeaking
+                    : l10n.callQuestionSubtitleDefault,
                 leading: Icon(Icons.smart_toy_outlined, color: scheme.primary),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -298,10 +315,13 @@ class _SimulatedCallScreenState extends State<SimulatedCallScreen> {
                     ),
                     const SizedBox(height: 10),
                     Text(
-                      'Vas en la pregunta $currentQuestionNumber de $totalQuestions.',
+                      l10n.callQuestionProgressText(
+                        currentQuestionNumber,
+                        totalQuestions,
+                      ),
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: scheme.onSurfaceVariant,
-                          ),
+                        color: scheme.onSurfaceVariant,
+                      ),
                     ),
                     const SizedBox(height: 10),
                     if (isLoading)
@@ -311,7 +331,7 @@ class _SimulatedCallScreenState extends State<SimulatedCallScreen> {
                       )
                     else
                       Text(
-                        hasQuestion ? question : 'No hay pregunta aún.',
+                        hasQuestion ? question : l10n.callQuestionNoneYet,
                         style: Theme.of(context).textTheme.titleMedium,
                       ),
                   ],
@@ -330,24 +350,28 @@ class _SimulatedCallScreenState extends State<SimulatedCallScreen> {
               final feedback = lastTurn.feedback;
 
               return AppCard(
-                title: 'Evaluación',
-                subtitle: 'Feedback en tiempo real',
+                title: l10n.callEvaluationTitle,
+                subtitle: l10n.callEvaluationSubtitle,
                 leading: Icon(Icons.insights_rounded, color: scheme.secondary),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Score: ${eval.overallScore}/100'),
+                    Text(l10n.callScoreLabel(eval.overallScore)),
                     if (eval.strengths.isNotEmpty) ...[
                       const SizedBox(height: 8),
-                      Text('Fortalezas: ${eval.strengths.join(' • ')}'),
+                      Text(l10n.callStrengthsLabel(eval.strengths.join(' • '))),
                     ],
                     if (eval.improvements.isNotEmpty) ...[
                       const SizedBox(height: 8),
-                      Text('Mejoras: ${eval.improvements.join(' • ')}'),
+                      Text(
+                        l10n.callImprovementsLabel(
+                          eval.improvements.join(' • '),
+                        ),
+                      ),
                     ],
                     if (feedback.summary.trim().isNotEmpty) ...[
                       const SizedBox(height: 10),
-                      Text('Resumen: ${feedback.summary.trim()}'),
+                      Text(l10n.callSummaryLabel(feedback.summary.trim())),
                     ],
                   ],
                 ),
@@ -369,10 +393,10 @@ class _SimulatedCallScreenState extends State<SimulatedCallScreen> {
               final statusMessage = _voiceController.statusMessage.trim();
 
               return AppCard(
-                title: 'Tu respuesta',
+                title: l10n.callYourAnswerTitle,
                 subtitle: isListening
-                    ? 'Transcripción en tiempo real'
-                    : 'Voz con fallback a texto',
+                    ? l10n.callYourAnswerSubtitleListening
+                    : l10n.callYourAnswerSubtitleFallback,
                 leading: Icon(
                   Icons.record_voice_over_rounded,
                   color: scheme.primary,
@@ -385,11 +409,11 @@ class _SimulatedCallScreenState extends State<SimulatedCallScreen> {
                       minLines: 3,
                       maxLines: 6,
                       decoration: InputDecoration(
-                        labelText: 'Respuesta detectada o escrita',
+                        labelText: l10n.callAnswerFieldLabel,
                         alignLabelWithHint: true,
                         helperText: _voiceController.hasTextToSpeech
-                            ? 'Gemini pregunta por voz y texto.'
-                            : 'Fallback activo: lee la pregunta en pantalla.',
+                            ? l10n.callAnswerHelperTts
+                            : l10n.callAnswerHelperFallback,
                       ),
                       enabled: (canInteract || isListening) && !isComplete,
                     ),
@@ -416,7 +440,9 @@ class _SimulatedCallScreenState extends State<SimulatedCallScreen> {
                                 ? Icons.mic_off_rounded
                                 : Icons.mic_rounded,
                           ),
-                          label: Text(isListening ? 'Detener' : 'Hablar'),
+                          label: Text(
+                            isListening ? l10n.callMicStop : l10n.callMicTalk,
+                          ),
                         ),
                         const SizedBox(width: 12),
                         Expanded(
@@ -432,7 +458,7 @@ class _SimulatedCallScreenState extends State<SimulatedCallScreen> {
                                   }
                                 : null,
                             icon: const Icon(Icons.replay_rounded),
-                            label: const Text('Repetir pregunta'),
+                            label: Text(l10n.callRepeatQuestion),
                           ),
                         ),
                       ],
@@ -446,7 +472,7 @@ class _SimulatedCallScreenState extends State<SimulatedCallScreen> {
 
                         return AppPrimaryButton(
                           isExpanded: true,
-                          label: 'Enviar a Gemini',
+                          label: l10n.callSendToGemini,
                           icon: Icons.send_rounded,
                           isLoading: isBusy,
                           onPressed: canSend
@@ -474,20 +500,20 @@ class _SimulatedCallScreenState extends State<SimulatedCallScreen> {
                           onPressed: () {
                             _voiceController.clearError();
                           },
-                          child: const Text('Cerrar'),
+                          child: Text(l10n.genericClose),
                         ),
                       ),
                       Align(
                         alignment: Alignment.centerRight,
                         child: TextButton.icon(
-                          onPressed: questionReady && _secondsLeft > 0
-                              && !isComplete
+                          onPressed:
+                              questionReady && _secondsLeft > 0 && !isComplete
                               ? () async {
                                   await _voiceController.retryListening();
                                 }
                               : null,
                           icon: const Icon(Icons.refresh_rounded),
-                          label: const Text('Reintentar voz'),
+                          label: Text(l10n.callRetryVoice),
                         ),
                       ),
                     ],
@@ -514,7 +540,7 @@ class _SimulatedCallScreenState extends State<SimulatedCallScreen> {
                     ),
                   ),
                   icon: const Icon(Icons.skip_next_rounded),
-                  label: const Text('Omitir'),
+                  label: Text(l10n.callSkip),
                 ),
               ),
               const SizedBox(width: 12),
@@ -530,14 +556,14 @@ class _SimulatedCallScreenState extends State<SimulatedCallScreen> {
                     ),
                   ),
                   icon: const Icon(Icons.call_end_rounded),
-                  label: const Text('Colgar'),
+                  label: Text(l10n.callHangUp),
                 ),
               ),
             ],
           ),
           const SizedBox(height: 10),
           Text(
-            'Tip: mantén respuestas claras; si falla el audio, usa el texto y la conversación seguirá con Gemini.',
+            l10n.callTip,
             style: Theme.of(
               context,
             ).textTheme.bodySmall?.copyWith(color: scheme.onSurfaceVariant),
@@ -607,6 +633,7 @@ class _AiAvatar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
@@ -630,7 +657,9 @@ class _AiAvatar extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 10),
-          Text(isSpeaking ? 'IA hablando' : 'Entrevistador IA'),
+          Text(
+            isSpeaking ? l10n.callBadgeSpeaking : l10n.callAiInterviewerLabel,
+          ),
         ],
       ),
     );
@@ -652,6 +681,7 @@ class _LiveStatusChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       decoration: BoxDecoration(
@@ -678,7 +708,7 @@ class _LiveStatusChip extends StatelessWidget {
           ),
           const SizedBox(width: 8),
           Text(
-            micActive ? 'Activo' : 'Mic listo',
+            micActive ? l10n.callMicActive : l10n.callMicReady,
             style: Theme.of(context).textTheme.labelSmall,
           ),
         ],
@@ -695,25 +725,26 @@ class _ConversationBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final (icon, text, color) = switch (state) {
       InterviewConversationState.speaking => (
         Icons.volume_up_rounded,
-        'IA hablando',
+        l10n.callBadgeSpeaking,
         scheme.primary,
       ),
       InterviewConversationState.listening => (
         Icons.mic_rounded,
-        'Escuchando',
+        l10n.callBadgeListening,
         scheme.secondary,
       ),
       InterviewConversationState.processing => (
         Icons.auto_awesome_rounded,
-        'Procesando',
+        l10n.callBadgeProcessing,
         scheme.tertiary,
       ),
       InterviewConversationState.idle => (
         Icons.pause_circle_outline_rounded,
-        'En espera',
+        l10n.callBadgeIdle,
         scheme.onSurfaceVariant,
       ),
     };

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:prep_up/core/localization/l10n_extensions.dart';
 import 'package:prep_up/core/navigation/app_routes.dart';
 import 'package:prep_up/domain/entities/interview_results_model.dart';
 import 'package:prep_up/domain/entities/interview_session.dart';
@@ -16,21 +17,20 @@ class StatisticsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final l10n = context.l10n;
     final results = this.results;
 
     if (results == null) {
       return AppScreenScaffold(
-        title: 'Estadísticas',
+        title: l10n.statsScreenTitle,
         background: const TechBackground(),
         body: ListView(
-          children: const [
+          children: [
             AppCard(
-              title: 'Sin datos',
-              subtitle: 'No hay una entrevista analizada seleccionada',
-              leading: Icon(Icons.info_outline_rounded),
-              child: Text(
-                'Finaliza una entrevista para ver gráficos reales de score, calidad y tiempo por respuesta.',
-              ),
+              title: l10n.statsNoDataTitle,
+              subtitle: l10n.statsNoDataSubtitle,
+              leading: const Icon(Icons.info_outline_rounded),
+              child: Text(l10n.statsNoDataBody),
             ),
           ],
         ),
@@ -44,13 +44,13 @@ class StatisticsScreen extends StatelessWidget {
     );
 
     return AppScreenScaffold(
-      title: 'Estadísticas',
+      title: l10n.statsScreenTitle,
       background: const TechBackground(),
       body: ListView(
         children: [
           AppCard(
-            title: 'Tu desempeño',
-            subtitle: 'Gráficos reales de la entrevista',
+            title: l10n.statsMainCardTitle,
+            subtitle: l10n.statsMainCardSubtitle,
             leading: Icon(Icons.query_stats_rounded, color: scheme.primary),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -58,14 +58,14 @@ class StatisticsScreen extends StatelessWidget {
                 StatsSummaryChips(analytics: analytics),
                 const SizedBox(height: 14),
                 InterviewPieChartCard(
-                  title: 'Evaluación global',
-                  subtitle: 'Peso relativo de las principales dimensiones',
+                  title: l10n.statsPieTitle,
+                  subtitle: l10n.statsPieSubtitle,
                   slices: analytics.breakdownSlices,
                 ),
                 const SizedBox(height: 14),
                 InterviewBarChartCard(
-                  title: 'Score por respuesta',
-                  subtitle: 'Comparativa de puntaje en cada turno',
+                  title: l10n.statsBarScoreTitle,
+                  subtitle: l10n.statsBarScoreSubtitle,
                   bars: analytics.turns,
                   maxValue: 100,
                   barColor: scheme.primary,
@@ -73,8 +73,8 @@ class StatisticsScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 14),
                 InterviewBarChartCard(
-                  title: 'Calidad por respuesta',
-                  subtitle: 'Estimación basada en score y riqueza de contenido',
+                  title: l10n.statsBarQualityTitle,
+                  subtitle: l10n.statsBarQualitySubtitle,
                   bars: analytics.turns,
                   maxValue: 100,
                   barColor: scheme.secondary,
@@ -82,8 +82,8 @@ class StatisticsScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 14),
                 InterviewBarChartCard(
-                  title: 'Tiempo por respuesta',
-                  subtitle: 'Segundos utilizados en cada pregunta',
+                  title: l10n.statsBarTimeTitle,
+                  subtitle: l10n.statsBarTimeSubtitle,
                   bars: analytics.turns,
                   maxValue: analytics.turns.isEmpty
                       ? 1
@@ -98,33 +98,33 @@ class StatisticsScreen extends StatelessWidget {
           ),
           const SizedBox(height: 14),
           AppCard(
-            title: 'Lectura rápida',
-            subtitle: 'Interpretación del rendimiento',
+            title: l10n.statsQuickReadTitle,
+            subtitle: l10n.statsQuickReadSubtitle,
             leading: Icon(Icons.bolt_rounded, color: scheme.secondary),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Score general: ${analytics.overallScore}/100'),
+                Text(l10n.statsQuickReadOverallScore(analytics.overallScore)),
                 const SizedBox(height: 8),
                 Text(
-                  'Calidad promedio de respuesta: ${analytics.averageQuality}/100',
+                  l10n.statsQuickReadAvgQuality(analytics.averageQuality),
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Tiempo promedio por respuesta: ${analytics.averageResponseSeconds} segundos',
+                  l10n.statsQuickReadAvgTime(analytics.averageResponseSeconds),
                 ),
                 const SizedBox(height: 8),
                 Text(
                   analytics.averageResponseSeconds > 60
-                      ? 'Tu ritmo fue reflexivo; intenta sintetizar un poco mas tus respuestas.'
-                      : 'Tu ritmo fue agil; cuida mantener suficiente profundidad en cada ejemplo.',
+                      ? l10n.statsQuickReadSlow
+                      : l10n.statsQuickReadFast,
                 ),
               ],
             ),
           ),
           const SizedBox(height: 18),
           AppPrimaryButton(
-            label: 'Volver al Dashboard',
+            label: l10n.backToDashboard,
             icon: Icons.home_rounded,
             onPressed: () => Navigator.of(
               context,

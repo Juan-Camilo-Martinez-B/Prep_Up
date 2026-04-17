@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:prep_up/core/localization/l10n_extensions.dart';
 import 'package:prep_up/core/navigation/app_routes.dart';
 import 'package:prep_up/domain/entities/interview_results_model.dart';
 import 'package:prep_up/domain/entities/interview_session.dart';
@@ -16,20 +17,19 @@ class GeneralResultsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final l10n = context.l10n;
     final results = this.results;
     if (results == null) {
       return AppScreenScaffold(
-        title: 'Resultados',
+        title: l10n.generalResultsTitle,
         background: const TechBackground(),
         body: ListView(
-          children: const [
+          children: [
             AppCard(
-              title: 'Resultados generales',
-              subtitle: 'No se recibieron datos',
-              leading: Icon(Icons.info_outline_rounded),
-              child: Text(
-                'Vuelve a finalizar una entrevista para ver resultados.',
-              ),
+              title: l10n.generalResultsCardTitle,
+              subtitle: l10n.generalResultsNoDataSubtitle,
+              leading: const Icon(Icons.info_outline_rounded),
+              child: Text(l10n.generalResultsNoDataBody),
             ),
           ],
         ),
@@ -38,8 +38,8 @@ class GeneralResultsScreen extends StatelessWidget {
 
     final score = results.overallScore;
     final outcomeLabel = switch (results.outcome) {
-      InterviewOutcome.approved => 'Aprobado',
-      InterviewOutcome.improve => 'Mejorar',
+      InterviewOutcome.approved => l10n.outcomeApproved,
+      InterviewOutcome.improve => l10n.outcomeImprove,
     };
     final outcomeColor = results.outcome == InterviewOutcome.approved
         ? scheme.primary
@@ -51,13 +51,13 @@ class GeneralResultsScreen extends StatelessWidget {
     );
 
     return AppScreenScaffold(
-      title: 'Resultados',
+      title: l10n.generalResultsTitle,
       background: const TechBackground(),
       body: ListView(
         children: [
           AppCard(
-            title: 'Resultados generales',
-            subtitle: 'Resumen de tu entrevista',
+            title: l10n.generalResultsCardTitle,
+            subtitle: l10n.generalResultsSummarySubtitle,
             leading: Icon(Icons.insights_rounded, color: scheme.primary),
             child: Row(
               children: [
@@ -87,7 +87,7 @@ class GeneralResultsScreen extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Score',
+                        l10n.generalResultsScoreLabel,
                         style: Theme.of(context).textTheme.labelLarge?.copyWith(
                           color: scheme.onSurfaceVariant,
                         ),
@@ -99,7 +99,7 @@ class GeneralResultsScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 10),
                       Text(
-                        'Estado',
+                        l10n.generalResultsStatusLabel,
                         style: Theme.of(context).textTheme.labelLarge?.copyWith(
                           color: scheme.onSurfaceVariant,
                         ),
@@ -119,8 +119,8 @@ class GeneralResultsScreen extends StatelessWidget {
           ),
           const SizedBox(height: 14),
           AppCard(
-            title: 'Estadísticas',
-            subtitle: 'Resumen visual de tu desempeño',
+            title: l10n.generalResultsStatsTitle,
+            subtitle: l10n.generalResultsStatsSubtitle,
             leading: Icon(Icons.query_stats_rounded, color: scheme.primary),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -128,15 +128,14 @@ class GeneralResultsScreen extends StatelessWidget {
                 StatsSummaryChips(analytics: analytics),
                 const SizedBox(height: 14),
                 InterviewPieChartCard(
-                  title: 'Distribución evaluativa',
-                  subtitle: 'Comunicación, técnico y confianza',
+                  title: l10n.generalResultsDistributionTitle,
+                  subtitle: l10n.generalResultsDistributionSubtitle,
                   slices: analytics.breakdownSlices,
                 ),
                 const SizedBox(height: 14),
                 InterviewBarChartCard(
-                  title: 'Calidad de respuestas',
-                  subtitle:
-                      'Estimación por turno según score y riqueza de la respuesta',
+                  title: l10n.generalResultsAnswerQualityTitle,
+                  subtitle: l10n.generalResultsAnswerQualitySubtitle,
                   bars: analytics.turns,
                   maxValue: 100,
                   barColor: scheme.primary,
@@ -144,8 +143,8 @@ class GeneralResultsScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 14),
                 InterviewBarChartCard(
-                  title: 'Tiempo por respuesta',
-                  subtitle: 'Segundos que tomaste en responder cada pregunta',
+                  title: l10n.generalResultsTimePerAnswerTitle,
+                  subtitle: l10n.generalResultsTimePerAnswerSubtitle,
                   bars: analytics.turns,
                   maxValue: analytics.turns.isEmpty
                       ? 1
@@ -160,14 +159,14 @@ class GeneralResultsScreen extends StatelessWidget {
           ),
           const SizedBox(height: 14),
           AppCard(
-            title: 'Highlights',
-            subtitle: 'Lo más destacado',
+            title: l10n.generalResultsHighlightsTitle,
+            subtitle: l10n.generalResultsHighlightsSubtitle,
             leading: Icon(Icons.star_rounded, color: scheme.secondary),
             child: Column(
               children: results.highlights.isEmpty
                   ? [
                       Text(
-                        'Sin highlights disponibles.',
+                        l10n.generalResultsNoHighlights,
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           color: scheme.onSurfaceVariant,
                         ),
@@ -183,7 +182,7 @@ class GeneralResultsScreen extends StatelessWidget {
           ),
           const SizedBox(height: 18),
           AppPrimaryButton(
-            label: 'Ver estadísticas completas',
+            label: l10n.generalResultsViewFullStats,
             icon: Icons.bar_chart_rounded,
             onPressed: () => Navigator.of(context).pushNamed(
               AppRoutes.statistics,
@@ -192,7 +191,7 @@ class GeneralResultsScreen extends StatelessWidget {
           ),
           const SizedBox(height: 10),
           AppPrimaryButton(
-            label: 'Ver análisis detallado',
+            label: l10n.generalResultsViewDetailedAnalysis,
             icon: Icons.analytics_rounded,
             onPressed: () => Navigator.of(context).pushNamed(
               AppRoutes.detailedAnalysis,
@@ -210,7 +209,7 @@ class GeneralResultsScreen extends StatelessWidget {
                 borderRadius: BorderRadius.circular(14),
               ),
             ),
-            child: const Text('Volver al Dashboard'),
+            child: Text(l10n.backToDashboard),
           ),
         ],
       ),

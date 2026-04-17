@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:prep_up/core/localization/app_locale.dart';
+import 'package:prep_up/core/localization/interview_l10n.dart';
+import 'package:prep_up/core/localization/l10n_extensions.dart';
 import 'package:prep_up/core/navigation/app_routes.dart';
 import 'package:prep_up/domain/entities/interview_config.dart';
-import 'package:prep_up/domain/entities/interview_tags.dart';
 import 'package:prep_up/domain/entities/interview_results_model.dart';
 import 'package:prep_up/domain/entities/interview_session.dart';
 import 'package:prep_up/presentation/controllers/interview_config_controller.dart';
@@ -40,12 +42,14 @@ class _InterviewProcessingScreenState extends State<InterviewProcessingScreen> {
   }
 
   Future<void> _generateResults() async {
+    final l10n = context.l10n;
     final providerConfig = context.read<InterviewConfigController>().config;
+    final languageCode = AppLocaleScope.of(context).languageCode;
     final config = widget.config ?? providerConfig;
     final session = widget.session;
     if (session == null || session.turns.isEmpty) {
       setState(() {
-        _error = 'No hay datos suficientes para generar resultados.';
+        _error = l10n.processingNotEnoughData;
         _isLoading = false;
       });
       return;
@@ -61,6 +65,7 @@ class _InterviewProcessingScreenState extends State<InterviewProcessingScreen> {
       final results = await GeminiService().generateInterviewResults(
         config: config,
         session: session,
+        language: languageCode,
       );
       if (!mounted) return;
       setState(() {
@@ -79,24 +84,25 @@ class _InterviewProcessingScreenState extends State<InterviewProcessingScreen> {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final l10n = context.l10n;
     final providerConfig = context.watch<InterviewConfigController>().config;
     final config = widget.config ?? providerConfig;
     final session = widget.session;
     final results = _results;
 
     return AppScreenScaffold(
-      title: 'Analizando',
+      title: l10n.processingTitle,
       background: const TechBackground(),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Analizando tu entrevista con IA...',
+            l10n.processingHeadline,
             style: Theme.of(context).textTheme.titleLarge,
           ),
           const SizedBox(height: 10),
           Text(
-            'Generando resultados con IA a partir de tus respuestas.',
+            l10n.processingSubtitle,
             style: Theme.of(
               context,
             ).textTheme.bodyMedium?.copyWith(color: scheme.onSurfaceVariant),
@@ -104,7 +110,7 @@ class _InterviewProcessingScreenState extends State<InterviewProcessingScreen> {
           if (session != null) ...[
             const SizedBox(height: 8),
             Text(
-              'Respuestas capturadas: ${session.turns.length}',
+              l10n.processingAnswersCaptured(session.turns.length),
               style: Theme.of(
                 context,
               ).textTheme.bodySmall?.copyWith(color: scheme.onSurfaceVariant),
@@ -125,13 +131,13 @@ class _InterviewProcessingScreenState extends State<InterviewProcessingScreen> {
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
-                  'Modelo: Gemini',
+                  l10n.modelGemini,
                   style: Theme.of(context).textTheme.labelLarge,
                 ),
               ),
               if (_isLoading)
                 Text(
-                  'Procesando...',
+                  l10n.processingWorking,
                   style: Theme.of(context).textTheme.labelLarge,
                 )
               else if (results != null)
@@ -158,7 +164,7 @@ class _InterviewProcessingScreenState extends State<InterviewProcessingScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'No se pudieron generar resultados',
+                    l10n.processingErrorTitle,
                     style: Theme.of(context).textTheme.titleSmall,
                   ),
                   const SizedBox(height: 8),
@@ -168,7 +174,7 @@ class _InterviewProcessingScreenState extends State<InterviewProcessingScreen> {
                     alignment: Alignment.centerRight,
                     child: TextButton(
                       onPressed: _isLoading ? null : _generateResults,
-                      child: const Text('Reintentar'),
+                      child: Text(l10n.genericRetry),
                     ),
                   ),
                 ],
@@ -178,7 +184,7 @@ class _InterviewProcessingScreenState extends State<InterviewProcessingScreen> {
             _ResultsSummary(results: results),
           const Spacer(),
           AppPrimaryButton(
-            label: 'Ver resultados',
+            label: l10n.processingViewResults,
             icon: Icons.insights_rounded,
             onPressed: results == null
                 ? null
@@ -200,7 +206,7 @@ class _InterviewProcessingScreenState extends State<InterviewProcessingScreen> {
                 borderRadius: BorderRadius.circular(14),
               ),
             ),
-            child: const Text('Volver al Dashboard'),
+            child: Text(l10n.processingBackToDashboard),
           ),
         ],
       ),
@@ -216,9 +222,10 @@ class _ResultsSummary extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final l10n = context.l10n;
     final outcomeLabel = switch (results.outcome) {
-      InterviewOutcome.approved => 'Aprobado',
-      InterviewOutcome.improve => 'Mejorar',
+      InterviewOutcome.approved => l10n.outcomeApproved,
+      InterviewOutcome.improve => l10n.outcomeImprove,
     };
 
     return Container(
@@ -245,12 +252,12 @@ class _ResultsSummary extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Resumen listo',
+                  l10n.processingSummaryReady,
                   style: Theme.of(context).textTheme.titleSmall,
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Estado: $outcomeLabel',
+                  l10n.processingOutcomeStatus(outcomeLabel),
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: scheme.onSurfaceVariant,
                   ),
@@ -276,6 +283,7 @@ class _ConfigSummary extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final l10n = context.l10n;
 
     return Container(
       padding: const EdgeInsets.all(14),
@@ -288,16 +296,35 @@ class _ConfigSummary extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Configuración recibida',
+            l10n.processingConfigReceived,
             style: Theme.of(context).textTheme.titleSmall,
           ),
           const SizedBox(height: 10),
-          Text('Tipo: ${config.type?.label ?? '-'}'),
-          Text('Cargo: ${config.jobRole == null ? '-' : config.jobRole!.label}'),
           Text(
-            'Duración: ${config.durationMinutes == null ? '-' : '${config.durationMinutes} min'}',
+            l10n.processingConfigType(
+              config.type == null ? '-' : config.type!.label(l10n),
+            ),
           ),
-          Text('Modalidad: ${config.mode?.label ?? '-'}'),
+          Text(
+            l10n.processingConfigJobRole(
+              config.jobRole == null ? '-' : config.jobRole!.label(l10n),
+            ),
+          ),
+          Text(
+            l10n.processingConfigDuration(
+              config.durationMinutes == null
+                  ? '-'
+                  : l10n.interviewTimeLimitMinutes(
+                      config.durationMinutes!,
+                      l10n.minutesShort,
+                    ),
+            ),
+          ),
+          Text(
+            l10n.processingConfigMode(
+              config.mode == null ? '-' : config.mode!.label(l10n),
+            ),
+          ),
         ],
       ),
     );

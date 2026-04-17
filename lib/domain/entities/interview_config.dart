@@ -1,5 +1,7 @@
 import 'package:prep_up/domain/entities/interview_tags.dart';
 
+enum InterviewConfigField { type, jobRole, duration, mode }
+
 class InterviewConfig {
   const InterviewConfig({
     this.type,
@@ -20,14 +22,14 @@ class InterviewConfig {
       durationMinutes! > 0 &&
       mode != null;
 
-  List<String> get missingFields {
-    final fields = <String>[];
-    if (type == null) fields.add('tipo de entrevista');
-    if (jobRole == null) fields.add('cargo');
+  List<InterviewConfigField> get missingFields {
+    final fields = <InterviewConfigField>[];
+    if (type == null) fields.add(InterviewConfigField.type);
+    if (jobRole == null) fields.add(InterviewConfigField.jobRole);
     if (durationMinutes == null || durationMinutes! <= 0) {
-      fields.add('duración');
+      fields.add(InterviewConfigField.duration);
     }
-    if (mode == null) fields.add('modalidad');
+    if (mode == null) fields.add(InterviewConfigField.mode);
     return fields;
   }
 
@@ -44,8 +46,9 @@ class InterviewConfig {
     return InterviewConfig(
       type: clearType ? null : (type ?? this.type),
       jobRole: clearJobRole ? null : (jobRole ?? this.jobRole),
-      durationMinutes:
-          clearDuration ? null : (durationMinutes ?? this.durationMinutes),
+      durationMinutes: clearDuration
+          ? null
+          : (durationMinutes ?? this.durationMinutes),
       mode: clearMode ? null : (mode ?? this.mode),
     );
   }

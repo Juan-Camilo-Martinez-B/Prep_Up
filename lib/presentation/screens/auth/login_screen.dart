@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:prep_up/core/localization/l10n_extensions.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:prep_up/core/navigation/app_routes.dart';
 import 'package:prep_up/domain/services/auth_service.dart';
@@ -36,13 +37,12 @@ class _LoginScreenState extends State<LoginScreen> {
     });
     if (widget.isVerified) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
+        final l10n = context.l10n;
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              '¡Correo verificado con éxito! Ya puedes iniciar sesión.',
-            ),
+          SnackBar(
+            content: Text(l10n.loginEmailVerified),
             backgroundColor: Colors.green,
-            duration: Duration(seconds: 5),
+            duration: const Duration(seconds: 5),
           ),
         );
 
@@ -73,32 +73,28 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _handleLogin() async {
+    final l10n = context.l10n;
     final email = _emailController.text.trim();
     final password = _passwordController.text.trim();
 
     if (email.isEmpty || password.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Por favor completa todos los campos')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.authFillAllFields)));
       return;
     }
 
     if (!_isValidEmail(email)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Por favor ingresa un correo electrónico válido'),
-        ),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.authInvalidEmail)));
       return;
     }
 
     setState(() => _isLoading = true);
 
     try {
-      await _authService.signIn(
-        email: email,
-        password: password,
-      );
+      await _authService.signIn(email: email, password: password);
       await AuthPreferences.setRememberSession(_rememberSession);
 
       if (mounted) {
@@ -108,12 +104,11 @@ class _LoginScreenState extends State<LoginScreen> {
       }
     } on AuthException catch (e) {
       if (mounted) {
-        String message = 'Error al iniciar sesión';
+        var message = l10n.loginErrorGeneric;
         if (e.message.contains('Email not confirmed')) {
-          message =
-              'Tu cuenta aún no ha sido confirmada. Por favor verifica tu bandeja de entrada.';
+          message = l10n.loginErrorEmailNotConfirmed;
         } else if (e.message.contains('Invalid login credentials')) {
-          message = 'Credenciales incorrectas. Inténtalo de nuevo.';
+          message = l10n.loginErrorInvalidCredentials;
         } else {
           message = e.message;
         }
@@ -128,7 +123,7 @@ class _LoginScreenState extends State<LoginScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error inesperado: ${e.toString()}')),
+          SnackBar(content: Text('${l10n.unexpectedError}: ${e.toString()}')),
         );
       }
     } finally {
@@ -141,6 +136,7 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = context.l10n;
     final scheme = theme.colorScheme;
     final isDark = theme.brightness == Brightness.dark;
 
@@ -155,16 +151,15 @@ class _LoginScreenState extends State<LoginScreen> {
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(16),
         borderSide: BorderSide(
-          color: scheme.surfaceContainerHighest.withValues(alpha: isDark ? 0.4 : 0.8),
+          color: scheme.surfaceContainerHighest.withValues(
+            alpha: isDark ? 0.4 : 0.8,
+          ),
           width: 1,
         ),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(16),
-        borderSide: BorderSide(
-          color: scheme.primary,
-          width: 1.5,
-        ),
+        borderSide: BorderSide(color: scheme.primary, width: 1.5),
       ),
       labelStyle: TextStyle(color: scheme.onSurfaceVariant),
       prefixIconColor: scheme.primary,
@@ -180,7 +175,9 @@ class _LoginScreenState extends State<LoginScreen> {
             return SingleChildScrollView(
               padding: const EdgeInsets.symmetric(vertical: 24),
               child: ConstrainedBox(
-                constraints: BoxConstraints(minHeight: constraints.maxHeight - 48),
+                constraints: BoxConstraints(
+                  minHeight: constraints.maxHeight - 48,
+                ),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -192,10 +189,14 @@ class _LoginScreenState extends State<LoginScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          Icon(Icons.lock_person_rounded, size: 64, color: scheme.primary),
+                          Icon(
+                            Icons.lock_person_rounded,
+                            size: 64,
+                            color: scheme.primary,
+                          ),
                           const SizedBox(height: 16),
                           Text(
-                            'Bienvenido de vuelta',
+                            l10n.loginWelcomeBack,
                             textAlign: TextAlign.center,
                             style: theme.textTheme.headlineMedium?.copyWith(
                               fontWeight: FontWeight.bold,
@@ -204,7 +205,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            'Continúa tu entrenamiento donde lo dejaste.',
+                            l10n.loginSubtitle,
                             textAlign: TextAlign.center,
                             style: theme.textTheme.bodyLarge?.copyWith(
                               color: scheme.onSurfaceVariant,
@@ -227,8 +228,10 @@ class _LoginScreenState extends State<LoginScreen> {
                               FilteringTextInputFormatter.deny(RegExp(r'\s')),
                             ],
                             decoration: inputDecoration.copyWith(
-                              labelText: 'Correo electrónico',
-                              prefixIcon: const Icon(Icons.alternate_email_rounded),
+                              labelText: l10n.emailLabel,
+                              prefixIcon: const Icon(
+                                Icons.alternate_email_rounded,
+                              ),
                             ),
                           ),
                           const SizedBox(height: 20),
@@ -239,12 +242,15 @@ class _LoginScreenState extends State<LoginScreen> {
                               FilteringTextInputFormatter.deny(RegExp(r'\s')),
                             ],
                             decoration: inputDecoration.copyWith(
-                              labelText: 'Contraseña',
+                              labelText: l10n.passwordLabel,
                               prefixIcon: const Icon(Icons.password_rounded),
                               suffixIcon: IconButton(
-                                onPressed: () => setState(() => _obscure = !_obscure),
+                                onPressed: () =>
+                                    setState(() => _obscure = !_obscure),
                                 icon: Icon(
-                                  _obscure ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                                  _obscure
+                                      ? Icons.visibility_off_outlined
+                                      : Icons.visibility_outlined,
                                   color: scheme.onSurfaceVariant,
                                 ),
                               ),
@@ -268,12 +274,14 @@ class _LoginScreenState extends State<LoginScreen> {
                                         _rememberSession = v ?? false;
                                       }),
                                       activeColor: scheme.primary,
-                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(6),
+                                      ),
                                     ),
                                   ),
                                   const SizedBox(width: 8),
                                   Text(
-                                    'Mantener sesión',
+                                    l10n.rememberSession,
                                     style: theme.textTheme.bodyMedium?.copyWith(
                                       color: scheme.onSurfaceVariant,
                                     ),
@@ -281,13 +289,18 @@ class _LoginScreenState extends State<LoginScreen> {
                                 ],
                               ),
                               TextButton(
-                                onPressed: () => Navigator.of(context).pushNamed(AppRoutes.forgotPassword),
+                                onPressed: () => Navigator.of(
+                                  context,
+                                ).pushNamed(AppRoutes.forgotPassword),
                                 style: TextButton.styleFrom(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 4,
+                                  ),
                                   minimumSize: Size.zero,
                                 ),
                                 child: Text(
-                                  '¿Olvidaste tu contraseña?',
+                                  l10n.forgotPasswordLink,
                                   style: TextStyle(
                                     color: scheme.primary,
                                     fontWeight: FontWeight.w600,
@@ -301,7 +314,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             const Center(child: CircularProgressIndicator())
                           else
                             AppPrimaryButton(
-                              label: 'Entrar',
+                              label: l10n.loginButton,
                               icon: Icons.arrow_forward_rounded,
                               onPressed: _handleLogin,
                             ),
@@ -314,13 +327,15 @@ class _LoginScreenState extends State<LoginScreen> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
-                          '¿No tienes cuenta?',
+                          l10n.loginNoAccount,
                           style: TextStyle(color: scheme.onSurfaceVariant),
                         ),
                         TextButton(
-                          onPressed: () => Navigator.of(context).pushReplacementNamed(AppRoutes.register),
+                          onPressed: () => Navigator.of(
+                            context,
+                          ).pushReplacementNamed(AppRoutes.register),
                           child: Text(
-                            'Regístrate aquí',
+                            l10n.loginRegisterHere,
                             style: TextStyle(
                               color: scheme.primary,
                               fontWeight: FontWeight.bold,

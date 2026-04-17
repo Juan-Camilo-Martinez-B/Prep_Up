@@ -1,9 +1,12 @@
 import 'package:flutter/foundation.dart';
+import 'package:prep_up/core/localization/app_locale.dart';
+import 'package:prep_up/core/localization/interview_l10n.dart';
 import 'package:prep_up/domain/entities/interview_config.dart';
 import 'package:prep_up/domain/entities/interview_tags.dart';
 import 'package:prep_up/domain/entities/interview_session.dart';
 import 'package:prep_up/domain/entities/interview_session_model.dart';
 import 'package:prep_up/domain/services/gemini_service.dart';
+import 'package:prep_up/l10n/app_localizations.dart';
 import 'package:speech_to_text/speech_to_text.dart';
 
 class InterviewSessionController extends ChangeNotifier {
@@ -21,6 +24,8 @@ class InterviewSessionController extends ChangeNotifier {
   final GeminiService _geminiService;
   final InterviewConfig _config;
   final SpeechToText _speech;
+  bool get _isEnglish =>
+      AppLocaleRuntime.languageCode.toLowerCase().startsWith('en');
 
   InterviewSession _session;
   String _currentQuestion = '';
@@ -58,12 +63,13 @@ class InterviewSessionController extends ChangeNotifier {
     notifyListeners();
 
     try {
+      final l10n = lookupAppLocalizations(AppLocaleRuntime.locale);
       if (_config.jobRole == null) {
         throw const GeminiException(
           'Falta el cargo para iniciar la entrevista.',
         );
       }
-      final jobRole = _config.jobRole!.label;
+      final jobRole = _config.jobRole!.label(l10n);
       if (_config.type == null) {
         throw const GeminiException('Falta el tipo de entrevista.');
       }
@@ -72,6 +78,7 @@ class InterviewSessionController extends ChangeNotifier {
         type: _mapType(_config.type!),
         jobRole: jobRole,
         count: 1,
+        language: _isEnglish ? 'en' : 'es',
       );
 
       _currentQuestion = questions.isNotEmpty ? questions.first : '';
@@ -98,17 +105,20 @@ class InterviewSessionController extends ChangeNotifier {
     notifyListeners();
 
     try {
+      final l10n = lookupAppLocalizations(AppLocaleRuntime.locale);
       final evaluation = await _geminiService.evaluateUserAnswer(
         question: question,
         userAnswer: safeAnswer,
-        jobRole: _config.jobRole?.label ?? '',
+        jobRole: _config.jobRole == null ? '' : _config.jobRole!.label(l10n),
         type: _mapType(_config.type ?? InterviewConfigType.mixed),
+        language: _isEnglish ? 'en' : 'es',
       );
 
       final feedback = await _geminiService.generateFeedback(
         question: question,
         userAnswer: safeAnswer,
         evaluation: evaluation,
+        language: _isEnglish ? 'en' : 'es',
       );
 
       final turn = InterviewTurn(
@@ -148,14 +158,33 @@ class InterviewSessionController extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final jobRole = _config.jobRole?.label ?? '';
+      final l10n = lookupAppLocalizations(AppLocaleRuntime.locale);
+      final jobRole = _config.jobRole == null
+          ? ''
+          : _config.jobRole!.label(l10n);
       final type = _config.type ?? InterviewConfigType.mixed;
       final history = _formatHistoryForPrompt(_session.turns);
 
-      final prompt =
-          '''
+      final prompt = _isEnglish
+          ? '''
+Act as an expert interviewer for the "$jobRole" role.
+Interview type: ${type.label(l10n)}.
+
+History (question, answer, evaluation):
+$history
+
+Generate the next question in English:
+- It must be a single question.
+- It must adapt to the last answer.
+- If score was low, ask for clarification or a concrete example.
+- If score was high, increase difficulty or go deeper.
+- No numbering.
+- No markdown.
+Return ONLY the question text.
+'''
+          : '''
 Actúa como entrevistador experto para el rol "$jobRole".
-Tipo de entrevista: ${type.label}.
+Tipo de entrevista: ${type.label(l10n)}.
 
 Historial (pregunta, respuesta, evaluación):
 $history
@@ -172,8 +201,9 @@ Devuelve SOLO el texto de la pregunta.
 
       final next = await _geminiService.sendPrompt(
         prompt: prompt,
-        systemInstruction:
-            'Eres un entrevistador humano. Sé natural y directo.',
+        systemInstruction: _isEnglish
+            ? 'You are a human interviewer. Be natural and direct.'
+            : 'Eres un entrevistador humano. Sé natural y directo.',
         temperature: 0.8,
         maxOutputTokens: 256,
       );

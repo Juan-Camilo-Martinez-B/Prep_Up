@@ -1,0 +1,485 @@
+{
+  "@@locale": "en",
+  "appTitle": "AI Interview Trainer",
+  "language": "Language",
+  "languageOptionSpanish": "Español / Spanish",
+  "languageOptionEnglish": "English / Inglés",
+  "spanish": "Spanish",
+  "english": "English",
+  "settingsTitle": "Settings",
+  "myProfile": "My Profile",
+  "freeAccount": "Free Account",
+  "personalization": "Personalization",
+  "visualTheme": "Visual Theme",
+  "themeSystem": "System",
+  "themeLight": "Light",
+  "themeDark": "Dark",
+  "hapticFeedback": "Haptic Feedback",
+  "hapticSubtitle": "Vibration on interaction",
+  "pushNotifications": "Push Notifications",
+  "pushNotificationsSubtitle": "Reminders and alerts",
+  "privacyAndAnalytics": "Privacy and Analytics",
+  "myRecordingsBeta": "My recordings (Beta)",
+  "expertFacialAnalysis": "Expert Facial Analysis",
+  "comingSoon": "Coming soon",
+  "accountAndSession": "Account and Session",
+  "myProfileButton": "My profile",
+  "signOutButton": "Sign out",
+  "splashHeadline": "The Future of\nAI Interviews",
+  "splashSubtitle": "Smart preparation that elevates your career to the next level.",
+  "createAccountButton": "Create an Account",
+  "secureBySupabase": "Secure operation by Supabase",
+  "loginButton": "Sign in",
+  "authFillAllFields": "Please complete all fields",
+  "authInvalidEmail": "Please enter a valid email address",
+  "loginErrorGeneric": "Login error",
+  "loginErrorEmailNotConfirmed": "Your account has not been confirmed yet. Please check your inbox.",
+  "loginErrorInvalidCredentials": "Incorrect credentials. Please try again.",
+  "unexpectedError": "Unexpected error",
+  "loginWelcomeBack": "Welcome back",
+  "loginSubtitle": "Continue your training where you left off.",
+  "emailLabel": "Email",
+  "passwordLabel": "Password",
+  "rememberSession": "Keep me signed in",
+  "forgotPasswordLink": "Forgot your password?",
+  "loginNoAccount": "Don't have an account?",
+  "loginRegisterHere": "Sign up here",
+  "loginEmailVerified": "Email verified successfully! You can now sign in.",
+  "forgotPasswordEnterEmail": "Please enter your email",
+  "forgotPasswordSent": "Recovery link sent",
+  "forgotPasswordTitle": "Recover password",
+  "forgotPasswordCardTitle": "Reset your access",
+  "forgotPasswordCardSubtitle": "We'll send you a link",
+  "forgotPasswordSentShort": "Sent",
+  "forgotPasswordSendLink": "Send link",
+  "forgotPasswordBackToLogin": "Back to Login",
+  "errorLabel": "Error",
+  "registerInvalidEmail": "Please enter an email with a valid domain (e.g. user@domain.com)",
+  "registerPhoneLengthError": "Phone number must contain 10 digits",
+  "registerWeakPassword": "Password must be at least 8 characters and include uppercase, lowercase, number, and special character.",
+  "registerEmailAlreadyExists": "This email is already registered.",
+  "registerSuccess": "Registration successful. A confirmation email has been sent. Please verify it before signing in.",
+  "registerError": "Registration error",
+  "registerTitle": "Join the platform",
+  "registerSubtitle": "Create your professional profile and start training.",
+  "fullNameLabel": "Full Name",
+  "phoneLabel": "Phone Number",
+  "occupationLabel": "Occupation / Role",
+  "registerButton": "Sign up",
+  "registerAlreadyMember": "Already a member?",
+  "interviewTypeTechnical": "Technical",
+  "interviewTypeBehavioral": "Behavioral",
+  "interviewTypeMixed": "Mixed",
+  "interviewTypeTechnicalSubtitle": "Problems, concepts, and debugging",
+  "interviewTypeBehavioralSubtitle": "Soft skills, stories, and leadership",
+  "interviewTypeMixedSubtitle": "The right balance of both",
+  "interviewModeSimulated": "Simulated",
+  "interviewModeRealtime": "Real-time",
+  "jobRoleFrontendDeveloper": "Frontend Developer",
+  "jobRoleBackendDeveloper": "Backend Developer",
+  "jobRoleMobileDeveloper": "Mobile Developer",
+  "jobRoleUiUxDesigner": "UI/UX Designer",
+  "jobRoleDataAnalyst": "Data Analyst",
+  "jobRoleDataScientist": "Data Scientist",
+  "jobRoleQaTester": "QA Tester",
+  "jobRoleDevOps": "DevOps",
+  "jobRoleProductManager": "Product Manager",
+  "interviewMissingFieldType": "interview type",
+  "interviewMissingFieldJobRole": "job role",
+  "interviewMissingFieldDuration": "duration",
+  "interviewMissingFieldMode": "mode",
+  "minutesShort": "min",
+  "interviewConfigTitle": "Configure interview",
+  "interviewQuickSettingsTitle": "Quick settings",
+  "interviewQuickSettingsSubtitle": "Set duration and mode",
+  "interviewModeLabel": "Mode",
+  "interviewPreviewTitle": "Preview",
+  "interviewPreviewSubtitle": "What you are about to train",
+  "interviewPreviewType": "Type",
+  "interviewPreviewTime": "Time",
+  "interviewPreviewJobRole": "Role",
+  "interviewPreviewMode": "Mode",
+  "interviewTimeLimitMinutes": "Time limit: {minutes} {unit}",
+  "@interviewTimeLimitMinutes": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "interviewCompleteMissingFields": "Complete these fields: {fields}",
+  "@interviewCompleteMissingFields": {
+    "placeholders": {
+      "fields": {
+        "type": "String"
+      }
+    }
+  },
+  "dangerZone": "Danger Zone",
+  "interviewSelectTypeTitle": "Interview type",
+  "interviewSelectTypeHeadline": "Choose your\ntraining mode",
+  "interviewSelectTypeSubtitle": "Adjust the simulation based on the focus\nof your next hiring process.",
+  "interviewSelectTypeError": "Please select an interview type.",
+  "backToHome": "Back to home",
+  "selectJobRoleTitle": "Role / area",
+  "selectJobRoleHeadline": "Choose your role",
+  "selectJobRoleSubtitle": "Select the role to focus your interview questions.",
+  "selectJobRoleSearchHint": "e.g. Backend Developer...",
+  "selectJobRoleSuggested": "Suggested roles",
+  "selectJobRoleNoResults": "No roles found for that search.",
+  "selectJobRoleError": "Please select a role.",
+  "processingTitle": "Analyzing",
+  "processingHeadline": "Analyzing your interview with AI...",
+  "processingSubtitle": "Generating AI results from your answers.",
+  "processingAnswersCaptured": "Captured answers: {count}",
+  "@processingAnswersCaptured": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "processingWorking": "Processing...",
+  "processingNotEnoughData": "Not enough data to generate results.",
+  "processingErrorTitle": "Could not generate results",
+  "processingViewResults": "View results",
+  "processingBackToDashboard": "Back to Dashboard",
+  "processingSummaryReady": "Summary ready",
+  "processingOutcomeStatus": "Status: {status}",
+  "@processingOutcomeStatus": {
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "outcomeApproved": "Approved",
+  "outcomeImprove": "Improve",
+  "processingConfigReceived": "Received configuration",
+  "processingConfigType": "Type: {value}",
+  "@processingConfigType": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "processingConfigJobRole": "Role: {value}",
+  "@processingConfigJobRole": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "processingConfigDuration": "Duration: {value}",
+  "@processingConfigDuration": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "processingConfigMode": "Mode: {value}",
+  "@processingConfigMode": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "deviceCheckTitle": "Setup",
+  "deviceCheckChecklistTitle": "Equipment checklist",
+  "deviceCheckChecklistSubtitle": "Camera and microphone",
+  "deviceCheckCamera": "Camera",
+  "deviceCheckMicrophone": "Microphone",
+  "deviceCheckPreviewTitle": "Preview",
+  "deviceCheckCameraActive": "Camera active",
+  "deviceCheckCameraUnavailable": "Camera unavailable",
+  "deviceCheckStartSimulation": "Start simulation",
+  "deviceCheckStartInterview": "Start interview",
+  "deviceStatusActive": "Active",
+  "deviceStatusEnabling": "Enabling...",
+  "deviceStatusPermissionBlocked": "Permission blocked",
+  "deviceStatusPermissionDenied": "Permission denied",
+  "deviceStatusUnavailable": "Unavailable",
+  "deviceStatusOpenSettings": "Settings",
+  "deviceStatusAllow": "Allow",
+  "simulatedCallTitle": "Video call",
+  "simulatedCallLiveHeadline": "Live simulation",
+  "callStatusTitle": "Call status",
+  "callStatusObjective": "Goal: {questions} questions in {minutes} min",
+  "@callStatusObjective": {
+    "placeholders": {
+      "questions": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "callStateAiSpeaking": "AI speaking",
+  "callStateAiWaiting": "AI waiting",
+  "callStateUserAnswering": "User answering",
+  "callStateMicWaiting": "Microphone waiting",
+  "callStateProcessing": "Processing",
+  "callStateReady": "Ready",
+  "callStateQuestionProgress": "Question {current} of {total}",
+  "@callStateQuestionProgress": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "callQuestionCardTitle": "Question {current} of {total}",
+  "@callQuestionCardTitle": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "callQuestionSubtitleSpeaking": "AI is reading it out loud",
+  "callQuestionSubtitleDefault": "AI interviewer",
+  "callQuestionProgressText": "You're on question {current} of {total}.",
+  "@callQuestionProgressText": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "callQuestionNoneYet": "No question yet.",
+  "callEvaluationTitle": "Evaluation",
+  "callEvaluationSubtitle": "Real-time feedback",
+  "callScoreLabel": "Score: {score}/100",
+  "@callScoreLabel": {
+    "placeholders": {
+      "score": {
+        "type": "int"
+      }
+    }
+  },
+  "callStrengthsLabel": "Strengths: {items}",
+  "@callStrengthsLabel": {
+    "placeholders": {
+      "items": {
+        "type": "String"
+      }
+    }
+  },
+  "callImprovementsLabel": "Improvements: {items}",
+  "@callImprovementsLabel": {
+    "placeholders": {
+      "items": {
+        "type": "String"
+      }
+    }
+  },
+  "callSummaryLabel": "Summary: {text}",
+  "@callSummaryLabel": {
+    "placeholders": {
+      "text": {
+        "type": "String"
+      }
+    }
+  },
+  "callYourAnswerTitle": "Your answer",
+  "callYourAnswerSubtitleListening": "Real-time transcription",
+  "callYourAnswerSubtitleFallback": "Voice with text fallback",
+  "callAnswerFieldLabel": "Detected or typed answer",
+  "callAnswerHelperTts": "Gemini asks by voice and text.",
+  "callAnswerHelperFallback": "Fallback enabled: read the question on screen.",
+  "callMicStop": "Stop",
+  "callMicTalk": "Talk",
+  "callRepeatQuestion": "Repeat question",
+  "callSendToGemini": "Send to Gemini",
+  "callRetryVoice": "Retry voice",
+  "callSkip": "Skip",
+  "callHangUp": "Hang up",
+  "callTip": "Tip: keep answers clear; if audio fails, use text and Gemini will continue the conversation.",
+  "callMicActive": "Active",
+  "callMicReady": "Mic ready",
+  "callBadgeSpeaking": "AI speaking",
+  "callBadgeListening": "Listening",
+  "callBadgeProcessing": "Processing",
+  "callBadgeIdle": "Idle",
+  "callAiInterviewerLabel": "AI interviewer",
+  "dashboardMyAccount": "My account",
+  "dashboardMenuTooltip": "Menu",
+  "dashboardNavProfile": "Profile",
+  "dashboardNavHistory": "History",
+  "dashboardDailyStats": "Daily statistics",
+  "dashboardStatTechnicalAccuracyTitle": "Technical Accuracy",
+  "dashboardStatTechnicalAccuracySubtitle": "Your accuracy answering coding questions has increased by 15% statistically.",
+  "dashboardStatVerbalFluencyTitle": "Verbal Fluency",
+  "dashboardStatVerbalFluencySubtitle": "You show great cadence. Keep reducing filler words during the interview.",
+  "dashboardPracticeModes": "Practice modes",
+  "dashboardActionTrain": "Train",
+  "dashboardActionMetrics": "Metrics",
+  "dashboardActionTips": "Tips",
+  "dashboardActionSettings": "Settings",
+  "statsScreenTitle": "Statistics",
+  "statsNoDataTitle": "No data",
+  "statsNoDataSubtitle": "No analyzed interview selected",
+  "statsNoDataBody": "Finish an interview to see real charts for score, quality and time per answer.",
+  "statsMainCardTitle": "Your performance",
+  "statsMainCardSubtitle": "Real charts from the interview",
+  "statsPieTitle": "Global evaluation",
+  "statsPieSubtitle": "Relative weight of main dimensions",
+  "statsBarScoreTitle": "Score per answer",
+  "statsBarScoreSubtitle": "Score comparison for each turn",
+  "statsBarQualityTitle": "Quality per answer",
+  "statsBarQualitySubtitle": "Estimate based on score and richness of content",
+  "statsBarTimeTitle": "Time per answer",
+  "statsBarTimeSubtitle": "Seconds spent on each question",
+  "statsQuickReadTitle": "Quick read",
+  "statsQuickReadSubtitle": "Performance interpretation",
+  "statsQuickReadOverallScore": "Overall score: {score}/100",
+  "@statsQuickReadOverallScore": {
+    "placeholders": {
+      "score": {
+        "type": "int"
+      }
+    }
+  },
+  "statsQuickReadAvgQuality": "Average answer quality: {quality}/100",
+  "@statsQuickReadAvgQuality": {
+    "placeholders": {
+      "quality": {
+        "type": "int"
+      }
+    }
+  },
+  "statsQuickReadAvgTime": "Average time per answer: {seconds} seconds",
+  "@statsQuickReadAvgTime": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "statsQuickReadSlow": "Your pace was reflective; try to synthesize your answers a bit.",
+  "statsQuickReadFast": "Your pace was agile; make sure you keep enough depth in each example.",
+  "backToDashboard": "Back to Dashboard",
+  "generalResultsTitle": "Results",
+  "generalResultsCardTitle": "General results",
+  "generalResultsNoDataSubtitle": "No data received",
+  "generalResultsNoDataBody": "Finish an interview again to see results.",
+  "generalResultsSummarySubtitle": "Interview summary",
+  "generalResultsScoreLabel": "Score",
+  "generalResultsStatusLabel": "Status",
+  "generalResultsStatsTitle": "Statistics",
+  "generalResultsStatsSubtitle": "Visual summary of your performance",
+  "generalResultsDistributionTitle": "Evaluation distribution",
+  "generalResultsDistributionSubtitle": "Communication, technical, and confidence",
+  "generalResultsAnswerQualityTitle": "Answer quality",
+  "generalResultsAnswerQualitySubtitle": "Turn-by-turn estimate based on score and richness",
+  "generalResultsTimePerAnswerTitle": "Time per answer",
+  "generalResultsTimePerAnswerSubtitle": "Seconds you took to answer each question",
+  "generalResultsHighlightsTitle": "Highlights",
+  "generalResultsHighlightsSubtitle": "Top takeaways",
+  "generalResultsNoHighlights": "No highlights available.",
+  "generalResultsViewFullStats": "View full statistics",
+  "generalResultsViewDetailedAnalysis": "View detailed analysis",
+  "detailedAnalysisTitle": "Detailed analysis",
+  "detailedAnalysisNoDataSubtitle": "No results received",
+  "detailedAnalysisNoDataBody": "Finish an interview again to see the analysis.",
+  "detailedAnalysisMainMetricsTitle": "Key metrics",
+  "detailedAnalysisMainMetricsSubtitle": "Category analysis",
+  "metricCommunication": "Communication",
+  "metricTechnicalKnowledge": "Technical knowledge",
+  "metricConfidence": "Confidence",
+  "detailedAnalysisChartsTitle": "Charts per answer",
+  "detailedAnalysisChartsSubtitle": "Score, quality, and time evolution",
+  "detailedAnalysisScorePerAnswerTitle": "Score per answer",
+  "detailedAnalysisScorePerAnswerSubtitle": "Score obtained on each turn",
+  "detailedAnalysisTimePerAnswerTitle": "Time per answer",
+  "detailedAnalysisTimePerAnswerSubtitle": "Time spent per turn",
+  "detailedAnalysisPersonalizedFeedbackTitle": "Personalized feedback",
+  "detailedAnalysisPersonalizedFeedbackSubtitle": "Generated by AI",
+  "detailedAnalysisNoFeedback": "No feedback available.",
+  "detailedAnalysisImprovementTipsTitle": "Improvement tips",
+  "detailedAnalysisViewRecommendations": "View recommendations",
+  "recommendationsTitle": "Recommendations",
+  "recommendationsNoDataSubtitle": "No results received",
+  "recommendationsNoDataBody": "Finish an interview again to see recommendations.",
+  "recommendationsSuggestionsTitle": "Suggestions",
+  "recommendationsSuggestionsSubtitle": "Generated by AI based on your interview",
+  "recommendationsNone": "No recommendations available.",
+  "recommendationsTipsTitle": "Improvement tips",
+  "recommendationsTipsSubtitle": "Quick actions for your next session",
+  "recommendationsNextSessionTitle": "Next session",
+  "recommendationsNextSessionSubtitle": "Repeat and increase your score",
+  "repeatButton": "Repeat",
+  "dashboardButton": "Dashboard",
+  "repeatInterviewTitle": "Repeat interview",
+  "repeatInterviewCardTitle": "Remix mode",
+  "repeatInterviewCardSubtitle": "Repeat with tweaks and improve your score",
+  "repeatInterviewQuickSuggestionTitle": "Quick suggestion",
+  "repeatInterviewQuickSuggestionBody": "Change the interview type or role to practice different scenarios.",
+  "repeatInterviewStartNewSimulation": "Start new simulation",
+  "historyTitle": "History",
+  "historyWhenDaysAgo": "{days} days ago",
+  "@historyWhenDaysAgo": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "historyWhenWeeksAgo": "{weeks} weeks ago",
+  "@historyWhenWeeksAgo": {
+    "placeholders": {
+      "weeks": {
+        "type": "int"
+      }
+    }
+  },
+  "profileTitle": "Profile",
+  "profileDemoName": "Alex",
+  "profileDemoSubtitle": "Frontend Jr • growth mode",
+  "profileStatInterviews": "Interviews",
+  "profileStatAvgScore": "Avg. score",
+  "profileStatStreak": "Streak",
+  "profileStatLevel": "Level",
+  "profileAchievementsTitle": "Achievements",
+  "profileAchievementsSubtitle": "Streaks and progress",
+  "profileAchievementFirstWeekTitle": "First week",
+  "profileAchievementFirstWeekSubtitle": "7 days practicing",
+  "profileAchievementAiModeTitle": "AI mode",
+  "profileAchievementAiModeSubtitle": "10 simulated interviews",
+  "deleteMyAccount": "Delete my account",
+  "genericBack": "Back",
+  "genericContinue": "Continue",
+  "genericRetry": "Retry",
+  "genericCancel": "Cancel",
+  "genericClose": "Close",
+  "genericSave": "Save",
+  "genericLoading": "Loading...",
+  "modelGemini": "Model: Gemini",
+  "interviewPreparing": "Preparing interview...",
+  "interviewStarted": "Interview has started.",
+  "interviewAnalyzeAndNext": "Analyzing your answer and preparing the next question...",
+  "interviewListening": "Listening to your answer...",
+  "interviewAiSpeaking": "AI is speaking...",
+  "interviewWaitingAnswer": "Waiting for your answer...",
+  "interviewNoClearVoice": "No clear response detected. Please answer again.",
+  "interviewCouldNotStart": "Could not start the interview.",
+  "interviewCouldNotProcess": "Could not process the answer. You can try again.",
+  "interviewTimeCompleted": "Interview completed: there is not enough remaining time for a quality new question."
+}

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:prep_up/core/localization/l10n_extensions.dart';
 import 'package:prep_up/core/navigation/app_routes.dart';
 import 'package:prep_up/domain/entities/interview_results_model.dart';
 import 'package:prep_up/domain/entities/interview_session.dart';
@@ -20,20 +21,19 @@ class DetailedAnalysisScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final l10n = context.l10n;
     final results = this.results;
     if (results == null) {
       return AppScreenScaffold(
-        title: 'Análisis detallado',
+        title: l10n.detailedAnalysisTitle,
         background: const TechBackground(),
         body: ListView(
-          children: const [
+          children: [
             AppCard(
-              title: 'Sin datos',
-              subtitle: 'No se recibieron resultados',
-              leading: Icon(Icons.info_outline_rounded),
-              child: Text(
-                'Vuelve a finalizar una entrevista para ver el análisis.',
-              ),
+              title: l10n.statsNoDataTitle,
+              subtitle: l10n.detailedAnalysisNoDataSubtitle,
+              leading: const Icon(Icons.info_outline_rounded),
+              child: Text(l10n.detailedAnalysisNoDataBody),
             ),
           ],
         ),
@@ -46,30 +46,30 @@ class DetailedAnalysisScreen extends StatelessWidget {
     );
 
     return AppScreenScaffold(
-      title: 'Análisis detallado',
+      title: l10n.detailedAnalysisTitle,
       background: const TechBackground(),
       body: ListView(
         children: [
           AppCard(
-            title: 'Métricas principales',
-            subtitle: 'Análisis por categoría',
+            title: l10n.detailedAnalysisMainMetricsTitle,
+            subtitle: l10n.detailedAnalysisMainMetricsSubtitle,
             leading: Icon(Icons.analytics_outlined, color: scheme.primary),
             child: Column(
               children: [
                 _MetricBar(
-                  label: 'Comunicación',
+                  label: l10n.metricCommunication,
                   value: results.breakdown.communication / 100,
                   icon: Icons.record_voice_over_rounded,
                 ),
                 const SizedBox(height: 12),
                 _MetricBar(
-                  label: 'Conocimiento técnico',
+                  label: l10n.metricTechnicalKnowledge,
                   value: results.breakdown.technicalKnowledge / 100,
                   icon: Icons.code_rounded,
                 ),
                 const SizedBox(height: 12),
                 _MetricBar(
-                  label: 'Seguridad',
+                  label: l10n.metricConfidence,
                   value: results.breakdown.confidence / 100,
                   icon: Icons.shield_rounded,
                 ),
@@ -78,8 +78,8 @@ class DetailedAnalysisScreen extends StatelessWidget {
           ),
           const SizedBox(height: 14),
           AppCard(
-            title: 'Gráficos por respuesta',
-            subtitle: 'Evolución de score, calidad y tiempo',
+            title: l10n.detailedAnalysisChartsTitle,
+            subtitle: l10n.detailedAnalysisChartsSubtitle,
             leading: Icon(
               Icons.stacked_bar_chart_rounded,
               color: scheme.secondary,
@@ -90,8 +90,8 @@ class DetailedAnalysisScreen extends StatelessWidget {
                 StatsSummaryChips(analytics: analytics),
                 const SizedBox(height: 14),
                 InterviewBarChartCard(
-                  title: 'Score por respuesta',
-                  subtitle: 'Puntuación obtenida en cada turno',
+                  title: l10n.detailedAnalysisScorePerAnswerTitle,
+                  subtitle: l10n.detailedAnalysisScorePerAnswerSubtitle,
                   bars: analytics.turns,
                   maxValue: 100,
                   barColor: scheme.primary,
@@ -99,8 +99,8 @@ class DetailedAnalysisScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 14),
                 InterviewBarChartCard(
-                  title: 'Tiempo por respuesta',
-                  subtitle: 'Comparativa del tiempo invertido por turno',
+                  title: l10n.detailedAnalysisTimePerAnswerTitle,
+                  subtitle: l10n.detailedAnalysisTimePerAnswerSubtitle,
                   bars: analytics.turns,
                   maxValue: analytics.turns.isEmpty
                       ? 1
@@ -115,21 +115,21 @@ class DetailedAnalysisScreen extends StatelessWidget {
           ),
           const SizedBox(height: 14),
           AppCard(
-            title: 'Feedback personalizado',
-            subtitle: 'Generado por IA',
+            title: l10n.detailedAnalysisPersonalizedFeedbackTitle,
+            subtitle: l10n.detailedAnalysisPersonalizedFeedbackSubtitle,
             leading: Icon(Icons.auto_awesome_rounded, color: scheme.secondary),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   results.personalizedFeedback.trim().isEmpty
-                      ? 'Sin feedback disponible.'
+                      ? l10n.detailedAnalysisNoFeedback
                       : results.personalizedFeedback.trim(),
                 ),
                 if (results.improvementTips.isNotEmpty) ...[
                   const SizedBox(height: 14),
                   Text(
-                    'Consejos de mejora',
+                    l10n.detailedAnalysisImprovementTipsTitle,
                     style: Theme.of(context).textTheme.titleSmall,
                   ),
                   const SizedBox(height: 8),
@@ -143,7 +143,7 @@ class DetailedAnalysisScreen extends StatelessWidget {
           ),
           const SizedBox(height: 18),
           AppPrimaryButton(
-            label: 'Ver recomendaciones',
+            label: l10n.detailedAnalysisViewRecommendations,
             icon: Icons.lightbulb_rounded,
             onPressed: () => Navigator.of(
               context,
@@ -162,7 +162,7 @@ class DetailedAnalysisScreen extends StatelessWidget {
               ),
             ),
             icon: const Icon(Icons.pie_chart_rounded),
-            label: const Text('Ver estadísticas completas'),
+            label: Text(l10n.generalResultsViewFullStats),
           ),
           const SizedBox(height: 10),
           OutlinedButton(
@@ -175,7 +175,7 @@ class DetailedAnalysisScreen extends StatelessWidget {
                 borderRadius: BorderRadius.circular(14),
               ),
             ),
-            child: const Text('Volver al Dashboard'),
+            child: Text(l10n.backToDashboard),
           ),
         ],
       ),

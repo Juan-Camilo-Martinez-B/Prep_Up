@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:prep_up/core/localization/l10n_extensions.dart';
 import 'package:prep_up/core/navigation/app_routes.dart';
 import 'package:prep_up/domain/entities/interview_results_model.dart';
 import 'package:prep_up/presentation/widgets/app_card.dart';
@@ -13,18 +14,19 @@ class RecommendationsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final l10n = context.l10n;
     final results = this.results;
     if (results == null) {
       return AppScreenScaffold(
-        title: 'Recomendaciones',
+        title: l10n.recommendationsTitle,
         background: const TechBackground(),
         body: ListView(
-          children: const [
+          children: [
             AppCard(
-              title: 'Sin datos',
-              subtitle: 'No se recibieron resultados',
-              leading: Icon(Icons.info_outline_rounded),
-              child: Text('Vuelve a finalizar una entrevista para ver recomendaciones.'),
+              title: l10n.statsNoDataTitle,
+              subtitle: l10n.recommendationsNoDataSubtitle,
+              leading: const Icon(Icons.info_outline_rounded),
+              child: Text(l10n.recommendationsNoDataBody),
             ),
           ],
         ),
@@ -32,19 +34,19 @@ class RecommendationsScreen extends StatelessWidget {
     }
 
     return AppScreenScaffold(
-      title: 'Recomendaciones',
+      title: l10n.recommendationsTitle,
       background: const TechBackground(),
       body: ListView(
         children: [
           AppCard(
-            title: 'Sugerencias',
-            subtitle: 'Generadas por IA a partir de tu entrevista',
+            title: l10n.recommendationsSuggestionsTitle,
+            subtitle: l10n.recommendationsSuggestionsSubtitle,
             leading: Icon(Icons.lightbulb_rounded, color: scheme.primary),
             child: Column(
               children: [
                 if (results.recommendations.isEmpty)
                   Text(
-                    'Sin recomendaciones disponibles.',
+                    l10n.recommendationsNone,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           color: scheme.onSurfaceVariant,
                         ),
@@ -60,8 +62,8 @@ class RecommendationsScreen extends StatelessWidget {
           const SizedBox(height: 14),
           if (results.improvementTips.isNotEmpty) ...[
             AppCard(
-              title: 'Consejos de mejora',
-              subtitle: 'Acciones rápidas para tu próxima sesión',
+              title: l10n.recommendationsTipsTitle,
+              subtitle: l10n.recommendationsTipsSubtitle,
               leading: Icon(Icons.tips_and_updates_rounded, color: scheme.secondary),
               child: Column(
                 children: [
@@ -75,8 +77,8 @@ class RecommendationsScreen extends StatelessWidget {
             const SizedBox(height: 14),
           ],
           AppCard(
-            title: 'Siguiente sesión',
-            subtitle: 'Repite y sube tu score',
+            title: l10n.recommendationsNextSessionTitle,
+            subtitle: l10n.recommendationsNextSessionSubtitle,
             leading: Icon(Icons.replay_rounded, color: scheme.secondary),
             child: Row(
               children: [
@@ -91,13 +93,13 @@ class RecommendationsScreen extends StatelessWidget {
                       ),
                     ),
                     icon: const Icon(Icons.play_arrow_rounded),
-                    label: const Text('Repetir'),
+                    label: Text(l10n.repeatButton),
                   ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: AppPrimaryButton(
-                    label: 'Dashboard',
+                    label: l10n.dashboardButton,
                     icon: Icons.home_rounded,
                     onPressed: () => Navigator.of(context).pushNamedAndRemoveUntil(
                       AppRoutes.dashboard,

@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:prep_up/core/localization/app_locale.dart';
+import 'package:prep_up/core/localization/l10n_extensions.dart';
 import 'package:prep_up/core/navigation/app_routes.dart';
 import 'package:prep_up/domain/entities/app_settings_model.dart';
 import 'package:prep_up/domain/services/auth_service.dart';
 import 'package:prep_up/presentation/widgets/app_card.dart';
-import 'package:prep_up/presentation/widgets/app_primary_button.dart';
 import 'package:prep_up/presentation/widgets/app_screen_scaffold.dart';
 import 'package:prep_up/theme/app_theme.dart';
 
@@ -21,11 +22,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final l10n = context.l10n;
     final themeController = AppThemeScope.of(context);
     final themeMode = themeController.themeMode;
+    final localeController = AppLocaleScope.of(context);
+    final locale = localeController.locale.languageCode;
 
     return AppScreenScaffold(
-      title: 'Ajustes',
+      title: l10n.settingsTitle,
       centerTitle: true,
       background: const TechBackground(),
       body: ListView(
@@ -72,7 +76,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  'Mi Perfil',
+                  l10n.myProfile,
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                         fontWeight: FontWeight.bold,
                       ),
@@ -85,7 +89,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
-                    'Cuenta Gratuita',
+                    l10n.freeAccount,
                     style: TextStyle(
                       color: scheme.primary,
                       fontWeight: FontWeight.w600,
@@ -99,7 +103,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           const SizedBox(height: 32),
 
           Text(
-            'Personalización',
+            l10n.personalization,
             style: Theme.of(context).textTheme.labelLarge?.copyWith(
                   fontWeight: FontWeight.bold,
                   color: scheme.onSurfaceVariant,
@@ -123,7 +127,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     const SizedBox(width: 16),
                     Expanded(
                       child: Text(
-                        'Tema Visual',
+                        l10n.visualTheme,
                         style: Theme.of(context).textTheme.titleMedium,
                       ),
                     ),
@@ -134,26 +138,92 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   style: SegmentedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                   ),
-                  segments: const [
+                  segments: [
                     ButtonSegment(
                       value: AppThemeMode.system,
-                      label: Text('Sistema', style: TextStyle(fontSize: 12)),
-                      icon: Icon(Icons.phone_android_rounded, size: 16),
+                      label: Text(
+                        l10n.themeSystem,
+                        style: const TextStyle(fontSize: 12),
+                      ),
+                      icon: const Icon(Icons.phone_android_rounded, size: 16),
                     ),
                     ButtonSegment(
                       value: AppThemeMode.light,
-                      label: Text('Claro', style: TextStyle(fontSize: 12)),
-                      icon: Icon(Icons.light_mode_rounded, size: 16),
+                      label: Text(
+                        l10n.themeLight,
+                        style: const TextStyle(fontSize: 12),
+                      ),
+                      icon: const Icon(Icons.light_mode_rounded, size: 16),
                     ),
                     ButtonSegment(
                       value: AppThemeMode.dark,
-                      label: Text('Oscuro', style: TextStyle(fontSize: 12)),
-                      icon: Icon(Icons.dark_mode_rounded, size: 16),
+                      label: Text(
+                        l10n.themeDark,
+                        style: const TextStyle(fontSize: 12),
+                      ),
+                      icon: const Icon(Icons.dark_mode_rounded, size: 16),
                     ),
                   ],
                   selected: {themeMode},
                   onSelectionChanged: (selection) {
                     themeController.setThemeMode(selection.first);
+                  },
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          AppCard(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: scheme.primary.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Icon(Icons.language_rounded, color: scheme.primary),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Text(
+                        l10n.language,
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                SegmentedButton<String>(
+                  style: SegmentedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
+                  ),
+                  segments: [
+                    ButtonSegment(
+                      value: 'es',
+                      label: Text(
+                        l10n.languageOptionSpanish,
+                        style: const TextStyle(fontSize: 11),
+                      ),
+                    ),
+                    ButtonSegment(
+                      value: 'en',
+                      label: Text(
+                        l10n.languageOptionEnglish,
+                        style: const TextStyle(fontSize: 11),
+                      ),
+                    ),
+                  ],
+                  selected: {locale},
+                  onSelectionChanged: (selection) {
+                    final next = selection.first;
+                    localeController.setLocale(Locale(next));
                   },
                 ),
               ],
@@ -168,9 +238,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 SwitchListTile(
                   value: _haptics,
                   onChanged: (v) => setState(() => _haptics = v),
-                  title: const Text('Respuesta Háptica'),
+                  title: Text(l10n.hapticFeedback),
                   subtitle: Text(
-                    'Vibración al interactuar',
+                    l10n.hapticSubtitle,
                     style: TextStyle(color: scheme.onSurfaceVariant, fontSize: 12),
                   ),
                   secondary: Container(
@@ -181,15 +251,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                     child: Icon(Icons.vibration_rounded, color: scheme.secondary),
                   ),
-                  activeColor: scheme.primary,
+                  activeThumbColor: scheme.primary,
                 ),
                 const Divider(height: 1, indent: 64),
                 SwitchListTile(
                   value: _notifications,
                   onChanged: (v) => setState(() => _notifications = v),
-                  title: const Text('Notificaciones Push'),
+                  title: Text(l10n.pushNotifications),
                   subtitle: Text(
-                    'Recordatorios y avisos',
+                    l10n.pushNotificationsSubtitle,
                     style: TextStyle(color: scheme.onSurfaceVariant, fontSize: 12),
                   ),
                   secondary: Container(
@@ -200,7 +270,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                     child: const Icon(Icons.notifications_active_rounded, color: Colors.orangeAccent),
                   ),
-                  activeColor: scheme.primary,
+                  activeThumbColor: scheme.primary,
                 ),
               ],
             ),
@@ -208,7 +278,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
           const SizedBox(height: 24),
           Text(
-            'Privacidad y Análisis',
+            l10n.privacyAndAnalytics,
             style: Theme.of(context).textTheme.labelLarge?.copyWith(
                   fontWeight: FontWeight.bold,
                   color: scheme.onSurfaceVariant,
@@ -228,7 +298,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                     child: Icon(Icons.video_camera_front_rounded, color: scheme.tertiary),
                   ),
-                  title: const Text('Mis grabaciones (Beta)'),
+                  title: Text(l10n.myRecordingsBeta),
                   trailing: const Icon(Icons.chevron_right_rounded),
                   onTap: () {},
                 ),
@@ -242,14 +312,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                     child: const Icon(Icons.face_retouching_natural_rounded, color: Colors.pinkAccent),
                   ),
-                  title: const Text('Análisis Facial Experto'),
+                  title: Text(l10n.expertFacialAnalysis),
                   trailing: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                     decoration: BoxDecoration(
                       color: scheme.onSurface.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: const Text('Próximamente', style: TextStyle(fontSize: 10)),
+                    child: Text(
+                      l10n.comingSoon,
+                      style: const TextStyle(fontSize: 10),
+                    ),
                   ),
                   onTap: () {},
                 ),
@@ -280,7 +353,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     const Icon(Icons.logout_rounded, color: Colors.redAccent),
                     const SizedBox(width: 8),
                     Text(
-                      'Cerrar Sesión',
+                      l10n.signOutButton,
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
                             color: Colors.redAccent,
                             fontWeight: FontWeight.bold,

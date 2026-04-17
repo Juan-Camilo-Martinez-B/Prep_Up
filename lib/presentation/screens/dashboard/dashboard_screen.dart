@@ -1,8 +1,8 @@
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
+import 'package:prep_up/core/localization/l10n_extensions.dart';
 import 'package:prep_up/core/navigation/app_routes.dart';
 import 'package:prep_up/presentation/controllers/interview_config_controller.dart';
-import 'package:prep_up/presentation/widgets/app_card.dart';
 import 'package:prep_up/presentation/widgets/app_screen_scaffold.dart';
 import 'package:provider/provider.dart';
 
@@ -12,19 +12,20 @@ class DashboardScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final l10n = context.l10n;
 
     return AppScreenScaffold(
       title: '', // Empty title to fully customize the top area
-      titleWidget: const Text(
-        'Mi Cuenta',
-        style: TextStyle(fontWeight: FontWeight.w300, fontSize: 16),
+      titleWidget: Text(
+        l10n.dashboardMyAccount,
+        style: const TextStyle(fontWeight: FontWeight.w300, fontSize: 16),
       ),
       background: const TechBackground(),
       actions: [
         IconButton(
           onPressed: () => Navigator.of(context).pushNamed(AppRoutes.settings),
           icon: const Icon(Icons.menu_rounded), // Hamburger menu like in image
-          tooltip: 'Menú',
+          tooltip: l10n.dashboardMenuTooltip,
         ),
       ],
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
@@ -67,14 +68,15 @@ class DashboardScreen extends StatelessWidget {
             children: [
               _NavBarItem(
                 icon: Icons.person_outline_rounded,
-                label: 'Perfil',
+                label: l10n.dashboardNavProfile,
                 onTap: () => Navigator.of(context).pushNamed(AppRoutes.profile),
               ),
               const SizedBox(width: 48), // Space for FAB
               _NavBarItem(
                 icon: Icons.history_rounded,
-                label: 'Historial',
-                onTap: () => Navigator.of(context).pushNamed(AppRoutes.interviewHistory),
+                label: l10n.dashboardNavHistory,
+                onTap: () =>
+                    Navigator.of(context).pushNamed(AppRoutes.interviewHistory),
               ),
             ],
           ),
@@ -84,11 +86,11 @@ class DashboardScreen extends StatelessWidget {
         padding: const EdgeInsets.fromLTRB(16, 0, 16, 100),
         children: [
           Text(
-            'Estadísticas Diarias',
+            l10n.dashboardDailyStats,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: scheme.onSurfaceVariant,
-                  letterSpacing: 1.2,
-                ),
+              color: scheme.onSurfaceVariant,
+              letterSpacing: 1.2,
+            ),
           ),
           const SizedBox(height: 16),
           // --- GLOWING CHART CARD ---
@@ -106,7 +108,7 @@ class DashboardScreen extends StatelessWidget {
                   color: scheme.primary.withValues(alpha: 0.05),
                   blurRadius: 30,
                   offset: const Offset(0, 10),
-                )
+                ),
               ],
             ),
             child: const Padding(
@@ -115,30 +117,30 @@ class DashboardScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 24),
-          
+
           // --- SPECIFIC STATISTICS LIST ---
           _NeonStatItem(
             index: '01',
-            title: 'Precisión Técnica',
-            subtitle: 'Tu precisión al responder preguntas de código ha subido un 15% estadísticamente.',
+            title: l10n.dashboardStatTechnicalAccuracyTitle,
+            subtitle: l10n.dashboardStatTechnicalAccuracySubtitle,
             color: scheme.primary,
           ),
           const SizedBox(height: 16),
-          const _NeonStatItem(
+          _NeonStatItem(
             index: '02',
-            title: 'Fluidez Verbal',
-            subtitle: 'Muestras una gran cadencia. Continúa reduciendo las muletillas durante la entrevista.',
+            title: l10n.dashboardStatVerbalFluencyTitle,
+            subtitle: l10n.dashboardStatVerbalFluencySubtitle,
             color: Colors.purpleAccent,
           ),
           const SizedBox(height: 24),
 
           // --- BAR CHART SIMULATION (Acciones Rápidas con estilo barras) ---
           Text(
-            'Modos de Práctica',
+            l10n.dashboardPracticeModes,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: scheme.onSurfaceVariant,
-                  letterSpacing: 1.2,
-                ),
+              color: scheme.onSurfaceVariant,
+              letterSpacing: 1.2,
+            ),
           ),
           const SizedBox(height: 16),
           Container(
@@ -160,27 +162,31 @@ class DashboardScreen extends StatelessWidget {
                   color: scheme.primary,
                   onTap: () {
                     context.read<InterviewConfigController>().reset();
-                    Navigator.of(context).pushNamed(AppRoutes.selectInterviewType);
+                    Navigator.of(
+                      context,
+                    ).pushNamed(AppRoutes.selectInterviewType);
                   },
-                  label: 'Entrenar',
+                  label: l10n.dashboardActionTrain,
                 ),
                 _BarAction(
                   height: 90,
                   color: Colors.purpleAccent,
-                  onTap: () => Navigator.of(context).pushNamed(AppRoutes.statistics),
-                  label: 'Métricas',
+                  onTap: () =>
+                      Navigator.of(context).pushNamed(AppRoutes.statistics),
+                  label: l10n.dashboardActionMetrics,
                 ),
                 _BarAction(
                   height: 40,
                   color: Colors.cyanAccent,
                   onTap: () {},
-                  label: 'Consejos',
+                  label: l10n.dashboardActionTips,
                 ),
                 _BarAction(
                   height: 75,
                   color: scheme.primary,
-                  onTap: () => Navigator.of(context).pushNamed(AppRoutes.settings),
-                  label: 'Ajustes',
+                  onTap: () =>
+                      Navigator.of(context).pushNamed(AppRoutes.settings),
+                  label: l10n.dashboardActionSettings,
                 ),
               ],
             ),
@@ -254,7 +260,7 @@ class _LineChartPainter extends CustomPainter {
       ..strokeJoin = StrokeJoin.round
       ..strokeCap = StrokeCap.round
       ..shader = lineGradient;
-    
+
     canvas.drawPath(path, linePaint);
 
     // Fill underneath
@@ -263,14 +269,10 @@ class _LineChartPainter extends CustomPainter {
       ..lineTo(0, h)
       ..close();
 
-    final fillGradient = ui.Gradient.linear(
-      Offset(0, 0),
-      Offset(0, h),
-      [
-        color1.withValues(alpha: 0.3),
-        color1.withValues(alpha: 0.0),
-      ],
-    );
+    final fillGradient = ui.Gradient.linear(Offset(0, 0), Offset(0, h), [
+      color1.withValues(alpha: 0.3),
+      color1.withValues(alpha: 0.0),
+    ]);
 
     final fillPaint = Paint()
       ..style = PaintingStyle.fill
@@ -317,10 +319,7 @@ class _NeonStatItem extends StatelessWidget {
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor.withValues(alpha: 0.4),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: color.withValues(alpha: 0.2),
-          width: 1,
-        ),
+        border: Border.all(color: color.withValues(alpha: 0.2), width: 1),
       ),
       child: Row(
         children: [
@@ -366,16 +365,16 @@ class _NeonStatItem extends StatelessWidget {
                 Text(
                   title,
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 const SizedBox(height: 6),
                 Text(
                   subtitle,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        height: 1.3,
-                      ),
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    height: 1.3,
+                  ),
                 ),
               ],
             ),
@@ -420,7 +419,7 @@ class _BarAction extends StatelessWidget {
                     color: color.withValues(alpha: 0.4),
                     blurRadius: 8,
                     offset: const Offset(0, 4),
-                  )
+                  ),
                 ],
               ),
             ),

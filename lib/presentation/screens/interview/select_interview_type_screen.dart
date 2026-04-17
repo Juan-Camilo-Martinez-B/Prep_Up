@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:prep_up/core/localization/l10n_extensions.dart';
 import 'package:prep_up/core/navigation/app_routes.dart';
-import 'package:prep_up/domain/entities/interview_config.dart';
 import 'package:prep_up/domain/entities/interview_tags.dart';
 import 'package:prep_up/presentation/controllers/interview_config_controller.dart';
-import 'package:prep_up/presentation/widgets/app_card.dart';
 import 'package:prep_up/presentation/widgets/app_primary_button.dart';
 import 'package:prep_up/presentation/widgets/app_screen_scaffold.dart';
 import 'package:provider/provider.dart';
@@ -14,32 +13,33 @@ class SelectInterviewTypeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final l10n = context.l10n;
     final controller = context.watch<InterviewConfigController>();
     final selected = controller.config.type;
 
     return AppScreenScaffold(
-      title: 'Tipo de entrevista',
+      title: l10n.interviewSelectTypeTitle,
       background: const TechBackground(),
       body: ListView(
         padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
         children: [
           const SizedBox(height: 12),
           Text(
-            'Elige tu modo\nde entrenamiento',
+            l10n.interviewSelectTypeHeadline,
             style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: -1.0,
-                  height: 1.1,
-                ),
+              fontWeight: FontWeight.w900,
+              letterSpacing: -1.0,
+              height: 1.1,
+            ),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 12),
           Text(
-            'Ajusta la simulación según el enfoque\nde tu próximo proceso de selección.',
+            l10n.interviewSelectTypeSubtitle,
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  color: scheme.onSurfaceVariant,
-                  height: 1.4,
-                ),
+              color: scheme.onSurfaceVariant,
+              height: 1.4,
+            ),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 32),
@@ -52,13 +52,13 @@ class SelectInterviewTypeScreen extends StatelessWidget {
           ],
           const SizedBox(height: 24),
           AppPrimaryButton(
-            label: 'Continuar',
+            label: l10n.genericContinue,
             icon: Icons.arrow_forward_rounded,
             onPressed: () {
               if (controller.config.type == null) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Por favor, selecciona un tipo de entrevista.'),
+                  SnackBar(
+                    content: Text(l10n.interviewSelectTypeError),
                     behavior: SnackBarBehavior.floating,
                   ),
                 );
@@ -69,8 +69,9 @@ class SelectInterviewTypeScreen extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           TextButton(
-            onPressed: () =>
-                Navigator.of(context).pushNamedAndRemoveUntil(AppRoutes.dashboard, (r) => false),
+            onPressed: () => Navigator.of(
+              context,
+            ).pushNamedAndRemoveUntil(AppRoutes.dashboard, (r) => false),
             style: TextButton.styleFrom(
               minimumSize: const Size(double.infinity, 56),
               shape: RoundedRectangleBorder(
@@ -78,7 +79,7 @@ class SelectInterviewTypeScreen extends StatelessWidget {
               ),
             ),
             child: Text(
-              'Volver al inicio',
+              l10n.backToHome,
               style: TextStyle(
                 fontWeight: FontWeight.w600,
                 color: scheme.onSurfaceVariant,
@@ -106,26 +107,27 @@ class _TypeCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final l10n = context.l10n;
 
     final (title, subtitle, icon, gradientColors) = switch (option) {
       InterviewConfigType.technical => (
-          'Técnica',
-          'Problemas, conceptos y debugging',
-          Icons.terminal_rounded,
-          [const Color(0xFF00C6FF), const Color(0xFF0072FF)],
-        ),
+        l10n.interviewTypeTechnical,
+        l10n.interviewTypeTechnicalSubtitle,
+        Icons.terminal_rounded,
+        [const Color(0xFF00C6FF), const Color(0xFF0072FF)],
+      ),
       InterviewConfigType.rrhh => (
-          'Conductual',
-          'Soft skills, historias y liderazgo',
-          Icons.people_alt_rounded,
-          [const Color(0xFFFDC830), const Color(0xFFF37335)],
-        ),
+        l10n.interviewTypeBehavioral,
+        l10n.interviewTypeBehavioralSubtitle,
+        Icons.people_alt_rounded,
+        [const Color(0xFFFDC830), const Color(0xFFF37335)],
+      ),
       InterviewConfigType.mixed => (
-          'Mixta',
-          'El equilibrio perfecto de ambas',
-          Icons.auto_awesome_rounded,
-          [const Color(0xFF8A2387), const Color(0xFFE94057)],
-        ),
+        l10n.interviewTypeMixed,
+        l10n.interviewTypeMixedSubtitle,
+        Icons.auto_awesome_rounded,
+        [const Color(0xFF8A2387), const Color(0xFFE94057)],
+      ),
     };
 
     return GestureDetector(
@@ -149,7 +151,9 @@ class _TypeCard extends StatelessWidget {
               : null,
           color: selected ? null : scheme.surfaceBright,
           border: Border.all(
-            color: selected ? Colors.transparent : scheme.outlineVariant.withValues(alpha: 0.3),
+            color: selected
+                ? Colors.transparent
+                : scheme.outlineVariant.withValues(alpha: 0.3),
             width: 1.5,
           ),
           boxShadow: [
@@ -188,10 +192,10 @@ class _TypeCard extends StatelessWidget {
                     duration: const Duration(milliseconds: 350),
                     curve: Curves.easeOutCubic,
                     style: Theme.of(context).textTheme.titleMedium!.copyWith(
-                          fontWeight: FontWeight.bold,
-                          fontSize: selected ? 18 : 16,
-                          color: selected ? Colors.white : scheme.onSurface,
-                        ),
+                      fontWeight: FontWeight.bold,
+                      fontSize: selected ? 18 : 16,
+                      color: selected ? Colors.white : scheme.onSurface,
+                    ),
                     child: Text(title),
                   ),
                   const SizedBox(height: 4),
@@ -199,11 +203,11 @@ class _TypeCard extends StatelessWidget {
                     duration: const Duration(milliseconds: 350),
                     curve: Curves.easeOutCubic,
                     style: Theme.of(context).textTheme.bodySmall!.copyWith(
-                          fontSize: 13,
-                          color: selected
-                              ? Colors.white.withValues(alpha: 0.85)
-                              : scheme.onSurfaceVariant,
-                        ),
+                      fontSize: 13,
+                      color: selected
+                          ? Colors.white.withValues(alpha: 0.85)
+                          : scheme.onSurfaceVariant,
+                    ),
                     child: Text(subtitle),
                   ),
                 ],
@@ -211,10 +215,8 @@ class _TypeCard extends StatelessWidget {
             ),
             AnimatedSwitcher(
               duration: const Duration(milliseconds: 350),
-              transitionBuilder: (child, animation) => ScaleTransition(
-                scale: animation,
-                child: child,
-              ),
+              transitionBuilder: (child, animation) =>
+                  ScaleTransition(scale: animation, child: child),
               child: selected
                   ? const Icon(
                       Icons.check_circle_rounded,

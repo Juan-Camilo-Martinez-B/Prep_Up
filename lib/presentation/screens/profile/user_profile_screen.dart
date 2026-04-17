@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:prep_up/core/localization/l10n_extensions.dart';
 import 'package:prep_up/core/navigation/app_routes.dart';
 import 'package:prep_up/presentation/widgets/app_card.dart';
 import 'package:prep_up/presentation/widgets/app_primary_button.dart';
@@ -10,15 +11,16 @@ class UserProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final l10n = context.l10n;
 
     return AppScreenScaffold(
-      title: 'Perfil',
+      title: l10n.profileTitle,
       background: const TechBackground(),
       body: ListView(
         children: [
           AppCard(
-            title: 'Alex',
-            subtitle: 'Frontend Jr • en modo crecimiento',
+            title: l10n.profileDemoName,
+            subtitle: l10n.profileDemoSubtitle,
             leading: Container(
               width: 48,
               height: 48,
@@ -41,16 +43,16 @@ class UserProfileScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _StatRow(
-                  leftLabel: 'Entrevistas',
+                  leftLabel: l10n.profileStatInterviews,
                   leftValue: '12',
-                  rightLabel: 'Score prom.',
+                  rightLabel: l10n.profileStatAvgScore,
                   rightValue: '76',
                 ),
                 const SizedBox(height: 10),
                 _StatRow(
-                  leftLabel: 'Racha',
+                  leftLabel: l10n.profileStatStreak,
                   leftValue: '4 días',
-                  rightLabel: 'Nivel',
+                  rightLabel: l10n.profileStatLevel,
                   rightValue: 'Rookie+',
                 ),
               ],
@@ -58,28 +60,28 @@ class UserProfileScreen extends StatelessWidget {
           ),
           const SizedBox(height: 14),
           AppCard(
-            title: 'Logros',
-            subtitle: 'Streaks y progreso',
+            title: l10n.profileAchievementsTitle,
+            subtitle: l10n.profileAchievementsSubtitle,
             leading: Icon(Icons.emoji_events_rounded, color: scheme.secondary),
             child: Column(
               children: [
                 _AchievementTile(
                   icon: Icons.bolt_rounded,
-                  title: 'Primera semana',
-                  subtitle: '7 días practicando',
+                  title: l10n.profileAchievementFirstWeekTitle,
+                  subtitle: l10n.profileAchievementFirstWeekSubtitle,
                 ),
                 const SizedBox(height: 10),
                 _AchievementTile(
                   icon: Icons.psychology_alt_rounded,
-                  title: 'Modo IA',
-                  subtitle: '10 entrevistas simuladas',
+                  title: l10n.profileAchievementAiModeTitle,
+                  subtitle: l10n.profileAchievementAiModeSubtitle,
                 ),
               ],
             ),
           ),
           const SizedBox(height: 14),
           AppPrimaryButton(
-            label: 'Volver al Dashboard',
+            label: l10n.backToDashboard,
             icon: Icons.home_rounded,
             onPressed: () => Navigator.of(context).pushNamedAndRemoveUntil(
               AppRoutes.dashboard,

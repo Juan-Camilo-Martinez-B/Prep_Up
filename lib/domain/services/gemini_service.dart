@@ -1,14 +1,16 @@
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
+import 'package:flutter/widgets.dart';
 import 'package:prep_up/core/config/app_config.dart';
+import 'package:prep_up/core/localization/interview_l10n.dart';
 import 'package:prep_up/domain/entities/answer_evaluation_model.dart';
 import 'package:prep_up/domain/entities/interview_config.dart';
-import 'package:prep_up/domain/entities/interview_tags.dart';
 import 'package:prep_up/domain/entities/interview_feedback_model.dart';
 import 'package:prep_up/domain/entities/interview_results_model.dart';
 import 'package:prep_up/domain/entities/interview_session.dart';
 import 'package:prep_up/domain/entities/interview_session_model.dart';
+import 'package:prep_up/l10n/app_localizations.dart';
 
 class GeminiException implements Exception {
   const GeminiException(this.message, {this.statusCode, this.details});
@@ -25,13 +27,10 @@ class GeminiException implements Exception {
 }
 
 class GeminiService {
-  GeminiService({
-    http.Client? httpClient,
-    String? apiKey,
-    String? model,
-  })  : _httpClient = httpClient ?? http.Client(),
-        _apiKey = (apiKey ?? AppConfig.geminiApiKey).trim(),
-        _model = _normalizeModelName((model ?? AppConfig.geminiModel).trim());
+  GeminiService({http.Client? httpClient, String? apiKey, String? model})
+    : _httpClient = httpClient ?? http.Client(),
+      _apiKey = (apiKey ?? AppConfig.geminiApiKey).trim(),
+      _model = _normalizeModelName((model ?? AppConfig.geminiModel).trim());
 
   final http.Client _httpClient;
   final String _apiKey;
@@ -104,7 +103,10 @@ class GeminiService {
         details: e,
       );
     } on FormatException catch (e) {
-      throw GeminiException('Error al parsear respuesta de Gemini.', details: e);
+      throw GeminiException(
+        'Error al parsear respuesta de Gemini.',
+        details: e,
+      );
     }
   }
 
@@ -126,7 +128,8 @@ class GeminiService {
 
     if (response.statusCode < 200 || response.statusCode >= 300) {
       final message =
-          _tryExtractApiErrorMessage(responseBody) ?? 'Error al llamar a Gemini.';
+          _tryExtractApiErrorMessage(responseBody) ??
+          'Error al llamar a Gemini.';
       throw GeminiException(
         message,
         statusCode: response.statusCode,
@@ -261,18 +264,31 @@ class GeminiService {
     required int count,
     String language = 'es',
   }) async {
+    final isEnglish = language.toLowerCase().startsWith('en');
     final safeCount = count <= 0 ? 5 : count;
     final typeLabel = switch (type) {
-      InterviewType.behavioral => 'conductual',
-      InterviewType.technical => 'técnica',
-      InterviewType.mixed => 'mixta',
+      InterviewType.behavioral => isEnglish ? 'behavioral' : 'conductual',
+      InterviewType.technical => isEnglish ? 'technical' : 'técnica',
+      InterviewType.mixed => isEnglish ? 'mixed' : 'mixta',
     };
 
-    final systemInstruction =
-        'Eres un entrevistador experto. Respondes en $language. '
-        'Cuando te pidan JSON, devuélvelo sin texto adicional.';
+    final systemInstruction = isEnglish
+        ? 'You are an expert interviewer. Reply in English. '
+              'When asked for JSON, return JSON only with no extra text.'
+        : 'Eres un entrevistador experto. Respondes en $language. '
+              'Cuando te pidan JSON, devuélvelo sin texto adicional.';
 
-    final prompt = '''
+    final prompt = isEnglish
+        ? '''
+Generate $safeCount $typeLabel interview questions for the role: "$jobRole".
+Return ONLY JSON with this exact schema:
+{"questions":["...","..."]}
+Requirements:
+- Questions must be clear and specific
+- No numbering in the question text
+- No markdown
+'''
+        : '''
 Genera $safeCount preguntas de entrevista de tipo $typeLabel para el rol: "$jobRole".
 Devuelve SOLO JSON con este esquema exacto:
 {"questions":["...","..."]}
@@ -293,8 +309,10 @@ Requisitos:
     final decoded = _tryDecodeJsonMap(jsonText);
     final questionsRaw = decoded?['questions'];
     if (questionsRaw is List) {
-      final questions =
-          questionsRaw.whereType<String>().map((e) => e.trim()).toList();
+      final questions = questionsRaw
+          .whereType<String>()
+          .map((e) => e.trim())
+          .toList();
       final filtered = questions.where((q) => q.isNotEmpty).toList();
       if (filtered.isNotEmpty) return filtered.take(safeCount).toList();
     }
@@ -309,17 +327,42 @@ Requisitos:
     InterviewType type = InterviewType.mixed,
     String language = 'es',
   }) async {
+    final isEnglish = language.toLowerCase().startsWith('en');
     final typeLabel = switch (type) {
-      InterviewType.behavioral => 'conductual',
-      InterviewType.technical => 'técnica',
-      InterviewType.mixed => 'mixta',
+      InterviewType.behavioral => isEnglish ? 'behavioral' : 'conductual',
+      InterviewType.technical => isEnglish ? 'technical' : 'técnica',
+      InterviewType.mixed => isEnglish ? 'mixed' : 'mixta',
     };
 
-    final systemInstruction =
-        'Eres un entrevistador experto. Respondes en $language. '
-        'Cuando te pidan JSON, devuélvelo sin texto adicional.';
+    final systemInstruction = isEnglish
+        ? 'You are an expert interviewer. Reply in English. '
+              'When asked for JSON, return JSON only with no extra text.'
+        : 'Eres un entrevistador experto. Respondes en $language. '
+              'Cuando te pidan JSON, devuélvelo sin texto adicional.';
 
-    final prompt = '''
+    final prompt = isEnglish
+        ? '''
+Evaluate the user's answer for a $typeLabel interview for the "$jobRole" role.
+Question: "$question"
+User answer: "$userAnswer"
+
+Return ONLY JSON with this exact schema:
+{
+  "overallScore": 0,
+  "strengths": ["..."],
+  "improvements": ["..."],
+  "suggestedAnswer": "...",
+  "followUpQuestions": ["..."]
+}
+
+Rules:
+- overallScore must be an integer 0..100
+- strengths/improvements: 2 to 5 items each
+- suggestedAnswer: concise, improved, and results-oriented
+- followUpQuestions: 0 to 3 questions
+- No markdown
+'''
+        : '''
 Evalúa la respuesta del usuario para una entrevista $typeLabel del rol "$jobRole".
 Pregunta: "$question"
 Respuesta del usuario: "$userAnswer"
@@ -366,11 +409,34 @@ Reglas:
     required AnswerEvaluationModel evaluation,
     String language = 'es',
   }) async {
-    final systemInstruction =
-        'Eres un coach de entrevistas. Respondes en $language. '
-        'Cuando te pidan JSON, devuélvelo sin texto adicional.';
+    final isEnglish = language.toLowerCase().startsWith('en');
+    final systemInstruction = isEnglish
+        ? 'You are an interview coach. Reply in English. '
+              'When asked for JSON, return JSON only with no extra text.'
+        : 'Eres un coach de entrevistas. Respondes en $language. '
+              'Cuando te pidan JSON, devuélvelo sin texto adicional.';
 
-    final prompt = '''
+    final prompt = isEnglish
+        ? '''
+Based on the question, the user's answer, and the evaluation, generate actionable feedback.
+Question: "$question"
+User answer: "$userAnswer"
+Evaluation (JSON): ${jsonEncode(evaluation.toJson())}
+
+Return ONLY JSON with this exact schema:
+{
+  "summary": "...",
+  "actionItems": ["..."],
+  "keyPhrasesToUse": ["..."]
+}
+
+Rules:
+- summary: max 3 sentences
+- actionItems: 3 to 6 actionable items
+- keyPhrasesToUse: 3 to 8 short phrases the user can use
+- No markdown
+'''
+        : '''
 Con base en la pregunta, la respuesta del usuario y la evaluación, genera retroalimentación accionable.
 Pregunta: "$question"
 Respuesta del usuario: "$userAnswer"
@@ -418,9 +484,6 @@ Reglas:
       );
     }
 
-    final jobRole = config.jobRole?.label ?? '';
-    final type = config.type?.label ?? 'Mixta';
-
     final total = session.turns.fold<int>(
       0,
       (sum, t) => sum + t.evaluation.overallScore,
@@ -432,11 +495,56 @@ Reglas:
 
     final history = _formatTurnsForResults(session.turns);
 
-    final systemInstruction =
-        'Eres un entrevistador senior. Respondes en $language. '
-        'Devuelve JSON válido sin texto adicional.';
+    final isEnglish = language.toLowerCase().startsWith('en');
+    final l10n = lookupAppLocalizations(Locale(isEnglish ? 'en' : 'es'));
+    final jobRole = config.jobRole == null ? '' : config.jobRole!.label(l10n);
+    final type = config.type == null
+        ? l10n.interviewTypeMixed
+        : config.type!.label(l10n);
+    final systemInstruction = isEnglish
+        ? 'You are a senior interviewer. Reply in English. '
+              'Return valid JSON only with no extra text.'
+        : 'Eres un entrevistador senior. Respondes en $language. '
+              'Devuelve JSON válido sin texto adicional.';
 
-    final prompt = '''
+    final prompt = isEnglish
+        ? '''
+Generate an interview results report based on the real session history.
+Role: "$jobRole"
+Interview type: "$type"
+
+OverallScore (calculated): $overallScore
+Expected outcome (rule): ${outcome == InterviewOutcome.approved ? 'approved' : 'improve'}
+
+History:
+$history
+
+Return ONLY JSON with this exact schema:
+{
+  "overallScore": $overallScore,
+  "outcome": "${outcome == InterviewOutcome.approved ? 'approved' : 'improve'}",
+  "breakdown": {
+    "communication": 0,
+    "technicalKnowledge": 0,
+    "confidence": 0
+  },
+  "highlights": ["..."],
+  "personalizedFeedback": "...",
+  "recommendations": ["..."],
+  "improvementTips": ["..."]
+}
+
+Rules:
+- overallScore must be exactly $overallScore
+- outcome must be exactly "${outcome == InterviewOutcome.approved ? 'approved' : 'improve'}"
+- breakdown values: integers 0..100
+- highlights: 3 to 5 points based on the real history (not generic)
+- personalizedFeedback: 3 to 6 sentences specific to the user
+- recommendations: 4 to 8 concrete actions
+- improvementTips: 3 to 6 practical and measurable tips
+- No markdown
+'''
+        : '''
 Genera un reporte de resultados de entrevista basado en el historial real.
 Rol: "$jobRole"
 Tipo: "$type"

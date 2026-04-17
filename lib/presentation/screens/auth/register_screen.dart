@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:prep_up/core/localization/l10n_extensions.dart';
 import 'package:prep_up/core/navigation/app_routes.dart';
 import 'package:prep_up/domain/services/auth_service.dart';
 import 'package:prep_up/presentation/widgets/app_card.dart';
@@ -47,6 +48,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   Future<void> _handleRegister() async {
+    final l10n = context.l10n;
     final name = _nameController.text.trim();
     final email = _emailController.text.trim();
     final phone = _phoneController.text.trim();
@@ -58,40 +60,30 @@ class _RegisterScreenState extends State<RegisterScreen> {
         phone.isEmpty ||
         occupation.isEmpty ||
         password.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Por favor completa todos los campos')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.authFillAllFields)));
       return;
     }
 
     if (!_isValidEmail(email)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Por favor ingresa un correo electrónico con dominio válido (ej: usuario@dominio.com)',
-          ),
-        ),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.registerInvalidEmail)));
       return;
     }
 
     if (phone.length != 10) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('El número de teléfono debe tener 10 dígitos'),
-        ),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.registerPhoneLengthError)));
       return;
     }
 
     if (!_isPasswordStrong(password)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'La contraseña debe tener al menos 8 caracteres, incluir una mayúscula, una minúscula, un número y un carácter especial.',
-          ),
-        ),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.registerWeakPassword)));
       return;
     }
 
@@ -103,8 +95,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
       if (emailExists) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Este correo electrónico ya está registrado.'),
+            SnackBar(
+              content: Text(l10n.registerEmailAlreadyExists),
               backgroundColor: Colors.orange,
             ),
           );
@@ -122,11 +114,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            duration: Duration(seconds: 6),
-            content: Text(
-              'Registro exitoso. Se ha enviado un correo de confirmación. Por favor verifícalo antes de iniciar sesión.',
-            ),
+          SnackBar(
+            duration: const Duration(seconds: 6),
+            content: Text(l10n.registerSuccess),
           ),
         );
         Navigator.of(context).pushReplacementNamed(AppRoutes.login);
@@ -134,7 +124,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error al registrarse: ${e.toString()}')),
+          SnackBar(content: Text('${l10n.registerError}: ${e.toString()}')),
         );
       }
     } finally {
@@ -147,6 +137,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = context.l10n;
     final scheme = theme.colorScheme;
     final isDark = theme.brightness == Brightness.dark;
 
@@ -161,16 +152,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(16),
         borderSide: BorderSide(
-          color: scheme.surfaceContainerHighest.withValues(alpha: isDark ? 0.4 : 0.8),
+          color: scheme.surfaceContainerHighest.withValues(
+            alpha: isDark ? 0.4 : 0.8,
+          ),
           width: 1,
         ),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(16),
-        borderSide: BorderSide(
-          color: scheme.primary,
-          width: 1.5,
-        ),
+        borderSide: BorderSide(color: scheme.primary, width: 1.5),
       ),
       labelStyle: TextStyle(color: scheme.onSurfaceVariant),
       prefixIconColor: scheme.primary,
@@ -186,7 +176,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
             return SingleChildScrollView(
               padding: const EdgeInsets.symmetric(vertical: 24),
               child: ConstrainedBox(
-                constraints: BoxConstraints(minHeight: constraints.maxHeight - 48),
+                constraints: BoxConstraints(
+                  minHeight: constraints.maxHeight - 48,
+                ),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -197,10 +189,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          Icon(Icons.person_add_alt_1_rounded, size: 64, color: scheme.primary),
+                          Icon(
+                            Icons.person_add_alt_1_rounded,
+                            size: 64,
+                            color: scheme.primary,
+                          ),
                           const SizedBox(height: 16),
                           Text(
-                            'Únete a la plataforma',
+                            l10n.registerTitle,
                             textAlign: TextAlign.center,
                             style: theme.textTheme.headlineMedium?.copyWith(
                               fontWeight: FontWeight.bold,
@@ -209,7 +205,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            'Crea tu perfil profesional y comienza el entrenamiento.',
+                            l10n.registerSubtitle,
                             textAlign: TextAlign.center,
                             style: theme.textTheme.bodyLarge?.copyWith(
                               color: scheme.onSurfaceVariant,
@@ -231,7 +227,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               FilteringTextInputFormatter.deny(RegExp(r'^\s+')),
                             ],
                             decoration: inputDecoration.copyWith(
-                              labelText: 'Nombre Completo',
+                              labelText: l10n.fullNameLabel,
                               prefixIcon: const Icon(Icons.badge_outlined),
                             ),
                           ),
@@ -243,8 +239,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               FilteringTextInputFormatter.deny(RegExp(r'\s')),
                             ],
                             decoration: inputDecoration.copyWith(
-                              labelText: 'Correo Electrónico',
-                              prefixIcon: const Icon(Icons.alternate_email_rounded),
+                              labelText: l10n.emailLabel,
+                              prefixIcon: const Icon(
+                                Icons.alternate_email_rounded,
+                              ),
                             ),
                           ),
                           const SizedBox(height: 16),
@@ -256,8 +254,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               LengthLimitingTextInputFormatter(10),
                             ],
                             decoration: inputDecoration.copyWith(
-                              labelText: 'Número de Teléfono',
-                              prefixIcon: const Icon(Icons.phone_android_rounded),
+                              labelText: l10n.phoneLabel,
+                              prefixIcon: const Icon(
+                                Icons.phone_android_rounded,
+                              ),
                             ),
                           ),
                           const SizedBox(height: 16),
@@ -267,8 +267,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               FilteringTextInputFormatter.deny(RegExp(r'^\s+')),
                             ],
                             decoration: inputDecoration.copyWith(
-                              labelText: 'Ocupación / Cargo',
-                              prefixIcon: const Icon(Icons.work_outline_rounded),
+                              labelText: l10n.occupationLabel,
+                              prefixIcon: const Icon(
+                                Icons.work_outline_rounded,
+                              ),
                             ),
                           ),
                           const SizedBox(height: 16),
@@ -279,12 +281,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               FilteringTextInputFormatter.deny(RegExp(r'\s')),
                             ],
                             decoration: inputDecoration.copyWith(
-                              labelText: 'Contraseña',
+                              labelText: l10n.passwordLabel,
                               prefixIcon: const Icon(Icons.password_rounded),
                               suffixIcon: IconButton(
-                                onPressed: () => setState(() => _obscure = !_obscure),
+                                onPressed: () =>
+                                    setState(() => _obscure = !_obscure),
                                 icon: Icon(
-                                  _obscure ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                                  _obscure
+                                      ? Icons.visibility_off_outlined
+                                      : Icons.visibility_outlined,
                                   color: scheme.onSurfaceVariant,
                                 ),
                               ),
@@ -295,7 +300,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             const Center(child: CircularProgressIndicator())
                           else
                             AppPrimaryButton(
-                              label: 'Registrarse',
+                              label: l10n.registerButton,
                               icon: Icons.how_to_reg_rounded,
                               onPressed: _handleRegister,
                             ),
@@ -308,13 +313,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
-                          '¿Ya eres miembro?',
+                          l10n.registerAlreadyMember,
                           style: TextStyle(color: scheme.onSurfaceVariant),
                         ),
                         TextButton(
-                          onPressed: () => Navigator.of(context).pushReplacementNamed(AppRoutes.login),
+                          onPressed: () => Navigator.of(
+                            context,
+                          ).pushReplacementNamed(AppRoutes.login),
                           child: Text(
-                            'Inicia Sesión',
+                            l10n.loginButton,
                             style: TextStyle(
                               color: scheme.primary,
                               fontWeight: FontWeight.bold,

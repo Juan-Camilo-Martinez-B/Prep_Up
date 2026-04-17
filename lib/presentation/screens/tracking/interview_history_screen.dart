@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:prep_up/core/localization/interview_l10n.dart';
+import 'package:prep_up/core/localization/l10n_extensions.dart';
 import 'package:prep_up/core/navigation/app_routes.dart';
+import 'package:prep_up/domain/entities/interview_tags.dart';
 import 'package:prep_up/presentation/widgets/app_card.dart';
 import 'package:prep_up/presentation/widgets/app_primary_button.dart';
 import 'package:prep_up/presentation/widgets/app_screen_scaffold.dart';
@@ -9,35 +12,61 @@ class InterviewHistoryScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final items = const [
-      _HistoryItem('Frontend Developer', 'Mixta', '76', 'Hace 2 días'),
-      _HistoryItem('Mobile Developer', 'Conductual', '81', 'Hace 5 días'),
-      _HistoryItem('Data Analyst', 'Técnica', '69', 'Hace 1 semana'),
-      _HistoryItem('UI/UX Designer', 'Conductual', '74', 'Hace 2 semanas'),
+      _HistoryItem(
+        JobRole.frontendDeveloper,
+        InterviewConfigType.mixed,
+        '76',
+        _HistoryWhen.daysAgo,
+        2,
+      ),
+      _HistoryItem(
+        JobRole.mobileDeveloper,
+        InterviewConfigType.rrhh,
+        '81',
+        _HistoryWhen.daysAgo,
+        5,
+      ),
+      _HistoryItem(
+        JobRole.dataAnalyst,
+        InterviewConfigType.technical,
+        '69',
+        _HistoryWhen.weeksAgo,
+        1,
+      ),
+      _HistoryItem(
+        JobRole.uiUxDesigner,
+        InterviewConfigType.rrhh,
+        '74',
+        _HistoryWhen.weeksAgo,
+        2,
+      ),
     ];
 
     return AppScreenScaffold(
-      title: 'Historial',
+      title: l10n.historyTitle,
       background: const TechBackground(),
       body: ListView(
         children: [
           for (final item in items) ...[
             AppCard(
-              onTap: () => Navigator.of(context).pushNamed(AppRoutes.generalResults),
-              title: item.role,
-              subtitle: '${item.type} • ${item.when}',
+              onTap: () =>
+                  Navigator.of(context).pushNamed(AppRoutes.generalResults),
+              title: item.role.label(l10n),
+              subtitle:
+                  '${item.type.label(l10n)} • ${item.when == _HistoryWhen.daysAgo ? l10n.historyWhenDaysAgo(item.amount) : l10n.historyWhenWeeksAgo(item.amount)}',
               leading: _ScoreBadge(score: item.score),
               trailing: const Icon(Icons.arrow_forward_rounded),
             ),
             const SizedBox(height: 12),
           ],
           AppPrimaryButton(
-            label: 'Volver al Dashboard',
+            label: l10n.backToDashboard,
             icon: Icons.home_rounded,
-            onPressed: () => Navigator.of(context).pushNamedAndRemoveUntil(
-              AppRoutes.dashboard,
-              (r) => false,
-            ),
+            onPressed: () => Navigator.of(
+              context,
+            ).pushNamedAndRemoveUntil(AppRoutes.dashboard, (r) => false),
           ),
         ],
       ),
@@ -46,13 +75,16 @@ class InterviewHistoryScreen extends StatelessWidget {
 }
 
 class _HistoryItem {
-  const _HistoryItem(this.role, this.type, this.score, this.when);
+  const _HistoryItem(this.role, this.type, this.score, this.when, this.amount);
 
-  final String role;
-  final String type;
+  final JobRole role;
+  final InterviewConfigType type;
   final String score;
-  final String when;
+  final _HistoryWhen when;
+  final int amount;
 }
+
+enum _HistoryWhen { daysAgo, weeksAgo }
 
 class _ScoreBadge extends StatelessWidget {
   const _ScoreBadge({required this.score});
@@ -66,8 +98,8 @@ class _ScoreBadge extends StatelessWidget {
     final color = value >= 80
         ? scheme.primary
         : value >= 70
-            ? scheme.secondary
-            : scheme.error;
+        ? scheme.secondary
+        : scheme.error;
 
     return Container(
       width: 48,

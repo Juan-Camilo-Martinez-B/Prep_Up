@@ -1,7 +1,8 @@
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
+import 'package:prep_up/core/localization/interview_l10n.dart';
+import 'package:prep_up/core/localization/l10n_extensions.dart';
 import 'package:prep_up/core/navigation/app_routes.dart';
-import 'package:prep_up/domain/entities/interview_config.dart';
 import 'package:prep_up/domain/entities/interview_tags.dart';
 import 'package:prep_up/presentation/controllers/interview_config_controller.dart';
 import 'package:prep_up/presentation/controllers/media_device_controller.dart';
@@ -30,25 +31,26 @@ class _DeviceCheckScreenState extends State<DeviceCheckScreen> {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final l10n = context.l10n;
     final interviewController = context.watch<InterviewConfigController>();
     final media = context.watch<MediaDeviceController>();
     final config = interviewController.config;
     final isSimulated = config.mode == InterviewMode.simulated;
 
     return AppScreenScaffold(
-      title: 'Preparación',
+      title: l10n.deviceCheckTitle,
       background: const TechBackground(),
       body: ListView(
         children: [
           AppCard(
-            title: 'Checklist de equipo',
-            subtitle: 'Cámara y micrófono',
+            title: l10n.deviceCheckChecklistTitle,
+            subtitle: l10n.deviceCheckChecklistSubtitle,
             leading: Icon(Icons.checklist_rounded, color: scheme.primary),
             child: Column(
               children: [
                 _DeviceStatusTile(
                   icon: Icons.videocam_rounded,
-                  title: 'Cámara',
+                  title: l10n.deviceCheckCamera,
                   isActive: media.isCameraReady,
                   permissionStatus: media.cameraPermission,
                   isBusy: media.isInitializingCamera,
@@ -59,7 +61,7 @@ class _DeviceCheckScreenState extends State<DeviceCheckScreen> {
                 const SizedBox(height: 10),
                 _DeviceStatusTile(
                   icon: Icons.mic_rounded,
-                  title: 'Micrófono',
+                  title: l10n.deviceCheckMicrophone,
                   isActive: media.isMicrophoneReady,
                   permissionStatus: media.microphonePermission,
                   isBusy: media.isStartingMicrophone,
@@ -72,8 +74,10 @@ class _DeviceCheckScreenState extends State<DeviceCheckScreen> {
           ),
           const SizedBox(height: 14),
           AppCard(
-            title: 'Vista previa',
-            subtitle: media.isCameraReady ? 'Cámara activa' : 'Cámara no disponible',
+            title: l10n.deviceCheckPreviewTitle,
+            subtitle: media.isCameraReady
+                ? l10n.deviceCheckCameraActive
+                : l10n.deviceCheckCameraUnavailable,
             leading: Icon(Icons.camera_alt_outlined, color: scheme.secondary),
             child: AspectRatio(
               aspectRatio: 16 / 9,
@@ -94,7 +98,9 @@ class _DeviceCheckScreenState extends State<DeviceCheckScreen> {
                             ],
                           ),
                           border: Border.all(
-                            color: scheme.outlineVariant.withValues(alpha: 0.55),
+                            color: scheme.outlineVariant.withValues(
+                              alpha: 0.55,
+                            ),
                           ),
                         ),
                         child: Center(
@@ -116,11 +122,13 @@ class _DeviceCheckScreenState extends State<DeviceCheckScreen> {
                           ),
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(14),
-                            color: scheme.surfaceContainerHighest
-                                .withValues(alpha: 0.85),
+                            color: scheme.surfaceContainerHighest.withValues(
+                              alpha: 0.85,
+                            ),
                             border: Border.all(
-                              color:
-                                  scheme.outlineVariant.withValues(alpha: 0.6),
+                              color: scheme.outlineVariant.withValues(
+                                alpha: 0.6,
+                              ),
                             ),
                           ),
                           child: Text(
@@ -138,17 +146,20 @@ class _DeviceCheckScreenState extends State<DeviceCheckScreen> {
           const SizedBox(height: 18),
           AppPrimaryButton(
             label: isSimulated
-                ? 'Iniciar simulación'
-                : 'Iniciar entrevista',
+                ? l10n.deviceCheckStartSimulation
+                : l10n.deviceCheckStartInterview,
             icon: Icons.play_arrow_rounded,
             onPressed: (media.isCameraReady && media.isMicrophoneReady)
                 ? () {
                     if (!interviewController.isComplete) {
-                      final missing =
-                          interviewController.config.missingFields.join(', ');
+                      final missing = interviewController.config.missingFields
+                          .map((f) => f.label(l10n))
+                          .join(', ');
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
-                          content: Text('Completa estos campos: $missing'),
+                          content: Text(
+                            l10n.interviewCompleteMissingFields(missing),
+                          ),
                         ),
                       );
                       return;
@@ -167,7 +178,7 @@ class _DeviceCheckScreenState extends State<DeviceCheckScreen> {
                 borderRadius: BorderRadius.circular(14),
               ),
             ),
-            child: const Text('Atrás'),
+            child: Text(l10n.genericBack),
           ),
         ],
       ),
@@ -199,19 +210,21 @@ class _DeviceStatusTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final l10n = context.l10n;
     final status = permissionStatus;
     final isDenied = status.isDenied;
-    final isPermanentlyDenied = status.isPermanentlyDenied || status.isRestricted;
+    final isPermanentlyDenied =
+        status.isPermanentlyDenied || status.isRestricted;
 
     final subtitle = isActive
-        ? 'Activo'
+        ? l10n.deviceStatusActive
         : isBusy
-            ? 'Activando...'
-            : isPermanentlyDenied
-                ? 'Permiso bloqueado'
-                : isDenied
-                    ? 'Permiso denegado'
-                    : 'No disponible';
+        ? l10n.deviceStatusEnabling
+        : isPermanentlyDenied
+        ? l10n.deviceStatusPermissionBlocked
+        : isDenied
+        ? l10n.deviceStatusPermissionDenied
+        : l10n.deviceStatusUnavailable;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -222,7 +235,10 @@ class _DeviceStatusTile extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Icon(icon, color: isActive ? scheme.primary : scheme.onSurfaceVariant),
+          Icon(
+            icon,
+            color: isActive ? scheme.primary : scheme.onSurfaceVariant,
+          ),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -231,10 +247,9 @@ class _DeviceStatusTile extends StatelessWidget {
                 Text(title),
                 Text(
                   subtitle,
-                  style: Theme.of(context)
-                      .textTheme
-                      .bodySmall
-                      ?.copyWith(color: scheme.onSurfaceVariant),
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: scheme.onSurfaceVariant,
+                  ),
                 ),
               ],
             ),
@@ -242,7 +257,7 @@ class _DeviceStatusTile extends StatelessWidget {
           if (isPermanentlyDenied)
             TextButton(
               onPressed: () => onOpenSettings(),
-              child: const Text('Ajustes'),
+              child: Text(l10n.deviceStatusOpenSettings),
             )
           else if (!isActive)
             TextButton(
@@ -250,7 +265,7 @@ class _DeviceStatusTile extends StatelessWidget {
                 await onRequest();
                 await onRetry();
               },
-              child: const Text('Permitir'),
+              child: Text(l10n.deviceStatusAllow),
             )
           else
             Icon(Icons.check_circle_rounded, color: scheme.primary),
