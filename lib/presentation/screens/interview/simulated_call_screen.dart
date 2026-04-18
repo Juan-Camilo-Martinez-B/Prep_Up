@@ -29,14 +29,17 @@ class _SimulatedCallScreenState extends State<SimulatedCallScreen> {
 
   late final InterviewConfig _config;
   late final InterviewVoiceController _voiceController;
+  late final MediaDeviceController _mediaController;
   final _answerController = TextEditingController();
   String _syncedQuestion = '';
   var _isFinishingInterview = false;
+  var _mediaReleased = false;
 
   @override
   void initState() {
     super.initState();
     _config = context.read<InterviewConfigController>().config;
+    _mediaController = context.read<MediaDeviceController>();
     final durationMinutes = _config.durationMinutes ?? 3;
     _secondsLeft = durationMinutes * 60;
     _timer = Timer.periodic(const Duration(seconds: 1), (_) {
@@ -79,13 +82,12 @@ class _SimulatedCallScreenState extends State<SimulatedCallScreen> {
     });
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      final media = context.read<MediaDeviceController>();
-      await media.refreshPermissions();
-      if (!media.isCameraPermissionGranted ||
-          !media.isMicrophonePermissionGranted) {
-        await media.requestPermissions();
+      await _mediaController.refreshPermissions();
+      if (!_mediaController.isCameraPermissionGranted ||
+          !_mediaController.isMicrophonePermissionGranted) {
+        await _mediaController.requestPermissions();
       }
-      await media.initCamera();
+      await _mediaController.initCamera();
       if (!mounted) return;
       await _voiceController.start();
     });
@@ -94,15 +96,23 @@ class _SimulatedCallScreenState extends State<SimulatedCallScreen> {
   @override
   void dispose() {
     _timer?.cancel();
+    unawaited(_releaseMediaDevices());
     _answerController.dispose();
     _voiceController.dispose();
     super.dispose();
+  }
+
+  Future<void> _releaseMediaDevices() async {
+    if (_mediaReleased) return;
+    _mediaReleased = true;
+    await _mediaController.stop();
   }
 
   Future<void> _finishInterview() async {
     if (_isFinishingInterview) return;
     _isFinishingInterview = true;
     await _voiceController.stopConversation();
+    await _releaseMediaDevices();
     if (!mounted) return;
     Navigator.of(context).pushNamed(
       AppRoutes.interviewProcessing,
