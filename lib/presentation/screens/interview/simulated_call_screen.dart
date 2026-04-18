@@ -50,7 +50,7 @@ class _SimulatedCallScreenState extends State<SimulatedCallScreen> {
     _voiceController = InterviewVoiceController(
       geminiService: GeminiService(),
       config: _config,
-      languageCode: AppLocaleScope.of(context).languageCode,
+      languageCode: AppLocaleRuntime.languageCode,
     );
 
     _voiceController.addListener(() {
@@ -282,11 +282,7 @@ class _SimulatedCallScreenState extends State<SimulatedCallScreen> {
               final currentQuestionNumber =
                   _voiceController.currentQuestionNumber;
               final totalQuestions = _voiceController.targetQuestionCount;
-              final isLoading =
-                  !hasQuestion &&
-                  _voiceController.statusMessage.toLowerCase().contains(
-                    'preparando',
-                  );
+              final isLoading = !hasQuestion && _voiceController.isStarting;
 
               return AppCard(
                 title: l10n.callQuestionCardTitle(

@@ -98,6 +98,7 @@ class InterviewVoiceController extends ChangeNotifier {
 
   bool get hasSpeechRecognition => _isSpeechAvailable;
   bool get hasTextToSpeech => _isTtsAvailable;
+  bool get isStarting => _isStarting;
   bool get isListening => _state == InterviewConversationState.listening;
   bool get isSpeaking => _state == InterviewConversationState.speaking;
   bool get isProcessing => _state == InterviewConversationState.processing;
