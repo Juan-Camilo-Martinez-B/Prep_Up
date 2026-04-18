@@ -292,7 +292,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get interviewQuickSettingsTitle => 'Quick settings';
 
   @override
-  String get interviewQuickSettingsSubtitle => 'Set duration and mode';
+  String get interviewQuickSettingsSubtitle => 'Set your interview duration';
 
   @override
   String get interviewModeLabel => 'Mode';
@@ -488,10 +488,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get deviceStatusAllow => 'Allow';
 
   @override
-  String get simulatedCallTitle => 'Video call';
+  String get simulatedCallTitle => 'Interview';
 
   @override
-  String get simulatedCallLiveHeadline => 'Live simulation';
+  String get simulatedCallLiveHeadline => 'Live interview';
 
   @override
   String get callStatusTitle => 'Call status';

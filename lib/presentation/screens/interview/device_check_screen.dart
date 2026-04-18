@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:prep_up/core/localization/interview_l10n.dart';
 import 'package:prep_up/core/localization/l10n_extensions.dart';
 import 'package:prep_up/core/navigation/app_routes.dart';
-import 'package:prep_up/domain/entities/interview_tags.dart';
 import 'package:prep_up/presentation/controllers/interview_config_controller.dart';
 import 'package:prep_up/presentation/controllers/media_device_controller.dart';
 import 'package:prep_up/presentation/widgets/app_card.dart';
@@ -34,8 +33,6 @@ class _DeviceCheckScreenState extends State<DeviceCheckScreen> {
     final l10n = context.l10n;
     final interviewController = context.watch<InterviewConfigController>();
     final media = context.watch<MediaDeviceController>();
-    final config = interviewController.config;
-    final isSimulated = config.mode == InterviewMode.simulated;
 
     return AppScreenScaffold(
       title: l10n.deviceCheckTitle,
@@ -145,9 +142,7 @@ class _DeviceCheckScreenState extends State<DeviceCheckScreen> {
           ),
           const SizedBox(height: 18),
           AppPrimaryButton(
-            label: isSimulated
-                ? l10n.deviceCheckStartSimulation
-                : l10n.deviceCheckStartInterview,
+            label: l10n.deviceCheckStartInterview,
             icon: Icons.play_arrow_rounded,
             onPressed: (media.isCameraReady && media.isMicrophoneReady)
                 ? () {

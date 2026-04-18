@@ -19,8 +19,7 @@ class InterviewConfig {
       type != null &&
       jobRole != null &&
       durationMinutes != null &&
-      durationMinutes! > 0 &&
-      mode != null;
+      durationMinutes! > 0;
 
   List<InterviewConfigField> get missingFields {
     final fields = <InterviewConfigField>[];
@@ -29,7 +28,6 @@ class InterviewConfig {
     if (durationMinutes == null || durationMinutes! <= 0) {
       fields.add(InterviewConfigField.duration);
     }
-    if (mode == null) fields.add(InterviewConfigField.mode);
     return fields;
   }
 

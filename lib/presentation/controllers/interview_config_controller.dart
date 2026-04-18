@@ -28,10 +28,5 @@ class InterviewConfigController extends ChangeNotifier {
     _config = _config.copyWith(durationMinutes: value);
     notifyListeners();
   }
-
-  void setMode(InterviewMode value) {
-    _config = _config.copyWith(mode: value);
-    notifyListeners();
-  }
 }
 

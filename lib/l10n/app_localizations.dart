@@ -647,7 +647,7 @@ abstract class AppLocalizations {
   /// No description provided for @interviewQuickSettingsSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Set duration and mode'**
+  /// **'Set your interview duration'**
   String get interviewQuickSettingsSubtitle;
 
   /// No description provided for @interviewModeLabel.
@@ -1001,13 +1001,13 @@ abstract class AppLocalizations {
   /// No description provided for @simulatedCallTitle.
   ///
   /// In en, this message translates to:
-  /// **'Video call'**
+  /// **'Interview'**
   String get simulatedCallTitle;
 
   /// No description provided for @simulatedCallLiveHeadline.
   ///
   /// In en, this message translates to:
-  /// **'Live simulation'**
+  /// **'Live interview'**
   String get simulatedCallLiveHeadline;
 
   /// No description provided for @callStatusTitle.

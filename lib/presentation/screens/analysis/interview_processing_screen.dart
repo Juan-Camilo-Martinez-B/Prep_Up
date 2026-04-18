@@ -6,8 +6,8 @@ import 'package:prep_up/core/navigation/app_routes.dart';
 import 'package:prep_up/domain/entities/interview_config.dart';
 import 'package:prep_up/domain/entities/interview_results_model.dart';
 import 'package:prep_up/domain/entities/interview_session.dart';
-import 'package:prep_up/presentation/controllers/interview_config_controller.dart';
 import 'package:prep_up/domain/services/gemini_service.dart';
+import 'package:prep_up/presentation/controllers/interview_config_controller.dart';
 import 'package:prep_up/presentation/widgets/app_primary_button.dart';
 import 'package:prep_up/presentation/widgets/app_screen_scaffold.dart';
 import 'package:provider/provider.dart';
@@ -326,11 +326,6 @@ class _ConfigSummary extends StatelessWidget {
                       config.durationMinutes!,
                       l10n.minutesShort,
                     ),
-            ),
-          ),
-          Text(
-            l10n.processingConfigMode(
-              config.mode == null ? '-' : config.mode!.label(l10n),
             ),
           ),
         ],

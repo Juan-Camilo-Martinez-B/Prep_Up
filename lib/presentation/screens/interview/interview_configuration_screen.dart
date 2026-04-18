@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:prep_up/core/localization/interview_l10n.dart';
 import 'package:prep_up/core/localization/l10n_extensions.dart';
 import 'package:prep_up/core/navigation/app_routes.dart';
-import 'package:prep_up/domain/entities/interview_tags.dart';
 import 'package:prep_up/presentation/controllers/interview_config_controller.dart';
 import 'package:prep_up/presentation/widgets/app_card.dart';
 import 'package:prep_up/presentation/widgets/app_primary_button.dart';
@@ -72,24 +71,6 @@ class _InterviewConfigurationScreenState
                     controller.setDurationMinutes(v.round());
                   },
                 ),
-                const SizedBox(height: 8),
-                Text(
-                  l10n.interviewModeLabel,
-                  style: Theme.of(context).textTheme.titleSmall,
-                ),
-                const SizedBox(height: 8),
-                Wrap(
-                  spacing: 10,
-                  runSpacing: 10,
-                  children: [
-                    for (final mode in InterviewMode.values)
-                      ChoiceChip(
-                        label: Text(mode.label(l10n)),
-                        selected: config.mode == mode,
-                        onSelected: (_) => controller.setMode(mode),
-                      ),
-                  ],
-                ),
               ],
             ),
           ),
@@ -121,12 +102,6 @@ class _InterviewConfigurationScreenState
                   value: config.jobRole == null
                       ? '-'
                       : config.jobRole!.label(l10n),
-                ),
-                const SizedBox(height: 10),
-                _PreviewTile(
-                  icon: Icons.smart_toy_outlined,
-                  title: l10n.interviewPreviewMode,
-                  value: config.mode == null ? '-' : config.mode!.label(l10n),
                 ),
               ],
             ),
