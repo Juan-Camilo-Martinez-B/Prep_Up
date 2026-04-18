@@ -1,4 +1,10 @@
 class InterviewFeedbackModel {
+  static const empty = InterviewFeedbackModel(
+    summary: '',
+    actionItems: <String>[],
+    keyPhrasesToUse: <String>[],
+  );
+
   const InterviewFeedbackModel({
     required this.summary,
     required this.actionItems,

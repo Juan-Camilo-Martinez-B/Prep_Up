@@ -144,6 +144,7 @@
   },
   "processingWorking": "Processing...",
   "processingNotEnoughData": "Not enough data to generate results.",
+  "processingInvalidResponse": "The AI returned an invalid response while generating results.",
   "processingErrorTitle": "Could not generate results",
   "processingViewResults": "View results",
   "processingBackToDashboard": "Back to Dashboard",
@@ -474,12 +475,63 @@
   "modelGemini": "Model: Gemini",
   "interviewPreparing": "Preparing interview...",
   "interviewStarted": "Interview has started.",
-  "interviewAnalyzeAndNext": "Analyzing your answer and preparing the next question...",
+  "interviewAnswerSavedAndNext": "Answer saved. Preparing the next question...",
   "interviewListening": "Listening to your answer...",
   "interviewAiSpeaking": "AI is speaking...",
   "interviewWaitingAnswer": "Waiting for your answer...",
   "interviewNoClearVoice": "No clear response detected. Please answer again.",
   "interviewCouldNotStart": "Could not start the interview.",
   "interviewCouldNotProcess": "Could not process the answer. You can try again.",
-  "interviewTimeCompleted": "Interview completed: there is not enough remaining time for a quality new question."
+  "interviewTimeCompleted": "Interview completed: there is not enough remaining time for a quality new question.",
+  "interviewStoppedListeningTryAgain": "Listening stopped. You can try again.",
+  "interviewReviewTranscriptOrSubmit": "You can review the transcript or submit it.",
+  "interviewAskDifferentQuestion": "Asking for a different question...",
+  "interviewDifferentQuestionIntro": "Let's go with a different question.",
+  "interviewCouldNotSkipCurrentQuestion": "Could not skip the current question.",
+  "interviewRepeatQuestionIntro": "Repeating the question.",
+  "interviewCouldNotEnableAiVoice": "Could not enable AI voice. The question remains visible on screen.",
+  "interviewCouldNotPlayAudio": "Could not play audio. The question remains available in text.",
+  "interviewSpeechRecognitionUnavailable": "Speech recognition is not available on this device.",
+  "interviewContinueTypingFallback": "You can continue by typing your answer while the conversation continues.",
+  "interviewMissingJobRole": "Job role is required to start the interview.",
+  "interviewMissingType": "Interview type is required.",
+  "interviewCouldNotGenerateFirstQuestion": "Could not generate the first question.",
+  "interviewCouldNotGenerateQualityQuestion": "Could not generate a strong next question.",
+  "interviewCouldNotGenerateAlternativeQuestion": "Could not generate a different question.",
+  "interviewQuestionReady": "New question ready.",
+  "interviewEmptyQuestion": "Gemini returned an empty question.",
+  "interviewCouldNotPlayQuestionTextMode": "Could not play the question. Continuing in text mode.",
+  "interviewQuestionAvailableInText": "The question is available in text. Answer by voice or typing.",
+  "interviewTypeAnswerContinue": "Type your answer so the next question can be generated.",
+  "interviewCouldNotActivateMic": "Could not activate the microphone.",
+  "interviewCouldNotTranscribe": "Could not transcribe your answer. You can try again.",
+  "interviewNoVoiceDetectedWrite": "No voice detected. You can try again or type your answer.",
+  "interviewNoVoiceDetectedRetrying": "No voice detected. I will listen again.",
+  "interviewCouldNotHearClearly": "I couldn't hear you clearly. Please answer again.",
+  "interviewQuestionGoalCompleted": "Interview completed: reached {questions} questions for {minutes} minutes.",
+  "@interviewQuestionGoalCompleted": {
+    "placeholders": {
+      "questions": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "callAnswersSavedTitle": "Answers saved",
+  "callAnswersSavedSubtitle": "Feedback is generated at the end",
+  "callAnswersSavedProgress": "You have {current} of {total} answers recorded.",
+  "@callAnswersSavedProgress": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "callAnswersSavedBody": "During the call we only save your answers to keep the interview fluid. Once it ends, we generate the full analysis.",
+  "callSendToGemini": "Send and continue"
 }

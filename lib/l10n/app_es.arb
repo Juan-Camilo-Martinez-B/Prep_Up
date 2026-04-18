@@ -144,6 +144,7 @@
   },
   "processingWorking": "Procesando...",
   "processingNotEnoughData": "No hay datos suficientes para generar resultados.",
+  "processingInvalidResponse": "La IA devolvió una respuesta inválida al generar resultados.",
   "processingErrorTitle": "No se pudieron generar resultados",
   "processingViewResults": "Ver resultados",
   "processingBackToDashboard": "Volver al Dashboard",
@@ -474,12 +475,63 @@
   "modelGemini": "Modelo: Gemini",
   "interviewPreparing": "Preparando la entrevista...",
   "interviewStarted": "La entrevista ha comenzado.",
-  "interviewAnalyzeAndNext": "Analizando tu respuesta y preparando la siguiente pregunta...",
+  "interviewAnswerSavedAndNext": "Respuesta guardada. Preparando la siguiente pregunta...",
   "interviewListening": "Escuchando tu respuesta...",
   "interviewAiSpeaking": "La IA está hablando...",
   "interviewWaitingAnswer": "Esperando tu respuesta...",
   "interviewNoClearVoice": "No se detectó una respuesta clara. Responde nuevamente por favor.",
   "interviewCouldNotStart": "No se pudo iniciar la entrevista.",
   "interviewCouldNotProcess": "No se pudo procesar la respuesta. Puedes intentarlo de nuevo.",
-  "interviewTimeCompleted": "Entrevista completada: el tiempo restante ya no alcanza para una nueva pregunta con buena calidad."
+  "interviewTimeCompleted": "Entrevista completada: el tiempo restante ya no alcanza para una nueva pregunta con buena calidad.",
+  "interviewStoppedListeningTryAgain": "Escucha detenida. Puedes volver a intentarlo.",
+  "interviewReviewTranscriptOrSubmit": "Puedes revisar la transcripción o enviarla.",
+  "interviewAskDifferentQuestion": "Pidiendo una pregunta diferente...",
+  "interviewDifferentQuestionIntro": "Vamos con una pregunta distinta.",
+  "interviewCouldNotSkipCurrentQuestion": "No se pudo omitir la pregunta actual.",
+  "interviewRepeatQuestionIntro": "Repito la pregunta.",
+  "interviewCouldNotEnableAiVoice": "No se pudo activar la voz de la IA. La pregunta seguirá visible en pantalla.",
+  "interviewCouldNotPlayAudio": "No se pudo reproducir el audio. La pregunta queda disponible en texto.",
+  "interviewSpeechRecognitionUnavailable": "El reconocimiento de voz no está disponible en este dispositivo.",
+  "interviewContinueTypingFallback": "Puedes continuar escribiendo tu respuesta mientras se mantiene la conversación.",
+  "interviewMissingJobRole": "Falta el cargo para iniciar la entrevista.",
+  "interviewMissingType": "Falta el tipo de entrevista.",
+  "interviewCouldNotGenerateFirstQuestion": "No se pudo generar la primera pregunta.",
+  "interviewCouldNotGenerateQualityQuestion": "No se pudo generar una siguiente pregunta de calidad.",
+  "interviewCouldNotGenerateAlternativeQuestion": "No se pudo generar una nueva pregunta.",
+  "interviewQuestionReady": "Nueva pregunta lista.",
+  "interviewEmptyQuestion": "Gemini devolvió una pregunta vacía.",
+  "interviewCouldNotPlayQuestionTextMode": "No se pudo reproducir la pregunta. Continuamos con la versión en texto.",
+  "interviewQuestionAvailableInText": "La pregunta está disponible en texto. Responde por voz o por escrito.",
+  "interviewTypeAnswerContinue": "Escribe tu respuesta para que se genere la siguiente pregunta.",
+  "interviewCouldNotActivateMic": "No se pudo activar el micrófono.",
+  "interviewCouldNotTranscribe": "No se pudo transcribir tu respuesta. Puedes intentarlo otra vez.",
+  "interviewNoVoiceDetectedWrite": "No se detectó voz. Puedes intentar otra vez o escribir la respuesta.",
+  "interviewNoVoiceDetectedRetrying": "No detecté voz. Intentaré escuchar de nuevo.",
+  "interviewCouldNotHearClearly": "No te escuché con claridad. Responde nuevamente.",
+  "interviewQuestionGoalCompleted": "Entrevista completada: se alcanzaron {questions} preguntas para {minutes} minutos.",
+  "@interviewQuestionGoalCompleted": {
+    "placeholders": {
+      "questions": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "callAnswersSavedTitle": "Respuestas guardadas",
+  "callAnswersSavedSubtitle": "El feedback se genera al finalizar",
+  "callAnswersSavedProgress": "Llevas {current} de {total} respuestas registradas.",
+  "@callAnswersSavedProgress": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "callAnswersSavedBody": "Durante la llamada solo guardamos tus respuestas para mantener la entrevista fluida. Al terminar, generamos el análisis completo.",
+  "callSendToGemini": "Enviar y continuar"
 }

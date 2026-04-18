@@ -1,4 +1,12 @@
 class AnswerEvaluationModel {
+  static const empty = AnswerEvaluationModel(
+    overallScore: 0,
+    strengths: <String>[],
+    improvements: <String>[],
+    suggestedAnswer: '',
+    followUpQuestions: <String>[],
+  );
+
   const AnswerEvaluationModel({
     required this.overallScore,
     required this.strengths,

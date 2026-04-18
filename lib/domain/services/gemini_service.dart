@@ -1,7 +1,7 @@
 import 'dart:convert';
 
-import 'package:http/http.dart' as http;
 import 'package:flutter/widgets.dart';
+import 'package:http/http.dart' as http;
 import 'package:prep_up/core/config/app_config.dart';
 import 'package:prep_up/core/localization/interview_l10n.dart';
 import 'package:prep_up/domain/entities/answer_evaluation_model.dart';
@@ -10,6 +10,7 @@ import 'package:prep_up/domain/entities/interview_feedback_model.dart';
 import 'package:prep_up/domain/entities/interview_results_model.dart';
 import 'package:prep_up/domain/entities/interview_session.dart';
 import 'package:prep_up/domain/entities/interview_session_model.dart';
+import 'package:prep_up/domain/entities/interview_tags.dart';
 import 'package:prep_up/l10n/app_localizations.dart';
 
 class GeminiException implements Exception {
@@ -473,15 +474,57 @@ Reglas:
     );
   }
 
+  Future<InterviewSession> analyzeInterviewSession({
+    required InterviewConfig config,
+    required InterviewSession session,
+    String language = 'es',
+  }) async {
+    final isEnglish = language.toLowerCase().startsWith('en');
+    final l10n = lookupAppLocalizations(Locale(isEnglish ? 'en' : 'es'));
+    if (session.turns.isEmpty) {
+      throw GeminiException(l10n.processingNotEnoughData);
+    }
+
+    final jobRole = config.jobRole == null ? '' : config.jobRole!.label(l10n);
+    final type = _mapType(config.type ?? InterviewConfigType.mixed);
+    final analyzedTurns = <InterviewTurn>[];
+
+    for (final turn in session.turns) {
+      final evaluation = await evaluateUserAnswer(
+        question: turn.question,
+        userAnswer: turn.answer,
+        jobRole: jobRole,
+        type: type,
+        language: language,
+      );
+
+      final feedback = await generateFeedback(
+        question: turn.question,
+        userAnswer: turn.answer,
+        evaluation: evaluation,
+        language: language,
+      );
+
+      analyzedTurns.add(
+        turn.copyWith(
+          evaluation: evaluation,
+          feedback: feedback,
+        ),
+      );
+    }
+
+    return session.copyWith(turns: analyzedTurns);
+  }
+
   Future<InterviewResultsModel> generateInterviewResults({
     required InterviewConfig config,
     required InterviewSession session,
     String language = 'es',
   }) async {
+    final isEnglish = language.toLowerCase().startsWith('en');
+    final l10n = lookupAppLocalizations(Locale(isEnglish ? 'en' : 'es'));
     if (session.turns.isEmpty) {
-      throw const GeminiException(
-        'No hay respuestas suficientes para generar resultados.',
-      );
+      throw GeminiException(l10n.processingNotEnoughData);
     }
 
     final total = session.turns.fold<int>(
@@ -495,8 +538,6 @@ Reglas:
 
     final history = _formatTurnsForResults(session.turns);
 
-    final isEnglish = language.toLowerCase().startsWith('en');
-    final l10n = lookupAppLocalizations(Locale(isEnglish ? 'en' : 'es'));
     final jobRole = config.jobRole == null ? '' : config.jobRole!.label(l10n);
     final type = config.type == null
         ? l10n.interviewTypeMixed
@@ -591,7 +632,7 @@ Reglas:
     final decoded = _tryDecodeJsonMap(_extractJsonText(raw));
     if (decoded == null) {
       throw GeminiException(
-        'Respuesta inválida al generar resultados.',
+        l10n.processingInvalidResponse,
         details: raw,
       );
     }
@@ -706,4 +747,12 @@ String _formatTurnsForResults(List<InterviewTurn> turns) {
     buffer.writeln('');
   }
   return buffer.toString().trim();
+}
+
+InterviewType _mapType(InterviewConfigType type) {
+  return switch (type) {
+    InterviewConfigType.technical => InterviewType.technical,
+    InterviewConfigType.rrhh => InterviewType.behavioral,
+    InterviewConfigType.mixed => InterviewType.mixed,
+  };
 }

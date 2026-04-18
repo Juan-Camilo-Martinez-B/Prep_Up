@@ -25,6 +25,7 @@ class InterviewProcessingScreen extends StatefulWidget {
 
 class _InterviewProcessingScreenState extends State<InterviewProcessingScreen> {
   InterviewResultsModel? _results;
+  InterviewSession? _processedSession;
   String? _error;
   var _isLoading = false;
 
@@ -44,7 +45,7 @@ class _InterviewProcessingScreenState extends State<InterviewProcessingScreen> {
   Future<void> _generateResults() async {
     final l10n = context.l10n;
     final providerConfig = context.read<InterviewConfigController>().config;
-    final languageCode = AppLocaleScope.of(context).languageCode;
+    final languageCode = AppLocaleRuntime.languageCode;
     final config = widget.config ?? providerConfig;
     final session = widget.session;
     if (session == null || session.turns.isEmpty) {
@@ -59,17 +60,24 @@ class _InterviewProcessingScreenState extends State<InterviewProcessingScreen> {
       _isLoading = true;
       _error = null;
       _results = null;
+      _processedSession = null;
     });
 
     try {
-      final results = await GeminiService().generateInterviewResults(
+      final processedSession = await GeminiService().analyzeInterviewSession(
         config: config,
         session: session,
+        language: languageCode,
+      );
+      final results = await GeminiService().generateInterviewResults(
+        config: config,
+        session: processedSession,
         language: languageCode,
       );
       if (!mounted) return;
       setState(() {
         _results = results;
+        _processedSession = processedSession;
         _isLoading = false;
       });
     } catch (e) {
@@ -87,7 +95,7 @@ class _InterviewProcessingScreenState extends State<InterviewProcessingScreen> {
     final l10n = context.l10n;
     final providerConfig = context.watch<InterviewConfigController>().config;
     final config = widget.config ?? providerConfig;
-    final session = widget.session;
+    final session = _processedSession ?? widget.session;
     final results = _results;
 
     return AppScreenScaffold(

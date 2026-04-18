@@ -818,6 +818,12 @@ abstract class AppLocalizations {
   /// **'Not enough data to generate results.'**
   String get processingNotEnoughData;
 
+  /// No description provided for @processingInvalidResponse.
+  ///
+  /// In en, this message translates to:
+  /// **'The AI returned an invalid response while generating results.'**
+  String get processingInvalidResponse;
+
   /// No description provided for @processingErrorTitle.
   ///
   /// In en, this message translates to:
@@ -1181,7 +1187,7 @@ abstract class AppLocalizations {
   /// No description provided for @callSendToGemini.
   ///
   /// In en, this message translates to:
-  /// **'Send to Gemini'**
+  /// **'Send and continue'**
   String get callSendToGemini;
 
   /// No description provided for @callRetryVoice.
@@ -1970,11 +1976,11 @@ abstract class AppLocalizations {
   /// **'Interview has started.'**
   String get interviewStarted;
 
-  /// No description provided for @interviewAnalyzeAndNext.
+  /// No description provided for @interviewAnswerSavedAndNext.
   ///
   /// In en, this message translates to:
-  /// **'Analyzing your answer and preparing the next question...'**
-  String get interviewAnalyzeAndNext;
+  /// **'Answer saved. Preparing the next question...'**
+  String get interviewAnswerSavedAndNext;
 
   /// No description provided for @interviewListening.
   ///
@@ -2017,6 +2023,186 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Interview completed: there is not enough remaining time for a quality new question.'**
   String get interviewTimeCompleted;
+
+  /// No description provided for @interviewStoppedListeningTryAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Listening stopped. You can try again.'**
+  String get interviewStoppedListeningTryAgain;
+
+  /// No description provided for @interviewReviewTranscriptOrSubmit.
+  ///
+  /// In en, this message translates to:
+  /// **'You can review the transcript or submit it.'**
+  String get interviewReviewTranscriptOrSubmit;
+
+  /// No description provided for @interviewAskDifferentQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'Asking for a different question...'**
+  String get interviewAskDifferentQuestion;
+
+  /// No description provided for @interviewDifferentQuestionIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Let\'s go with a different question.'**
+  String get interviewDifferentQuestionIntro;
+
+  /// No description provided for @interviewCouldNotSkipCurrentQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not skip the current question.'**
+  String get interviewCouldNotSkipCurrentQuestion;
+
+  /// No description provided for @interviewRepeatQuestionIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Repeating the question.'**
+  String get interviewRepeatQuestionIntro;
+
+  /// No description provided for @interviewCouldNotEnableAiVoice.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not enable AI voice. The question remains visible on screen.'**
+  String get interviewCouldNotEnableAiVoice;
+
+  /// No description provided for @interviewCouldNotPlayAudio.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not play audio. The question remains available in text.'**
+  String get interviewCouldNotPlayAudio;
+
+  /// No description provided for @interviewSpeechRecognitionUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Speech recognition is not available on this device.'**
+  String get interviewSpeechRecognitionUnavailable;
+
+  /// No description provided for @interviewContinueTypingFallback.
+  ///
+  /// In en, this message translates to:
+  /// **'You can continue by typing your answer while the conversation continues.'**
+  String get interviewContinueTypingFallback;
+
+  /// No description provided for @interviewMissingJobRole.
+  ///
+  /// In en, this message translates to:
+  /// **'Job role is required to start the interview.'**
+  String get interviewMissingJobRole;
+
+  /// No description provided for @interviewMissingType.
+  ///
+  /// In en, this message translates to:
+  /// **'Interview type is required.'**
+  String get interviewMissingType;
+
+  /// No description provided for @interviewCouldNotGenerateFirstQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not generate the first question.'**
+  String get interviewCouldNotGenerateFirstQuestion;
+
+  /// No description provided for @interviewCouldNotGenerateQualityQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not generate a strong next question.'**
+  String get interviewCouldNotGenerateQualityQuestion;
+
+  /// No description provided for @interviewCouldNotGenerateAlternativeQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not generate a different question.'**
+  String get interviewCouldNotGenerateAlternativeQuestion;
+
+  /// No description provided for @interviewQuestionReady.
+  ///
+  /// In en, this message translates to:
+  /// **'New question ready.'**
+  String get interviewQuestionReady;
+
+  /// No description provided for @interviewEmptyQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'Gemini returned an empty question.'**
+  String get interviewEmptyQuestion;
+
+  /// No description provided for @interviewCouldNotPlayQuestionTextMode.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not play the question. Continuing in text mode.'**
+  String get interviewCouldNotPlayQuestionTextMode;
+
+  /// No description provided for @interviewQuestionAvailableInText.
+  ///
+  /// In en, this message translates to:
+  /// **'The question is available in text. Answer by voice or typing.'**
+  String get interviewQuestionAvailableInText;
+
+  /// No description provided for @interviewTypeAnswerContinue.
+  ///
+  /// In en, this message translates to:
+  /// **'Type your answer so the next question can be generated.'**
+  String get interviewTypeAnswerContinue;
+
+  /// No description provided for @interviewCouldNotActivateMic.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not activate the microphone.'**
+  String get interviewCouldNotActivateMic;
+
+  /// No description provided for @interviewCouldNotTranscribe.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not transcribe your answer. You can try again.'**
+  String get interviewCouldNotTranscribe;
+
+  /// No description provided for @interviewNoVoiceDetectedWrite.
+  ///
+  /// In en, this message translates to:
+  /// **'No voice detected. You can try again or type your answer.'**
+  String get interviewNoVoiceDetectedWrite;
+
+  /// No description provided for @interviewNoVoiceDetectedRetrying.
+  ///
+  /// In en, this message translates to:
+  /// **'No voice detected. I will listen again.'**
+  String get interviewNoVoiceDetectedRetrying;
+
+  /// No description provided for @interviewCouldNotHearClearly.
+  ///
+  /// In en, this message translates to:
+  /// **'I couldn\'t hear you clearly. Please answer again.'**
+  String get interviewCouldNotHearClearly;
+
+  /// No description provided for @interviewQuestionGoalCompleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Interview completed: reached {questions} questions for {minutes} minutes.'**
+  String interviewQuestionGoalCompleted(int questions, int minutes);
+
+  /// No description provided for @callAnswersSavedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Answers saved'**
+  String get callAnswersSavedTitle;
+
+  /// No description provided for @callAnswersSavedSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Feedback is generated at the end'**
+  String get callAnswersSavedSubtitle;
+
+  /// No description provided for @callAnswersSavedProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'You have {current} of {total} answers recorded.'**
+  String callAnswersSavedProgress(int current, int total);
+
+  /// No description provided for @callAnswersSavedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'During the call we only save your answers to keep the interview fluid. Once it ends, we generate the full analysis.'**
+  String get callAnswersSavedBody;
 }
 
 class _AppLocalizationsDelegate

@@ -339,36 +339,23 @@ class _SimulatedCallScreenState extends State<SimulatedCallScreen> {
           AnimatedBuilder(
             animation: _voiceController,
             builder: (context, _) {
-              final lastTurn = _voiceController.lastTurn;
-              if (lastTurn == null) return const SizedBox.shrink();
-
-              final eval = lastTurn.evaluation;
-              final feedback = lastTurn.feedback;
-
+              final current = _voiceController.answeredQuestionCount;
+              final total = _voiceController.targetQuestionCount;
               return AppCard(
-                title: l10n.callEvaluationTitle,
-                subtitle: l10n.callEvaluationSubtitle,
-                leading: Icon(Icons.insights_rounded, color: scheme.secondary),
+                title: l10n.callAnswersSavedTitle,
+                subtitle: l10n.callAnswersSavedSubtitle,
+                leading: Icon(Icons.save_alt_rounded, color: scheme.secondary),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(l10n.callScoreLabel(eval.overallScore)),
-                    if (eval.strengths.isNotEmpty) ...[
-                      const SizedBox(height: 8),
-                      Text(l10n.callStrengthsLabel(eval.strengths.join(' • '))),
-                    ],
-                    if (eval.improvements.isNotEmpty) ...[
-                      const SizedBox(height: 8),
-                      Text(
-                        l10n.callImprovementsLabel(
-                          eval.improvements.join(' • '),
-                        ),
-                      ),
-                    ],
-                    if (feedback.summary.trim().isNotEmpty) ...[
-                      const SizedBox(height: 10),
-                      Text(l10n.callSummaryLabel(feedback.summary.trim())),
-                    ],
+                    Text(l10n.callAnswersSavedProgress(current, total)),
+                    const SizedBox(height: 8),
+                    Text(
+                      l10n.callAnswersSavedBody,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: scheme.onSurfaceVariant,
+                          ),
+                    ),
                   ],
                 ),
               );

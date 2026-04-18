@@ -393,6 +393,10 @@ class AppLocalizationsEs extends AppLocalizations {
       'No hay datos suficientes para generar resultados.';
 
   @override
+  String get processingInvalidResponse =>
+      'La IA devolvió una respuesta inválida al generar resultados.';
+
+  @override
   String get processingErrorTitle => 'No se pudieron generar resultados';
 
   @override
@@ -601,7 +605,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get callRepeatQuestion => 'Repetir pregunta';
 
   @override
-  String get callSendToGemini => 'Enviar a Gemini';
+  String get callSendToGemini => 'Enviar y continuar';
 
   @override
   String get callRetryVoice => 'Reintentar voz';
@@ -1029,8 +1033,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get interviewStarted => 'La entrevista ha comenzado.';
 
   @override
-  String get interviewAnalyzeAndNext =>
-      'Analizando tu respuesta y preparando la siguiente pregunta...';
+  String get interviewAnswerSavedAndNext =>
+      'Respuesta guardada. Preparando la siguiente pregunta...';
 
   @override
   String get interviewListening => 'Escuchando tu respuesta...';
@@ -1055,4 +1059,119 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get interviewTimeCompleted =>
       'Entrevista completada: el tiempo restante ya no alcanza para una nueva pregunta con buena calidad.';
+
+  @override
+  String get interviewStoppedListeningTryAgain =>
+      'Escucha detenida. Puedes volver a intentarlo.';
+
+  @override
+  String get interviewReviewTranscriptOrSubmit =>
+      'Puedes revisar la transcripción o enviarla.';
+
+  @override
+  String get interviewAskDifferentQuestion =>
+      'Pidiendo una pregunta diferente...';
+
+  @override
+  String get interviewDifferentQuestionIntro =>
+      'Vamos con una pregunta distinta.';
+
+  @override
+  String get interviewCouldNotSkipCurrentQuestion =>
+      'No se pudo omitir la pregunta actual.';
+
+  @override
+  String get interviewRepeatQuestionIntro => 'Repito la pregunta.';
+
+  @override
+  String get interviewCouldNotEnableAiVoice =>
+      'No se pudo activar la voz de la IA. La pregunta seguirá visible en pantalla.';
+
+  @override
+  String get interviewCouldNotPlayAudio =>
+      'No se pudo reproducir el audio. La pregunta queda disponible en texto.';
+
+  @override
+  String get interviewSpeechRecognitionUnavailable =>
+      'El reconocimiento de voz no está disponible en este dispositivo.';
+
+  @override
+  String get interviewContinueTypingFallback =>
+      'Puedes continuar escribiendo tu respuesta mientras se mantiene la conversación.';
+
+  @override
+  String get interviewMissingJobRole =>
+      'Falta el cargo para iniciar la entrevista.';
+
+  @override
+  String get interviewMissingType => 'Falta el tipo de entrevista.';
+
+  @override
+  String get interviewCouldNotGenerateFirstQuestion =>
+      'No se pudo generar la primera pregunta.';
+
+  @override
+  String get interviewCouldNotGenerateQualityQuestion =>
+      'No se pudo generar una siguiente pregunta de calidad.';
+
+  @override
+  String get interviewCouldNotGenerateAlternativeQuestion =>
+      'No se pudo generar una nueva pregunta.';
+
+  @override
+  String get interviewQuestionReady => 'Nueva pregunta lista.';
+
+  @override
+  String get interviewEmptyQuestion => 'Gemini devolvió una pregunta vacía.';
+
+  @override
+  String get interviewCouldNotPlayQuestionTextMode =>
+      'No se pudo reproducir la pregunta. Continuamos con la versión en texto.';
+
+  @override
+  String get interviewQuestionAvailableInText =>
+      'La pregunta está disponible en texto. Responde por voz o por escrito.';
+
+  @override
+  String get interviewTypeAnswerContinue =>
+      'Escribe tu respuesta para que se genere la siguiente pregunta.';
+
+  @override
+  String get interviewCouldNotActivateMic => 'No se pudo activar el micrófono.';
+
+  @override
+  String get interviewCouldNotTranscribe =>
+      'No se pudo transcribir tu respuesta. Puedes intentarlo otra vez.';
+
+  @override
+  String get interviewNoVoiceDetectedWrite =>
+      'No se detectó voz. Puedes intentar otra vez o escribir la respuesta.';
+
+  @override
+  String get interviewNoVoiceDetectedRetrying =>
+      'No detecté voz. Intentaré escuchar de nuevo.';
+
+  @override
+  String get interviewCouldNotHearClearly =>
+      'No te escuché con claridad. Responde nuevamente.';
+
+  @override
+  String interviewQuestionGoalCompleted(int questions, int minutes) {
+    return 'Entrevista completada: se alcanzaron $questions preguntas para $minutes minutos.';
+  }
+
+  @override
+  String get callAnswersSavedTitle => 'Respuestas guardadas';
+
+  @override
+  String get callAnswersSavedSubtitle => 'El feedback se genera al finalizar';
+
+  @override
+  String callAnswersSavedProgress(int current, int total) {
+    return 'Llevas $current de $total respuestas registradas.';
+  }
+
+  @override
+  String get callAnswersSavedBody =>
+      'Durante la llamada solo guardamos tus respuestas para mantener la entrevista fluida. Al terminar, generamos el análisis completo.';
 }

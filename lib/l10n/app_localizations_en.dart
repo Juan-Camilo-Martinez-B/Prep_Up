@@ -387,6 +387,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get processingNotEnoughData => 'Not enough data to generate results.';
 
   @override
+  String get processingInvalidResponse =>
+      'The AI returned an invalid response while generating results.';
+
+  @override
   String get processingErrorTitle => 'Could not generate results';
 
   @override
@@ -594,7 +598,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get callRepeatQuestion => 'Repeat question';
 
   @override
-  String get callSendToGemini => 'Send to Gemini';
+  String get callSendToGemini => 'Send and continue';
 
   @override
   String get callRetryVoice => 'Retry voice';
@@ -1022,8 +1026,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get interviewStarted => 'Interview has started.';
 
   @override
-  String get interviewAnalyzeAndNext =>
-      'Analyzing your answer and preparing the next question...';
+  String get interviewAnswerSavedAndNext =>
+      'Answer saved. Preparing the next question...';
 
   @override
   String get interviewListening => 'Listening to your answer...';
@@ -1048,4 +1052,120 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get interviewTimeCompleted =>
       'Interview completed: there is not enough remaining time for a quality new question.';
+
+  @override
+  String get interviewStoppedListeningTryAgain =>
+      'Listening stopped. You can try again.';
+
+  @override
+  String get interviewReviewTranscriptOrSubmit =>
+      'You can review the transcript or submit it.';
+
+  @override
+  String get interviewAskDifferentQuestion =>
+      'Asking for a different question...';
+
+  @override
+  String get interviewDifferentQuestionIntro =>
+      'Let\'s go with a different question.';
+
+  @override
+  String get interviewCouldNotSkipCurrentQuestion =>
+      'Could not skip the current question.';
+
+  @override
+  String get interviewRepeatQuestionIntro => 'Repeating the question.';
+
+  @override
+  String get interviewCouldNotEnableAiVoice =>
+      'Could not enable AI voice. The question remains visible on screen.';
+
+  @override
+  String get interviewCouldNotPlayAudio =>
+      'Could not play audio. The question remains available in text.';
+
+  @override
+  String get interviewSpeechRecognitionUnavailable =>
+      'Speech recognition is not available on this device.';
+
+  @override
+  String get interviewContinueTypingFallback =>
+      'You can continue by typing your answer while the conversation continues.';
+
+  @override
+  String get interviewMissingJobRole =>
+      'Job role is required to start the interview.';
+
+  @override
+  String get interviewMissingType => 'Interview type is required.';
+
+  @override
+  String get interviewCouldNotGenerateFirstQuestion =>
+      'Could not generate the first question.';
+
+  @override
+  String get interviewCouldNotGenerateQualityQuestion =>
+      'Could not generate a strong next question.';
+
+  @override
+  String get interviewCouldNotGenerateAlternativeQuestion =>
+      'Could not generate a different question.';
+
+  @override
+  String get interviewQuestionReady => 'New question ready.';
+
+  @override
+  String get interviewEmptyQuestion => 'Gemini returned an empty question.';
+
+  @override
+  String get interviewCouldNotPlayQuestionTextMode =>
+      'Could not play the question. Continuing in text mode.';
+
+  @override
+  String get interviewQuestionAvailableInText =>
+      'The question is available in text. Answer by voice or typing.';
+
+  @override
+  String get interviewTypeAnswerContinue =>
+      'Type your answer so the next question can be generated.';
+
+  @override
+  String get interviewCouldNotActivateMic =>
+      'Could not activate the microphone.';
+
+  @override
+  String get interviewCouldNotTranscribe =>
+      'Could not transcribe your answer. You can try again.';
+
+  @override
+  String get interviewNoVoiceDetectedWrite =>
+      'No voice detected. You can try again or type your answer.';
+
+  @override
+  String get interviewNoVoiceDetectedRetrying =>
+      'No voice detected. I will listen again.';
+
+  @override
+  String get interviewCouldNotHearClearly =>
+      'I couldn\'t hear you clearly. Please answer again.';
+
+  @override
+  String interviewQuestionGoalCompleted(int questions, int minutes) {
+    return 'Interview completed: reached $questions questions for $minutes minutes.';
+  }
+
+  @override
+  String get callAnswersSavedTitle => 'Answers saved';
+
+  @override
+  String get callAnswersSavedSubtitle => 'Feedback is generated at the end';
+
+  @override
+  String callAnswersSavedProgress(int current, int total) {
+    return 'You have $current of $total answers recorded.';
+  }
+
+  @override
+  String get callAnswersSavedBody =>
+      'During the call we only save your answers to keep the interview fluid. Once it ends, we generate the full analysis.';
 }

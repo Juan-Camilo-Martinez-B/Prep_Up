@@ -5,10 +5,12 @@ import 'dart:math' as math;
 import 'package:flutter/widgets.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:prep_up/core/localization/interview_l10n.dart';
+import 'package:prep_up/domain/entities/answer_evaluation_model.dart';
 import 'package:prep_up/domain/entities/interview_config.dart';
-import 'package:prep_up/domain/entities/interview_tags.dart';
+import 'package:prep_up/domain/entities/interview_feedback_model.dart';
 import 'package:prep_up/domain/entities/interview_session.dart';
 import 'package:prep_up/domain/entities/interview_session_model.dart';
+import 'package:prep_up/domain/entities/interview_tags.dart';
 import 'package:prep_up/domain/services/gemini_service.dart';
 import 'package:prep_up/l10n/app_localizations.dart';
 import 'package:speech_to_text/speech_recognition_error.dart';
@@ -116,9 +118,7 @@ class InterviewVoiceController extends ChangeNotifier {
     _isInterviewComplete = false;
     _completionReason = null;
     _error = null;
-    _statusMessage = _isEnglish
-        ? 'Preparing interview...'
-        : 'Preparando la entrevista...';
+    _statusMessage = _l10n.interviewPreparing;
     _notifySafely();
 
     try {
@@ -127,16 +127,12 @@ class InterviewVoiceController extends ChangeNotifier {
       _hasStarted = true;
       await _deliverQuestion(
         openingQuestion,
-        introMessage: _isEnglish
-            ? 'The interview has started.'
-            : 'La entrevista ha comenzado.',
+        introMessage: _l10n.interviewStarted,
       );
     } catch (e) {
       _setIdle();
       _error = e.toString();
-      _statusMessage = _isEnglish
-          ? 'Could not start the interview.'
-          : 'No se pudo iniciar la entrevista.';
+      _statusMessage = _l10n.interviewCouldNotStart;
       _notifySafely();
     } finally {
       _isStarting = false;
@@ -149,12 +145,8 @@ class InterviewVoiceController extends ChangeNotifier {
       await _speech.stop();
       _state = InterviewConversationState.idle;
       _statusMessage = _voiceDraft.trim().isEmpty
-          ? (_isEnglish
-                ? 'Listening stopped. You can try again.'
-                : 'Escucha detenida. Puedes volver a intentarlo.')
-          : (_isEnglish
-                ? 'You can review the transcript or submit it.'
-                : 'Puedes revisar la transcripción o enviarla.');
+          ? _l10n.interviewStoppedListeningTryAgain
+          : _l10n.interviewReviewTranscriptOrSubmit;
       _notifySafely();
       return;
     }
@@ -177,35 +169,18 @@ class InterviewVoiceController extends ChangeNotifier {
     _voiceDraft = safeAnswer;
     _lastSubmittedAnswer = safeAnswer;
     _state = InterviewConversationState.processing;
-    _statusMessage = _isEnglish
-        ? 'Analyzing your answer and preparing the next question...'
-        : 'Analizando tu respuesta y preparando la siguiente pregunta...';
+    _statusMessage = _l10n.interviewAnswerSavedAndNext;
     _error = null;
     _notifySafely();
 
     try {
       await _speech.stop();
 
-      final evaluation = await _geminiService.evaluateUserAnswer(
-        question: question,
-        userAnswer: safeAnswer,
-        jobRole: _config.jobRole == null ? '' : _config.jobRole!.label(_l10n),
-        type: _mapType(_config.type ?? InterviewConfigType.mixed),
-        language: _aiLanguage,
-      );
-
-      final feedback = await _geminiService.generateFeedback(
-        question: question,
-        userAnswer: safeAnswer,
-        evaluation: evaluation,
-        language: _aiLanguage,
-      );
-
       final turn = InterviewTurn(
         question: question,
         answer: safeAnswer,
-        evaluation: evaluation,
-        feedback: feedback,
+        evaluation: AnswerEvaluationModel.empty,
+        feedback: InterviewFeedbackModel.empty,
         createdAt: DateTime.now().toUtc(),
         responseDurationSeconds: _calculateCurrentResponseDurationSeconds(),
       );
@@ -223,9 +198,7 @@ class InterviewVoiceController extends ChangeNotifier {
     } catch (e) {
       _setIdle();
       _error = e.toString();
-      _statusMessage = _isEnglish
-          ? 'Could not process the answer. You can try again.'
-          : 'No se pudo procesar la respuesta. Puedes intentarlo de nuevo.';
+      _statusMessage = _l10n.interviewCouldNotProcess;
       _notifySafely();
     }
   }
@@ -239,9 +212,7 @@ class InterviewVoiceController extends ChangeNotifier {
 
     _error = null;
     _state = InterviewConversationState.processing;
-    _statusMessage = _isEnglish
-        ? 'Asking Gemini for a different question...'
-        : 'Pidiendo a Gemini una pregunta diferente...';
+    _statusMessage = _l10n.interviewAskDifferentQuestion;
     _notifySafely();
 
     try {
@@ -250,16 +221,12 @@ class InterviewVoiceController extends ChangeNotifier {
       final nextQuestion = await _generateAlternativeQuestion();
       await _deliverQuestion(
         nextQuestion,
-        introMessage: _isEnglish
-            ? "Let's go with a different question."
-            : 'Vamos con una pregunta distinta.',
+        introMessage: _l10n.interviewDifferentQuestionIntro,
       );
     } catch (e) {
       _setIdle();
       _error = e.toString();
-      _statusMessage = _isEnglish
-          ? 'Could not skip the current question.'
-          : 'No se pudo omitir la pregunta actual.';
+      _statusMessage = _l10n.interviewCouldNotSkipCurrentQuestion;
       _notifySafely();
     }
   }
@@ -273,9 +240,7 @@ class InterviewVoiceController extends ChangeNotifier {
     _emptyVoiceRetries = 0;
     await _deliverQuestion(
       question,
-      introMessage: _isEnglish
-          ? 'Repeating the question.'
-          : 'Repito la pregunta.',
+      introMessage: _l10n.interviewRepeatQuestionIntro,
     );
   }
 
@@ -331,9 +296,7 @@ class InterviewVoiceController extends ChangeNotifier {
       }
     } catch (_) {
       _isTtsAvailable = false;
-      _statusMessage = _isEnglish
-          ? 'Could not enable AI voice. The question remains visible on screen.'
-          : 'No se pudo activar la voz de la IA. La pregunta seguirá visible en pantalla.';
+      _statusMessage = _l10n.interviewCouldNotEnableAiVoice;
       _notifySafely();
     }
   }
@@ -341,18 +304,13 @@ class InterviewVoiceController extends ChangeNotifier {
   void _configureTtsCallbacks() {
     _tts.setStartHandler(() {
       _state = InterviewConversationState.speaking;
-      _statusMessage = _isEnglish
-          ? 'AI is speaking...'
-          : 'La IA está hablando...';
+      _statusMessage = _l10n.interviewAiSpeaking;
       _notifySafely();
     });
 
     _tts.setCompletionHandler(() {
       if (_state == InterviewConversationState.speaking) {
-        _statusMessage = 'Esperando tu respuesta...';
-        if (_isEnglish) {
-          _statusMessage = 'Waiting for your answer...';
-        }
+        _statusMessage = _l10n.interviewWaitingAnswer;
         _notifySafely();
       }
     });
@@ -366,13 +324,11 @@ class InterviewVoiceController extends ChangeNotifier {
 
     _tts.setErrorHandler((message) {
       _isTtsAvailable = false;
-      _error = 'Falló la reproducción de voz: $message';
+      _error = '${_l10n.interviewCouldNotPlayAudio} ($message)';
       if (_state == InterviewConversationState.speaking) {
         _setIdle();
       }
-      _statusMessage = _isEnglish
-          ? 'Could not play audio. The question remains available in text.'
-          : 'No se pudo reproducir el audio. La pregunta queda disponible en texto.';
+      _statusMessage = _l10n.interviewCouldNotPlayAudio;
       _notifySafely();
     });
   }
@@ -385,12 +341,8 @@ class InterviewVoiceController extends ChangeNotifier {
     );
 
     if (!_isSpeechAvailable) {
-      _error = _isEnglish
-          ? 'Speech recognition is not available on this device.'
-          : 'El reconocimiento de voz no está disponible en este dispositivo.';
-      _statusMessage = _isEnglish
-          ? 'You can continue by typing your answer while the interview continues.'
-          : 'Puedes continuar escribiendo tu respuesta mientras se mantiene la conversación.';
+      _error = _l10n.interviewSpeechRecognitionUnavailable;
+      _statusMessage = _l10n.interviewContinueTypingFallback;
       _notifySafely();
       return;
     }
@@ -404,10 +356,10 @@ class InterviewVoiceController extends ChangeNotifier {
         ? ''
         : _config.jobRole!.label(_l10n);
     if (jobRole.isEmpty) {
-      throw const GeminiException('Falta el cargo para iniciar la entrevista.');
+      throw GeminiException(_l10n.interviewMissingJobRole);
     }
     if (_config.type == null) {
-      throw const GeminiException('Falta el tipo de entrevista.');
+      throw GeminiException(_l10n.interviewMissingType);
     }
 
     final questions = await _geminiService.generateInterviewQuestions(
@@ -419,7 +371,7 @@ class InterviewVoiceController extends ChangeNotifier {
 
     final question = questions.isNotEmpty ? questions.first.trim() : '';
     if (question.isEmpty) {
-      throw const GeminiException('No se pudo generar la primera pregunta.');
+      throw GeminiException(_l10n.interviewCouldNotGenerateFirstQuestion);
     }
     return question;
   }
@@ -430,38 +382,19 @@ class InterviewVoiceController extends ChangeNotifier {
         : _config.jobRole!.label(_l10n);
     final type = _config.type ?? InterviewConfigType.mixed;
     final history = _formatHistoryForPrompt(_session.turns);
-    final followUps = lastTurn.evaluation.followUpQuestions
-        .map(_sanitizeQuestion)
-        .where((q) => q.isNotEmpty)
-        .toList();
-    final lastSummary = lastTurn.feedback.summary.trim();
-    final lastStrengths = lastTurn.evaluation.strengths.join(' | ');
-    final lastImprovements = lastTurn.evaluation.improvements.join(' | ');
-    final followUpSeed = followUps.isEmpty
-        ? '- (sin sugerencias)'
-        : followUps.join('\n- ');
 
     final prompt = _isEnglish
         ? '''
 Act as a senior interviewer for the "$jobRole" role.
 Interview type: ${type.label(_l10n)}.
 
-Your goal is to formulate the next question in an intelligent, complete, and conversational way.
+Your goal is to formulate the next question in a smart, complete, and conversational way.
 
 Last question:
 "${lastTurn.question}"
 
 Last candidate answer:
 "${lastTurn.answer}"
-
-Evaluation of the last answer:
-- Score: ${lastTurn.evaluation.overallScore}/100
-- Strengths: ${lastStrengths.isEmpty ? 'none relevant' : lastStrengths}
-- Improvements: ${lastImprovements.isEmpty ? 'none relevant' : lastImprovements}
-- Feedback summary: ${lastSummary.isEmpty ? 'no additional summary' : lastSummary}
-
-Follow-up suggestions already proposed by Gemini:
-- $followUpSeed
 
 Real history:
 $history
@@ -474,8 +407,7 @@ Mandatory rules for nextQuestion:
 - It must sound like a real interview question.
 - It must have enough context to be spoken out loud.
 - It must refer to something concrete from the last answer or ask for an example, decision, metric, trade-off, or result.
-- If the score was low, ask for precision, evidence, or a concrete case.
-- If the score was high, go deeper with more difficulty or impact.
+- Use the last answer to decide whether to clarify, challenge, or go deeper.
 - Do not repeat the previous question.
 - Avoid vague questions like "can you elaborate?" without context.
 - No markdown.
@@ -492,15 +424,6 @@ Ultima pregunta:
 Ultima respuesta del candidato:
 "${lastTurn.answer}"
 
-Evaluacion de la ultima respuesta:
-- Score: ${lastTurn.evaluation.overallScore}/100
-- Fortalezas: ${lastStrengths.isEmpty ? 'ninguna relevante' : lastStrengths}
-- Mejoras: ${lastImprovements.isEmpty ? 'ninguna relevante' : lastImprovements}
-- Resumen de feedback: ${lastSummary.isEmpty ? 'sin resumen adicional' : lastSummary}
-
-Sugerencias de follow-up ya propuestas por Gemini:
-- $followUpSeed
-
 Historial real:
 $history
 
@@ -512,8 +435,7 @@ Reglas obligatorias para nextQuestion:
 - Debe sonar como una pregunta real de entrevista, no como una frase incompleta.
 - Debe tener contexto suficiente por si se escucha en voz alta.
 - Debe referirse a algo concreto de la ultima respuesta o pedir un ejemplo, decision, metrica, trade-off o resultado.
-- Si el score fue bajo, pide precision, evidencia o un caso puntual.
-- Si el score fue alto, profundiza con mas dificultad o impacto.
+- Usa la ultima respuesta para decidir si debes aclarar, desafiar o profundizar.
 - No repitas la pregunta anterior.
 - Evita preguntas vagas como "puedes profundizar?" o "me cuentas mas?" sin contexto.
 - Sin markdown.
@@ -537,19 +459,8 @@ Reglas obligatorias para nextQuestion:
       return cleaned;
     }
 
-    for (final candidate in followUps) {
-      if (_isSmartInterviewQuestion(
-        candidate,
-        previousQuestion: lastTurn.question,
-      )) {
-        return candidate;
-      }
-    }
-
     final rewritten = await _rewriteAsStrongerQuestion(
-      weakQuestion: cleaned.isEmpty
-          ? (followUps.isEmpty ? lastTurn.question : followUps.first)
-          : cleaned,
+      weakQuestion: cleaned.isEmpty ? lastTurn.question : cleaned,
       lastTurn: lastTurn,
       isEnglish: _isEnglish,
       geminiService: _geminiService,
@@ -561,9 +472,7 @@ Reglas obligatorias para nextQuestion:
       return rewritten;
     }
 
-    throw const GeminiException(
-      'No se pudo generar una siguiente pregunta de calidad.',
-    );
+    throw GeminiException(_l10n.interviewCouldNotGenerateQualityQuestion);
   }
 
   Future<String> _generateAlternativeQuestion() async {
@@ -624,7 +533,7 @@ Devuelve SOLO el texto de la pregunta.
 
     final cleaned = next.trim();
     if (cleaned.isEmpty) {
-      throw const GeminiException('No se pudo generar una nueva pregunta.');
+      throw GeminiException(_l10n.interviewCouldNotGenerateAlternativeQuestion);
     }
     return cleaned;
   }
@@ -636,16 +545,12 @@ Devuelve SOLO el texto de la pregunta.
     _voiceDraft = '';
     _error = null;
     _emptyVoiceRetries = 0;
-    _statusMessage =
-        introMessage ??
-        (_isEnglish ? 'New question ready.' : 'Nueva pregunta lista.');
+    _statusMessage = introMessage ?? _l10n.interviewQuestionReady;
     _notifySafely();
 
     if (_currentQuestion.isEmpty) {
       _setIdle();
-      _error = _isEnglish
-          ? 'Gemini returned an empty question.'
-          : 'Gemini devolvio una pregunta vacia.';
+      _error = _l10n.interviewEmptyQuestion;
       _notifySafely();
       return;
     }
@@ -656,25 +561,19 @@ Devuelve SOLO el texto de la pregunta.
             ? _currentQuestion
             : '$introMessage $_currentQuestion';
         _state = InterviewConversationState.speaking;
-        _statusMessage = _isEnglish
-            ? 'AI is speaking...'
-            : 'La IA esta hablando...';
+        _statusMessage = _l10n.interviewAiSpeaking;
         _notifySafely();
         await _tts.speak(speechText);
       } catch (e) {
         _isTtsAvailable = false;
-        _error = 'Falló TTS: $e';
-        _statusMessage = _isEnglish
-            ? 'Could not play the question. Continuing with text mode.'
-            : 'No se pudo reproducir la pregunta. Continuamos con la version en texto.';
+        _error = '${_l10n.interviewCouldNotPlayQuestionTextMode} ($e)';
+        _statusMessage = _l10n.interviewCouldNotPlayQuestionTextMode;
         _setIdle();
         _notifySafely();
       }
     } else {
       _setIdle();
-      _statusMessage = _isEnglish
-          ? 'The question is available in text. Reply by voice or typing.'
-          : 'La pregunta esta disponible en texto. Responde por voz o por escrito.';
+      _statusMessage = _l10n.interviewQuestionAvailableInText;
       _notifySafely();
     }
 
@@ -682,9 +581,7 @@ Devuelve SOLO el texto de la pregunta.
       await _beginListening(clearDraft: true);
     } else {
       _setIdle();
-      _statusMessage = _isEnglish
-          ? 'Type your answer so Gemini can generate the next question.'
-          : 'Escribe tu respuesta para que Gemini genere la siguiente pregunta.';
+      _statusMessage = _l10n.interviewTypeAnswerContinue;
       _notifySafely();
     }
   }
@@ -708,9 +605,7 @@ Devuelve SOLO el texto de la pregunta.
       _handledListeningCycle = 0;
       _soundLevel = 0;
       _state = InterviewConversationState.listening;
-      _statusMessage = _isEnglish
-          ? 'Listening to your answer...'
-          : 'Escuchando tu respuesta...';
+      _statusMessage = _l10n.interviewListening;
       _error = null;
       _notifySafely();
 
@@ -729,10 +624,8 @@ Devuelve SOLO el texto de la pregunta.
       );
     } catch (e) {
       _setIdle();
-      _error = 'No se pudo activar el micrófono: $e';
-      _statusMessage = _isEnglish
-          ? 'You can try again or answer by typing to continue.'
-          : 'Puedes volver a intentar o responder por escrito para continuar.';
+      _error = '${_l10n.interviewCouldNotActivateMic} ($e)';
+      _statusMessage = _l10n.interviewContinueTypingFallback;
       _notifySafely();
     }
   }
@@ -759,10 +652,8 @@ Devuelve SOLO el texto de la pregunta.
   void _onSpeechError(SpeechRecognitionError error) {
     if (!isListening) return;
     _setIdle();
-    _error = 'Falló STT: ${error.errorMsg}';
-    _statusMessage = _isEnglish
-        ? 'Could not transcribe your answer. You can try again.'
-        : 'No se pudo transcribir tu respuesta. Puedes intentarlo otra vez.';
+    _error = '${_l10n.interviewCouldNotTranscribe} (${error.errorMsg})';
+    _statusMessage = _l10n.interviewCouldNotTranscribe;
     _notifySafely();
   }
 
@@ -793,32 +684,21 @@ Devuelve SOLO el texto de la pregunta.
     _setIdle();
 
     if (_emptyVoiceRetries > 1) {
-      _error =
-          'No se detectó voz. Puedes intentar otra vez o escribir la respuesta.';
-      _statusMessage = _isEnglish
-          ? 'Waiting for your answer.'
-          : 'Esperando tu respuesta.';
+      _error = _l10n.interviewNoVoiceDetectedWrite;
+      _statusMessage = _l10n.interviewWaitingAnswer;
       _notifySafely();
       return;
     }
 
-    _statusMessage = _isEnglish
-        ? 'No voice detected. I will listen again.'
-        : 'No detecte voz. Intentare escuchar de nuevo.';
-    _error = _isEnglish
-        ? 'No clear response detected. Please answer again.'
-        : 'No se detectó una respuesta clara. Responde nuevamente por favor.';
+    _statusMessage = _l10n.interviewNoVoiceDetectedRetrying;
+    _error = _l10n.interviewNoClearVoice;
     _notifySafely();
 
     if (_isTtsAvailable) {
       try {
         _state = InterviewConversationState.speaking;
         _notifySafely();
-        await _tts.speak(
-          _isEnglish
-              ? "I couldn't hear you clearly. Please answer again."
-              : 'No te escuche con claridad. Responde nuevamente.',
-        );
+        await _tts.speak(_l10n.interviewCouldNotHearClearly);
       } catch (_) {
         _isTtsAvailable = false;
       }
@@ -937,13 +817,12 @@ Devuelve SOLO el texto de la pregunta.
 
   String _buildCompletionReason() {
     if (answeredQuestionCount >= targetQuestionCount) {
-      return _isEnglish
-          ? 'Interview completed: reached $targetQuestionCount questions for ${_config.durationMinutes ?? 3} minutes.'
-          : 'Entrevista completada: se alcanzaron $targetQuestionCount preguntas para ${_config.durationMinutes ?? 3} minutos.';
+      return _l10n.interviewQuestionGoalCompleted(
+        targetQuestionCount,
+        _config.durationMinutes ?? 3,
+      );
     }
-    return _isEnglish
-        ? 'Interview completed: not enough remaining time for a quality new question.'
-        : 'Entrevista completada: el tiempo restante ya no alcanza para una nueva pregunta con buena calidad.';
+    return _l10n.interviewTimeCompleted;
   }
 
   void _notifySafely() {
@@ -1065,9 +944,6 @@ Previous question:
 Last candidate answer:
 "${lastTurn.answer}"
 
-Answer score: ${lastTurn.evaluation.overallScore}/100
-Detected improvements: ${lastTurn.evaluation.improvements.join(' | ')}
-
 Return ONLY one question in English.
 Rules:
 - Exactly one question.
@@ -1087,9 +963,6 @@ Pregunta anterior:
 
 Ultima respuesta del candidato:
 "${lastTurn.answer}"
-
-Score de la respuesta: ${lastTurn.evaluation.overallScore}/100
-Mejoras detectadas: ${lastTurn.evaluation.improvements.join(' | ')}
 
 Devuelve SOLO una pregunta en espanol.
 Reglas:
@@ -1128,16 +1001,7 @@ String _formatHistoryForPrompt(List<InterviewTurn> turns) {
     buffer.writeln('Turno ${i + 1}:');
     buffer.writeln('P: ${turn.question}');
     buffer.writeln('R: ${turn.answer}');
-    buffer.writeln('Score: ${turn.evaluation.overallScore}');
-    if (turn.evaluation.strengths.isNotEmpty) {
-      buffer.writeln('Fortalezas: ${turn.evaluation.strengths.join(' | ')}');
-    }
-    if (turn.evaluation.improvements.isNotEmpty) {
-      buffer.writeln('Mejoras: ${turn.evaluation.improvements.join(' | ')}');
-    }
-    if (turn.feedback.summary.trim().isNotEmpty) {
-      buffer.writeln('Feedback: ${turn.feedback.summary.trim()}');
-    }
+    buffer.writeln('Tiempo de respuesta: ${turn.responseDurationSeconds}s');
     buffer.writeln('');
   }
   return buffer.toString().trim();
