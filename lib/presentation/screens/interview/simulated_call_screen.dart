@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
@@ -140,31 +141,27 @@ class _SimulatedCallScreenState extends State<SimulatedCallScreen> {
             child: ClipRRect(
               borderRadius: BorderRadius.circular(20),
               child: Stack(
+                fit: StackFit.expand,
                 children: [
-                  if (media.isCameraReady && media.cameraController != null)
-                    CameraPreview(media.cameraController!)
-                  else
-                    DecoratedBox(
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [
-                            scheme.primary.withValues(alpha: 0.22),
-                            scheme.secondary.withValues(alpha: 0.18),
-                          ],
-                        ),
-                      ),
-                      child: Center(
-                        child: Icon(
-                          Icons.videocam_off_rounded,
-                          size: 56,
-                          color: scheme.onSurface.withValues(alpha: 0.55),
-                        ),
-                      ),
-                    ),
+                  AnimatedBuilder(
+                    animation: _voiceController,
+                    builder: (context, _) {
+                      return _RobotStage(
+                        scheme: scheme,
+                        isSpeaking: _voiceController.isSpeaking,
+                        isListening: _voiceController.isListening,
+                        isProcessing: _voiceController.isProcessing,
+                      );
+                    },
+                  ),
                   Positioned(
                     right: 14,
                     bottom: 14,
-                    child: _MiniPreview(scheme: scheme),
+                    child: _MiniPreview(
+                      scheme: scheme,
+                      controller: media.cameraController,
+                      isCameraReady: media.isCameraReady,
+                    ),
                   ),
                   Positioned(
                     left: 14,
@@ -583,25 +580,284 @@ class _TimerChip extends StatelessWidget {
   }
 }
 
-class _MiniPreview extends StatelessWidget {
-  const _MiniPreview({required this.scheme});
+class _RobotStage extends StatefulWidget {
+  const _RobotStage({
+    required this.scheme,
+    required this.isSpeaking,
+    required this.isListening,
+    required this.isProcessing,
+  });
 
   final ColorScheme scheme;
+  final bool isSpeaking;
+  final bool isListening;
+  final bool isProcessing;
+
+  @override
+  State<_RobotStage> createState() => _RobotStageState();
+}
+
+class _RobotStageState extends State<_RobotStage>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1800),
+    )..repeat(reverse: true);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = widget.scheme;
+    final accent = widget.isSpeaking
+        ? scheme.primary
+        : widget.isListening
+        ? scheme.secondary
+        : widget.isProcessing
+        ? scheme.tertiary
+        : scheme.primary;
+
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            accent.withValues(alpha: 0.18),
+            scheme.surface.withValues(alpha: 0.92),
+          ],
+        ),
+      ),
+      child: AnimatedBuilder(
+        animation: _controller,
+        builder: (context, _) {
+          final pulse = 0.92 + (_controller.value * 0.12);
+          final ringOpacity = 0.18 + (_controller.value * 0.20);
+          final t = _controller.value;
+          final spin = t * math.pi * 2;
+
+          return LayoutBuilder(
+            builder: (context, constraints) {
+              const baseRobotSize = 250.0;
+              const verticalPadding = 12.0;
+              final requiredHeight = baseRobotSize + verticalPadding;
+              final scale = constraints.maxHeight <= 0
+                  ? 1.0
+                  : math.min(1.0, constraints.maxHeight / requiredHeight);
+
+              return Center(
+                child: Transform.scale(
+                  scale: scale,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          Container(
+                            width: 250 * pulse,
+                            height: 250 * pulse,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: accent.withValues(alpha: ringOpacity * 0.45),
+                            ),
+                          ),
+                          // Rotating ring for a subtle "AI activity" feel. Fixed size to avoid layout shifts.
+                          Transform.rotate(
+                            angle: spin,
+                            child: Container(
+                              width: 220,
+                              height: 220,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: accent.withValues(
+                                    alpha: widget.isSpeaking ? 0.42 : 0.26,
+                                  ),
+                                  width: 2,
+                                ),
+                              ),
+                            ),
+                          ),
+                          Container(
+                            width: 186 * pulse,
+                            height: 186 * pulse,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: accent.withValues(alpha: ringOpacity),
+                                width: 2.4,
+                              ),
+                            ),
+                          ),
+                          // Soft scanline shimmer inside the stage (fixed rect, only opacity/position changes).
+                          ClipOval(
+                            child: SizedBox(
+                              width: 186,
+                              height: 186,
+                              child: Stack(
+                                fit: StackFit.expand,
+                                children: [
+                                  Align(
+                                    alignment: Alignment(
+                                      0,
+                                      -1 + (t * 2),
+                                    ),
+                                    child: Container(
+                                      height: 30,
+                                      decoration: BoxDecoration(
+                                        gradient: LinearGradient(
+                                          begin: Alignment.topCenter,
+                                          end: Alignment.bottomCenter,
+                                          colors: [
+                                            Colors.transparent,
+                                            accent.withValues(
+                                              alpha: widget.isListening
+                                                  ? 0.18
+                                                  : widget.isProcessing
+                                                  ? 0.14
+                                                  : 0.10,
+                                            ),
+                                            Colors.transparent,
+                                          ],
+                                          stops: const [0.0, 0.5, 1.0],
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          Container(
+                            width: 132,
+                            height: 132,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              gradient: LinearGradient(
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                                colors: [
+                                  accent.withValues(alpha: 0.95),
+                                  scheme.primaryContainer.withValues(alpha: 0.80),
+                                ],
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: accent.withValues(
+                                    alpha: widget.isSpeaking ? 0.42 : 0.30,
+                                  ),
+                                  blurRadius: 30,
+                                  spreadRadius: 8,
+                                ),
+                              ],
+                            ),
+                            child: Icon(
+                              Icons.smart_toy_rounded,
+                              size: 66,
+                              color: scheme.onPrimaryContainer,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _MiniPreview extends StatelessWidget {
+  const _MiniPreview({
+    required this.scheme,
+    required this.controller,
+    required this.isCameraReady,
+  });
+
+  final ColorScheme scheme;
+  final CameraController? controller;
+  final bool isCameraReady;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 104,
-      height: 74,
+      width: 146,
+      height: 108,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(14),
-        color: scheme.surfaceContainerHighest.withValues(alpha: 0.55),
+        color: Colors.black.withValues(alpha: 0.42),
         border: Border.all(color: scheme.outlineVariant.withValues(alpha: 0.6)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.24),
+            blurRadius: 16,
+            offset: const Offset(0, 8),
+          ),
+        ],
       ),
-      child: Center(
-        child: Icon(
-          Icons.face_rounded,
-          color: scheme.onSurface.withValues(alpha: 0.55),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(14),
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            if (isCameraReady && controller != null)
+              CameraPreview(controller!)
+            else
+              DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      scheme.surfaceContainerHighest.withValues(alpha: 0.92),
+                      scheme.surface.withValues(alpha: 0.82),
+                    ],
+                  ),
+                ),
+                child: Center(
+                  child: Icon(
+                    Icons.face_rounded,
+                    size: 32,
+                    color: scheme.onSurface.withValues(alpha: 0.55),
+                  ),
+                ),
+              ),
+            Positioned(
+              left: 8,
+              bottom: 8,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(999),
+                  color: Colors.black.withValues(alpha: 0.45),
+                  border: Border.all(
+                    color: scheme.outlineVariant.withValues(alpha: 0.45),
+                  ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.person_rounded, size: 14, color: scheme.primary),
+                  ],
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
