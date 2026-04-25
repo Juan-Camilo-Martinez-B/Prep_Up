@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:prep_up/domain/entities/interview_result_model.dart';
+import 'package:prep_up/domain/entities/interview_results_model.dart';
 import 'package:prep_up/domain/entities/interview_session_model.dart';
 import 'package:prep_up/domain/services/ai_interview_service.dart';
 import 'package:prep_up/domain/services/gemini_service.dart';
@@ -25,7 +25,7 @@ class GeminiAiInterviewService implements AiInterviewService {
   }
 
   @override
-  Future<InterviewResultModel> analyzeInterview({
+  Future<InterviewResultsModel> analyzeInterview({
     required InterviewSessionModel session,
     String? transcript,
     String? videoReference,
@@ -50,15 +50,18 @@ Transcript:
 
 Devuelve SOLO JSON con este esquema exacto:
 {
-  "score": 0,
-  "successProbability": 0.0,
-  "breakdown": { "bodyLanguage": 0, "clarity": 0, "confidence": 0 },
-  "recommendations": ["..."]
+  "overallScore": 0,
+  "outcome": "approved",
+  "breakdown": { "communication": 0, "technicalKnowledge": 0, "confidence": 0 },
+  "highlights": ["..."],
+  "personalizedFeedback": "...",
+  "recommendations": ["..."],
+  "improvementTips": ["..."]
 }
 
 Reglas:
-- score 0..100
-- successProbability 0.0..1.0
+- overallScore 0..100
+- outcome: "approved" o "improve"
 - breakdown: enteros 0..100
 - recommendations: 3..6 recomendaciones accionables
 - Sin markdown
@@ -76,21 +79,35 @@ Reglas:
 
     final now = DateTime.now().toUtc();
     final id = 'result_${session.id}';
-    final successProbability =
-        _toDouble(decoded['successProbability']).clamp(0.0, 1.0).toDouble();
+    final score = _toInt(decoded['overallScore']).clamp(0, 100).toInt();
+    final outcomeRaw = (decoded['outcome'] as String?) ?? '';
+    final outcome = switch (outcomeRaw.trim().toLowerCase()) {
+      'approved' || 'aprobado' => InterviewOutcome.approved,
+      'improve' || 'mejorar' => InterviewOutcome.improve,
+      _ => score >= 70 ? InterviewOutcome.approved : InterviewOutcome.improve,
+    };
 
-    return InterviewResultModel(
+    return InterviewResultsModel(
       id: id,
       sessionId: session.id,
       userId: session.userId,
       analyzedAt: now,
-      score: _toInt(decoded['score']).clamp(0, 100).toInt(),
-      successProbability: successProbability,
-      breakdown: InterviewScoreBreakdownModel.fromJson(
+      overallScore: score,
+      outcome: outcome,
+      breakdown: InterviewResultsBreakdownModel.fromJson(
         (decoded['breakdown'] as Map?)?.cast<String, dynamic>() ??
             const <String, dynamic>{},
       ),
+      highlights: ((decoded['highlights'] as List?)
+              ?.whereType<String>()
+              .toList() ??
+          const <String>[]),
+      personalizedFeedback: (decoded['personalizedFeedback'] as String?) ?? '',
       recommendations: ((decoded['recommendations'] as List?)
+              ?.whereType<String>()
+              .toList() ??
+          const <String>[]),
+      improvementTips: ((decoded['improvementTips'] as List?)
               ?.whereType<String>()
               .toList() ??
           const <String>[]),
@@ -104,15 +121,6 @@ int _toInt(Object? value) {
     double v => v.round(),
     String v => int.tryParse(v) ?? 0,
     _ => 0,
-  };
-}
-
-double _toDouble(Object? value) {
-  return switch (value) {
-    double v => v,
-    int v => v.toDouble(),
-    String v => double.tryParse(v) ?? 0.0,
-    _ => 0.0,
   };
 }
 

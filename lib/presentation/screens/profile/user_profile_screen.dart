@@ -42,7 +42,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
       for (final session in history) {
         final result = await _dbService.getInterviewResultForSession(session.id);
         if (result != null) {
-          totalScore += result.score;
+          totalScore += result.overallScore;
           count++;
         }
       }

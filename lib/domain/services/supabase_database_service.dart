@@ -1,6 +1,6 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:prep_up/domain/entities/app_settings_model.dart';
-import 'package:prep_up/domain/entities/interview_result_model.dart';
+import 'package:prep_up/domain/entities/interview_results_model.dart';
 import 'package:prep_up/domain/entities/interview_session_model.dart';
 import 'package:prep_up/domain/entities/user_model.dart';
 import 'package:prep_up/domain/services/relational_database_service.dart';
@@ -150,23 +150,26 @@ class SupabaseDatabaseService implements RelationalDatabaseService {
   }
 
   @override
-  Future<void> saveInterviewResult(InterviewResultModel result) async {
+  Future<void> saveInterviewResult(InterviewResultsModel result) async {
     final data = result.toJson();
     final dbData = {
       'id': data['id'],
       'session_id': data['sessionId'],
       'user_id': data['userId'],
-      'score': data['score'],
-      'success_probability': data['successProbability'],
+      'score': data['overallScore'],
+      'outcome': data['outcome'],
       'breakdown': data['breakdown'],
+      'highlights': data['highlights'],
+      'personalized_feedback': data['personalizedFeedback'],
       'recommendations': data['recommendations'],
+      'improvement_tips': data['improvementTips'],
       'analyzed_at': data['analyzedAt'],
     };
     await _supabase.from('resultados_entrevista').upsert(dbData);
   }
 
   @override
-  Future<InterviewResultModel?> getInterviewResultForSession(String sessionId) async {
+  Future<InterviewResultsModel?> getInterviewResultForSession(String sessionId) async {
     final response = await _supabase
         .from('resultados_entrevista')
         .select()
@@ -179,12 +182,15 @@ class SupabaseDatabaseService implements RelationalDatabaseService {
       'id': response['id'],
       'sessionId': response['session_id'],
       'userId': response['user_id'],
-      'score': response['score'],
-      'successProbability': response['success_probability'],
+      'overallScore': response['score'],
+      'outcome': response['outcome'],
       'breakdown': response['breakdown'],
+      'highlights': response['highlights'],
+      'personalizedFeedback': response['personalized_feedback'],
       'recommendations': response['recommendations'],
+      'improvementTips': response['improvement_tips'],
       'analyzedAt': response['analyzed_at'],
     };
-    return InterviewResultModel.fromJson(modelData);
+    return InterviewResultsModel.fromJson(modelData);
   }
 }

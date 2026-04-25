@@ -1,4 +1,4 @@
-import 'package:prep_up/domain/entities/interview_result_model.dart';
+import 'package:prep_up/domain/entities/interview_results_model.dart';
 import 'package:prep_up/domain/entities/interview_session_model.dart';
 
 abstract class AiInterviewService {
@@ -8,14 +8,11 @@ abstract class AiInterviewService {
     required int count,
   });
 
-  Future<InterviewResultModel> analyzeInterview({
+  Future<InterviewResultsModel> analyzeInterview({
     required InterviewSessionModel session,
     String? transcript,
     String? videoReference,
   });
-
-  // TODO: conectar con servicio de IA para generar preguntas de entrevista.
-  // TODO: conectar con servicio de IA para analizar entrevista y producir resultados.
 }
 
 class FakeAiInterviewService implements AiInterviewService {
@@ -39,7 +36,7 @@ class FakeAiInterviewService implements AiInterviewService {
   }
 
   @override
-  Future<InterviewResultModel> analyzeInterview({
+  Future<InterviewResultsModel> analyzeInterview({
     required InterviewSessionModel session,
     String? transcript,
     String? videoReference,
@@ -52,29 +49,28 @@ class FakeAiInterviewService implements AiInterviewService {
       InterviewType.mixed => 75,
     };
 
-    final probability = switch (session.type) {
-      InterviewType.behavioral => 0.76,
-      InterviewType.technical => 0.69,
-      InterviewType.mixed => 0.72,
-    };
+    final outcome = score >= 70 ? InterviewOutcome.approved : InterviewOutcome.improve;
 
-    return InterviewResultModel(
+    return InterviewResultsModel(
       id: 'result_${session.id}',
       sessionId: session.id,
       userId: session.userId,
       analyzedAt: now,
-      score: score,
-      successProbability: probability,
-      breakdown: const InterviewScoreBreakdownModel(
-        bodyLanguage: 74,
-        clarity: 70,
+      overallScore: score,
+      outcome: outcome,
+      breakdown: const InterviewResultsBreakdownModel(
+        communication: 74,
+        technicalKnowledge: 70,
         confidence: 77,
       ),
+      highlights: const ['Buena comunicación'],
+      personalizedFeedback: 'El candidato mostró buenas habilidades comunicativas.',
       recommendations: const [
         'Mantén respuestas más estructuradas (situación, acción, resultado).',
         'Practica pausas cortas para mejorar claridad.',
         'Refuerza ejemplos con métricas y resultados concretos.',
       ],
+      improvementTips: const ['Tip 1', 'Tip 2'],
     );
   }
 }

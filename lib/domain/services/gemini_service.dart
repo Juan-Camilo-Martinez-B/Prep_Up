@@ -639,6 +639,10 @@ Reglas:
 
     final parsed = InterviewResultsModel.fromJson(decoded);
     return InterviewResultsModel(
+      id: '',
+      sessionId: '',
+      userId: '',
+      analyzedAt: DateTime.now().toUtc(),
       overallScore: overallScore,
       outcome: outcome,
       breakdown: parsed.breakdown,

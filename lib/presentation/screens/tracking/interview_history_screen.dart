@@ -41,7 +41,7 @@ class _InterviewHistoryScreenState extends State<InterviewHistoryScreen> {
           session.id,
         );
         if (result != null) {
-          scores[session.id] = result.score;
+          scores[session.id] = result.overallScore;
         }
       }
 

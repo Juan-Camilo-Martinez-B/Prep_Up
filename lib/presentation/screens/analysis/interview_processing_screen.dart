@@ -4,7 +4,6 @@ import 'package:prep_up/core/localization/interview_l10n.dart';
 import 'package:prep_up/core/localization/l10n_extensions.dart';
 import 'package:prep_up/core/navigation/app_routes.dart';
 import 'package:prep_up/domain/entities/interview_config.dart';
-import 'package:prep_up/domain/entities/interview_result_model.dart';
 import 'package:prep_up/domain/entities/interview_results_model.dart';
 import 'package:prep_up/domain/entities/interview_session.dart';
 import 'package:prep_up/domain/entities/interview_session_model.dart';
@@ -105,19 +104,11 @@ class _InterviewProcessingScreenState extends State<InterviewProcessingScreen> {
         await _dbService.saveInterviewSession(sessionModel);
 
         // 2. Mapear y guardar el resultado
-        final resultModel = InterviewResultModel(
+        final resultModel = results.copyWith(
           id: UniqueKey().toString(),
           sessionId: sessionModel.id,
           userId: user.id,
           analyzedAt: DateTime.now().toUtc(),
-          score: results.overallScore,
-          successProbability: results.outcome == InterviewOutcome.approved ? 80.0 : 40.0,
-          breakdown: InterviewScoreBreakdownModel(
-            bodyLanguage: 50,
-            clarity: results.breakdown.communication,
-            confidence: results.breakdown.confidence,
-          ),
-          recommendations: results.recommendations,
         );
         await _dbService.saveInterviewResult(resultModel);
       }
@@ -125,7 +116,7 @@ class _InterviewProcessingScreenState extends State<InterviewProcessingScreen> {
 
       if (!mounted) return;
       setState(() {
-        _results = results;
+        _results = results; // We can keep the one from gemini, or the resultModel. Either way it has the data.
         _processedSession = processedSession;
         _isLoading = false;
       });

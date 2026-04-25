@@ -45,10 +45,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
           session.id,
         );
         if (result != null) {
-          scores.add(result.score.toDouble());
+          scores.add(result.overallScore.toDouble());
           // Simulación de breakdown si no está detallado
-          totalTech += result.score * 0.9;
-          totalFluency += result.score * 0.85;
+          totalTech += result.overallScore * 0.9;
+          totalFluency += result.overallScore * 0.85;
           count++;
         }
       }
