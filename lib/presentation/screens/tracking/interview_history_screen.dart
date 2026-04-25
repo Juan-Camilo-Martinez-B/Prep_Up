@@ -2,65 +2,109 @@ import 'package:flutter/material.dart';
 import 'package:prep_up/core/localization/interview_l10n.dart';
 import 'package:prep_up/core/localization/l10n_extensions.dart';
 import 'package:prep_up/core/navigation/app_routes.dart';
-import 'package:prep_up/domain/entities/interview_tags.dart';
+import 'package:prep_up/domain/entities/interview_config.dart';
+import 'package:prep_up/domain/entities/interview_session_model.dart';
+import 'package:prep_up/domain/services/auth_service.dart';
+import 'package:prep_up/domain/services/relational_database_service.dart';
+import 'package:prep_up/domain/services/supabase_database_service.dart';
 import 'package:prep_up/presentation/widgets/app_card.dart';
 import 'package:prep_up/presentation/widgets/app_primary_button.dart';
 import 'package:prep_up/presentation/widgets/app_screen_scaffold.dart';
+import 'package:intl/intl.dart';
 
-class InterviewHistoryScreen extends StatelessWidget {
+class InterviewHistoryScreen extends StatefulWidget {
   const InterviewHistoryScreen({super.key});
+
+  @override
+  State<InterviewHistoryScreen> createState() => _InterviewHistoryScreenState();
+}
+
+class _InterviewHistoryScreenState extends State<InterviewHistoryScreen> {
+  final RelationalDatabaseService _dbService = SupabaseDatabaseService();
+  final AuthService _authService = AuthService();
+  List<InterviewSessionModel> _history = [];
+  Map<String, int> _scores = {};
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadHistory();
+  }
+
+  Future<void> _loadHistory() async {
+    final user = _authService.currentUser;
+    if (user != null) {
+      final history = await _dbService.getInterviewHistoryForUser(user.id);
+      final Map<String, int> scores = {};
+      
+      for (final session in history) {
+        final result = await _dbService.getInterviewResultForSession(session.id);
+        if (result != null) {
+          scores[session.id] = result.score;
+        }
+      }
+
+      if (mounted) {
+        setState(() {
+          _history = history;
+          _scores = scores;
+          _isLoading = false;
+        });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final items = const [
-      _HistoryItem(
-        JobRole.frontendDeveloper,
-        InterviewConfigType.mixed,
-        '76',
-        _HistoryWhen.daysAgo,
-        2,
-      ),
-      _HistoryItem(
-        JobRole.mobileDeveloper,
-        InterviewConfigType.rrhh,
-        '81',
-        _HistoryWhen.daysAgo,
-        5,
-      ),
-      _HistoryItem(
-        JobRole.dataAnalyst,
-        InterviewConfigType.technical,
-        '69',
-        _HistoryWhen.weeksAgo,
-        1,
-      ),
-      _HistoryItem(
-        JobRole.uiUxDesigner,
-        InterviewConfigType.rrhh,
-        '74',
-        _HistoryWhen.weeksAgo,
-        2,
-      ),
-    ];
+
+    if (_isLoading) {
+      return const AppScreenScaffold(
+        title: '',
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
 
     return AppScreenScaffold(
       title: l10n.historyTitle,
       background: const TechBackground(),
       body: ListView(
         children: [
-          for (final item in items) ...[
+          if (_history.isEmpty)
             AppCard(
-              onTap: () =>
-                  Navigator.of(context).pushNamed(AppRoutes.generalResults),
-              title: item.role.label(l10n),
-              subtitle:
-                  '${item.type.label(l10n)} • ${item.when == _HistoryWhen.daysAgo ? l10n.historyWhenDaysAgo(item.amount) : l10n.historyWhenWeeksAgo(item.amount)}',
-              leading: _ScoreBadge(score: item.score),
-              trailing: const Icon(Icons.arrow_forward_rounded),
-            ),
-            const SizedBox(height: 12),
-          ],
+              title: l10n.statsNoDataTitle,
+              subtitle: l10n.statsNoDataSubtitle,
+              child: const SizedBox.shrink(),
+            )
+          else
+            ..._history.map((session) {
+              final score = _scores[session.id]?.toString() ?? '--';
+              final date = DateFormat.yMMMd(Localizations.localeOf(context).languageCode)
+                  .format(session.createdAt);
+              
+              return Column(
+                children: [
+                  AppCard(
+                    onTap: () async {
+                      final result = await _dbService.getInterviewResultForSession(session.id);
+                      if (result != null && mounted) {
+                        Navigator.of(context).pushNamed(
+                          AppRoutes.generalResults,
+                          arguments: {'results': result},
+                        );
+                      }
+                    },
+                    title: session.jobRole,
+                    subtitle: '${session.type.name.toUpperCase()} • $date',
+                    leading: _ScoreBadge(score: score),
+                    trailing: const Icon(Icons.arrow_forward_rounded),
+                  ),
+                  const SizedBox(height: 12),
+                ],
+              );
+            }),
+          const SizedBox(height: 12),
           AppPrimaryButton(
             label: l10n.backToDashboard,
             icon: Icons.home_rounded,
@@ -73,18 +117,6 @@ class InterviewHistoryScreen extends StatelessWidget {
     );
   }
 }
-
-class _HistoryItem {
-  const _HistoryItem(this.role, this.type, this.score, this.when, this.amount);
-
-  final JobRole role;
-  final InterviewConfigType type;
-  final String score;
-  final _HistoryWhen when;
-  final int amount;
-}
-
-enum _HistoryWhen { daysAgo, weeksAgo }
 
 class _ScoreBadge extends StatelessWidget {
   const _ScoreBadge({required this.score});

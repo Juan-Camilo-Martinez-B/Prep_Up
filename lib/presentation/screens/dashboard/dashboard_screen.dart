@@ -2,12 +2,67 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:prep_up/core/localization/l10n_extensions.dart';
 import 'package:prep_up/core/navigation/app_routes.dart';
+import 'package:prep_up/domain/services/auth_service.dart';
+import 'package:prep_up/domain/services/relational_database_service.dart';
+import 'package:prep_up/domain/services/supabase_database_service.dart';
 import 'package:prep_up/presentation/controllers/interview_config_controller.dart';
 import 'package:prep_up/presentation/widgets/app_screen_scaffold.dart';
 import 'package:provider/provider.dart';
 
-class DashboardScreen extends StatelessWidget {
+class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
+
+  @override
+  State<DashboardScreen> createState() => _DashboardScreenState();
+}
+
+class _DashboardScreenState extends State<DashboardScreen> {
+  final RelationalDatabaseService _dbService = SupabaseDatabaseService();
+  final AuthService _authService = AuthService();
+  List<double> _scoreHistory = [];
+  int _avgTechnical = 0;
+  int _avgFluency = 0;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadDashboardData();
+  }
+
+  Future<void> _loadDashboardData() async {
+    final user = _authService.currentUser;
+    if (user != null) {
+      final history = await _dbService.getInterviewHistoryForUser(user.id);
+      final List<double> scores = [];
+      double totalTech = 0;
+      double totalFluency = 0;
+      int count = 0;
+
+      for (final session in history.take(7)) {
+        // Últimas 7 para el gráfico
+        final result = await _dbService.getInterviewResultForSession(
+          session.id,
+        );
+        if (result != null) {
+          scores.add(result.score.toDouble());
+          // Simulación de breakdown si no está detallado
+          totalTech += result.score * 0.9;
+          totalFluency += result.score * 0.85;
+          count++;
+        }
+      }
+
+      if (mounted) {
+        setState(() {
+          _scoreHistory = scores.reversed.toList();
+          _avgTechnical = count > 0 ? (totalTech / count).round() : 0;
+          _avgFluency = count > 0 ? (totalFluency / count).round() : 0;
+          _isLoading = false;
+        });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -15,7 +70,7 @@ class DashboardScreen extends StatelessWidget {
     final l10n = context.l10n;
 
     return AppScreenScaffold(
-      title: '', // Empty title to fully customize the top area
+      title: '',
       titleWidget: Text(
         l10n.dashboardMyAccount,
         style: const TextStyle(fontWeight: FontWeight.w300, fontSize: 16),
@@ -24,7 +79,7 @@ class DashboardScreen extends StatelessWidget {
       actions: [
         IconButton(
           onPressed: () => Navigator.of(context).pushNamed(AppRoutes.settings),
-          icon: const Icon(Icons.menu_rounded), // Hamburger menu like in image
+          icon: const Icon(Icons.menu_rounded),
           tooltip: l10n.dashboardMenuTooltip,
         ),
       ],
@@ -71,7 +126,7 @@ class DashboardScreen extends StatelessWidget {
                 label: l10n.dashboardNavProfile,
                 onTap: () => Navigator.of(context).pushNamed(AppRoutes.profile),
               ),
-              const SizedBox(width: 48), // Space for FAB
+              const SizedBox(width: 48),
               _NavBarItem(
                 icon: Icons.history_rounded,
                 label: l10n.dashboardNavHistory,
@@ -93,7 +148,6 @@ class DashboardScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 16),
-          // --- GLOWING CHART CARD ---
           Container(
             height: 200,
             decoration: BoxDecoration(
@@ -111,23 +165,29 @@ class DashboardScreen extends StatelessWidget {
                 ),
               ],
             ),
-            child: const Padding(
-              padding: EdgeInsets.only(top: 24, bottom: 8, left: 16, right: 16),
-              child: _GlowingLineChart(),
+            child: Padding(
+              padding: const EdgeInsets.only(
+                top: 24,
+                bottom: 8,
+                left: 16,
+                right: 16,
+              ),
+              child: _isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : _GlowingLineChart(scores: _scoreHistory),
             ),
           ),
           const SizedBox(height: 24),
 
-          // --- SPECIFIC STATISTICS LIST ---
           _NeonStatItem(
-            index: '01',
+            index: _avgTechnical.toString(),
             title: l10n.dashboardStatTechnicalAccuracyTitle,
             subtitle: l10n.dashboardStatTechnicalAccuracySubtitle,
             color: scheme.primary,
           ),
           const SizedBox(height: 16),
           _NeonStatItem(
-            index: '02',
+            index: _avgFluency.toString(),
             title: l10n.dashboardStatVerbalFluencyTitle,
             subtitle: l10n.dashboardStatVerbalFluencySubtitle,
             color: Colors.purpleAccent,
@@ -198,7 +258,9 @@ class DashboardScreen extends StatelessWidget {
 }
 
 class _GlowingLineChart extends StatelessWidget {
-  const _GlowingLineChart();
+  const _GlowingLineChart({required this.scores});
+
+  final List<double> scores;
 
   @override
   Widget build(BuildContext context) {
@@ -206,6 +268,7 @@ class _GlowingLineChart extends StatelessWidget {
       painter: _LineChartPainter(
         color1: Theme.of(context).colorScheme.primary,
         color2: Colors.purpleAccent,
+        scores: scores,
       ),
       child: const SizedBox.expand(),
     );
@@ -213,26 +276,31 @@ class _GlowingLineChart extends StatelessWidget {
 }
 
 class _LineChartPainter extends CustomPainter {
-  _LineChartPainter({required this.color1, required this.color2});
+  _LineChartPainter({
+    required this.color1,
+    required this.color2,
+    required this.scores,
+  });
 
   final Color color1;
   final Color color2;
+  final List<double> scores;
 
   @override
   void paint(Canvas canvas, Size size) {
     final w = size.width;
     final h = size.height;
 
-    // Simulate some chart points
-    final points = [
-      Offset(0, h * 0.7),
-      Offset(w * 0.15, h * 0.3),
-      Offset(w * 0.3, h * 0.6),
-      Offset(w * 0.5, h * 0.1), // peak
-      Offset(w * 0.7, h * 0.8),
-      Offset(w * 0.85, h * 0.4),
-      Offset(w, h * 0.6),
-    ];
+    if (scores.isEmpty) return;
+
+    final points = <Offset>[];
+    final stepX = scores.length > 1 ? w / (scores.length - 1) : w;
+
+    for (var i = 0; i < scores.length; i++) {
+      // Normalizar puntaje (0-100) a la altura del canvas
+      final y = h - (scores[i] / 100 * h);
+      points.add(Offset(i * stepX, y));
+    }
 
     final path = Path()..moveTo(points.first.dx, points.first.dy);
     for (var i = 1; i < points.length; i++) {
