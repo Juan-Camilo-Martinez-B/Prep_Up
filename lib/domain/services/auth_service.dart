@@ -1,7 +1,11 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:prep_up/domain/entities/user_model.dart';
+import 'package:prep_up/domain/services/relational_database_service.dart';
+import 'package:prep_up/domain/services/supabase_database_service.dart';
 
 class AuthService {
   final SupabaseClient _supabase = Supabase.instance.client;
+  final RelationalDatabaseService _dbService = SupabaseDatabaseService();
 
   /// Registro de usuario
   Future<AuthResponse> signUp({
@@ -17,6 +21,18 @@ class AuthService {
         data: metadata,
         emailRedirectTo: emailRedirectTo,
       );
+
+      if (response.user != null) {
+        final newUser = UserModel(
+          id: response.user!.id,
+          email: email,
+          displayName: metadata['full_name'] ?? '',
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        );
+        await _dbService.upsertUser(newUser);
+      }
+
       return response;
     } catch (e) {
       rethrow;
@@ -33,6 +49,22 @@ class AuthService {
         email: email,
         password: password,
       );
+
+      if (response.user != null) {
+        // Asegurar que el perfil existe en la tabla usuarios al iniciar sesión
+        final existing = await _dbService.getUserById(response.user!.id);
+        if (existing == null) {
+          final newUser = UserModel(
+            id: response.user!.id,
+            email: email,
+            displayName: response.user!.userMetadata?['full_name'] ?? '',
+            createdAt: DateTime.now(),
+            updatedAt: DateTime.now(),
+          );
+          await _dbService.upsertUser(newUser);
+        }
+      }
+
       return response;
     } catch (e) {
       rethrow;

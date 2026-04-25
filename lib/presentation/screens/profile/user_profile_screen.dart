@@ -1,17 +1,57 @@
 import 'package:flutter/material.dart';
 import 'package:prep_up/core/localization/l10n_extensions.dart';
 import 'package:prep_up/core/navigation/app_routes.dart';
+import 'package:prep_up/domain/entities/user_model.dart';
+import 'package:prep_up/domain/services/auth_service.dart';
+import 'package:prep_up/domain/services/relational_database_service.dart';
+import 'package:prep_up/domain/services/supabase_database_service.dart';
 import 'package:prep_up/presentation/widgets/app_card.dart';
 import 'package:prep_up/presentation/widgets/app_primary_button.dart';
 import 'package:prep_up/presentation/widgets/app_screen_scaffold.dart';
 
-class UserProfileScreen extends StatelessWidget {
+class UserProfileScreen extends StatefulWidget {
   const UserProfileScreen({super.key});
+
+  @override
+  State<UserProfileScreen> createState() => _UserProfileScreenState();
+}
+
+class _UserProfileScreenState extends State<UserProfileScreen> {
+  final RelationalDatabaseService _dbService = SupabaseDatabaseService();
+  final AuthService _authService = AuthService();
+  UserModel? _user;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserData();
+  }
+
+  Future<void> _loadUserData() async {
+    final currentUser = _authService.currentUser;
+    if (currentUser != null) {
+      final user = await _dbService.getUserById(currentUser.id);
+      if (mounted) {
+        setState(() {
+          _user = user;
+          _isLoading = false;
+        });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final l10n = context.l10n;
+
+    if (_isLoading) {
+      return const AppScreenScaffold(
+        title: '',
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
 
     return AppScreenScaffold(
       title: l10n.profileTitle,
@@ -19,8 +59,8 @@ class UserProfileScreen extends StatelessWidget {
       body: ListView(
         children: [
           AppCard(
-            title: l10n.profileDemoName,
-            subtitle: l10n.profileDemoSubtitle,
+            title: _user?.displayName ?? l10n.profileDemoName,
+            subtitle: _user?.occupation ?? l10n.profileDemoSubtitle,
             leading: Container(
               width: 48,
               height: 48,
