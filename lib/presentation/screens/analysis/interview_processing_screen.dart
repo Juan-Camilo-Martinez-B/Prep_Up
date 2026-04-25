@@ -6,7 +6,11 @@ import 'package:prep_up/core/navigation/app_routes.dart';
 import 'package:prep_up/domain/entities/interview_config.dart';
 import 'package:prep_up/domain/entities/interview_results_model.dart';
 import 'package:prep_up/domain/entities/interview_session.dart';
+import 'package:prep_up/domain/entities/interview_session_model.dart';
+import 'package:prep_up/domain/services/auth_service.dart';
 import 'package:prep_up/domain/services/gemini_service.dart';
+import 'package:prep_up/domain/services/relational_database_service.dart';
+import 'package:prep_up/domain/services/supabase_database_service.dart';
 import 'package:prep_up/presentation/controllers/interview_config_controller.dart';
 import 'package:prep_up/presentation/widgets/app_primary_button.dart';
 import 'package:prep_up/presentation/widgets/app_screen_scaffold.dart';
@@ -24,6 +28,8 @@ class InterviewProcessingScreen extends StatefulWidget {
 }
 
 class _InterviewProcessingScreenState extends State<InterviewProcessingScreen> {
+  final RelationalDatabaseService _dbService = SupabaseDatabaseService();
+  final AuthService _authService = AuthService();
   InterviewResultsModel? _results;
   InterviewSession? _processedSession;
   String? _error;
@@ -74,6 +80,33 @@ class _InterviewProcessingScreenState extends State<InterviewProcessingScreen> {
         session: processedSession,
         language: languageCode,
       );
+
+      // --- PERSISTENCIA ---
+      final user = _authService.currentUser;
+      if (user != null) {
+        // 1. Mapear y guardar la sesión
+        final sessionModel = InterviewSessionModel(
+          id: UniqueKey().toString(), // O generar un UUID real
+          userId: user.id,
+          type: config.type ?? InterviewConfigType.mixed,
+          jobRole: config.jobRole?.label(l10n) ?? 'Unknown',
+          status: InterviewSessionStatus.completed,
+          questionCount: processedSession.turns.length,
+          timeLimitSeconds: (config.durationMinutes ?? 3) * 60,
+          createdAt: processedSession.startedAt,
+          updatedAt: DateTime.now().toUtc(),
+        );
+        await _dbService.saveInterviewSession(sessionModel);
+
+        // 2. Mapear y guardar el resultado
+        final resultsWithSession = results.copyWith(
+          id: UniqueKey().toString(),
+          sessionId: sessionModel.id,
+        );
+        await _dbService.saveInterviewResult(resultsWithSession);
+      }
+      // --------------------
+
       if (!mounted) return;
       setState(() {
         _results = results;
