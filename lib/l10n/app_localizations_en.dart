@@ -1168,4 +1168,22 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get callAnswersSavedBody =>
       'During the call we only save your answers to keep the interview fluid. Once it ends, we generate the full analysis.';
+
+  @override
+  String get profileEditTitle => 'Edit Profile';
+
+  @override
+  String get profileEditName => 'Name';
+
+  @override
+  String get profileEditOccupation => 'Occupation';
+
+  @override
+  String get profileEditPhone => 'Phone';
+
+  @override
+  String get profileLevelPro => 'Pro';
+
+  @override
+  String get profileLevelRookie => 'Rookie';
 }

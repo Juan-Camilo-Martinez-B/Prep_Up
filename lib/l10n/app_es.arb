@@ -533,5 +533,11 @@
     }
   },
   "callAnswersSavedBody": "Durante la llamada solo guardamos tus respuestas para mantener la entrevista fluida. Al terminar, generamos el análisis completo.",
-  "callSendToGemini": "Enviar y continuar"
+  "callSendToGemini": "Enviar y continuar",
+  "profileEditTitle": "Editar Perfil",
+  "profileEditName": "Nombre",
+  "profileEditOccupation": "Ocupación",
+  "profileEditPhone": "Teléfono",
+  "profileLevelPro": "Pro",
+  "profileLevelRookie": "Rookie"
 }

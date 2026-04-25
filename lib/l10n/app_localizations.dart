@@ -2203,6 +2203,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'During the call we only save your answers to keep the interview fluid. Once it ends, we generate the full analysis.'**
   String get callAnswersSavedBody;
+
+  /// No description provided for @profileEditTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Profile'**
+  String get profileEditTitle;
+
+  /// No description provided for @profileEditName.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get profileEditName;
+
+  /// No description provided for @profileEditOccupation.
+  ///
+  /// In en, this message translates to:
+  /// **'Occupation'**
+  String get profileEditOccupation;
+
+  /// No description provided for @profileEditPhone.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone'**
+  String get profileEditPhone;
+
+  /// No description provided for @profileLevelPro.
+  ///
+  /// In en, this message translates to:
+  /// **'Pro'**
+  String get profileLevelPro;
+
+  /// No description provided for @profileLevelRookie.
+  ///
+  /// In en, this message translates to:
+  /// **'Rookie'**
+  String get profileLevelRookie;
 }
 
 class _AppLocalizationsDelegate

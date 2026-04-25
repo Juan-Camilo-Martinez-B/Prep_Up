@@ -93,7 +93,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Editar Perfil', // TODO: Move to .arb in Phase 7
+                l10n.profileEditTitle,
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
                   fontWeight: FontWeight.bold,
                 ),
@@ -102,7 +102,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
               TextField(
                 controller: nameController,
                 decoration: InputDecoration(
-                  labelText: 'Nombre', // TODO: Move to .arb in Phase 7
+                  labelText: l10n.profileEditName,
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                   prefixIcon: const Icon(Icons.person_outline_rounded),
                 ),
@@ -111,7 +111,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
               TextField(
                 controller: occupationController,
                 decoration: InputDecoration(
-                  labelText: 'Ocupación', // TODO: Move to .arb in Phase 7
+                  labelText: l10n.profileEditOccupation,
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                   prefixIcon: const Icon(Icons.work_outline_rounded),
                 ),
@@ -121,7 +121,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                 controller: phoneController,
                 keyboardType: TextInputType.phone,
                 decoration: InputDecoration(
-                  labelText: 'Teléfono', // TODO: Move to .arb in Phase 7
+                  labelText: l10n.profileEditPhone,
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                   prefixIcon: const Icon(Icons.phone_outlined),
                 ),
@@ -219,8 +219,8 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                   leftValue: '0',
                   rightLabel: l10n.profileStatLevel,
                   rightValue: _interviewCount > 5
-                      ? 'Pro' // Temporarily hardcoded, move to .arb in Phase 7
-                      : 'Rookie',
+                      ? l10n.profileLevelPro
+                      : l10n.profileLevelRookie,
                 ),
               ],
             ),

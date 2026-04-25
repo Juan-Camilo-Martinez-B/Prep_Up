@@ -533,5 +533,11 @@
     }
   },
   "callAnswersSavedBody": "During the call we only save your answers to keep the interview fluid. Once it ends, we generate the full analysis.",
-  "callSendToGemini": "Send and continue"
+  "callSendToGemini": "Send and continue",
+  "profileEditTitle": "Edit Profile",
+  "profileEditName": "Name",
+  "profileEditOccupation": "Occupation",
+  "profileEditPhone": "Phone",
+  "profileLevelPro": "Pro",
+  "profileLevelRookie": "Rookie"
 }

@@ -1175,4 +1175,22 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get callAnswersSavedBody =>
       'Durante la llamada solo guardamos tus respuestas para mantener la entrevista fluida. Al terminar, generamos el análisis completo.';
+
+  @override
+  String get profileEditTitle => 'Editar Perfil';
+
+  @override
+  String get profileEditName => 'Nombre';
+
+  @override
+  String get profileEditOccupation => 'Ocupación';
+
+  @override
+  String get profileEditPhone => 'Teléfono';
+
+  @override
+  String get profileLevelPro => 'Pro';
+
+  @override
+  String get profileLevelRookie => 'Rookie';
 }
