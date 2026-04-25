@@ -47,11 +47,17 @@ class _AiInterviewTrainerAppState extends State<AiInterviewTrainerApp> {
   @override
   void initState() {
     super.initState();
-    _localeController.load().then((_) {
-      if (mounted) {
-        setState(() {});
-      }
-    });
+    _loadInitialSettings();
+  }
+
+  Future<void> _loadInitialSettings() async {
+    await Future.wait([
+      _themeController.load(),
+      _localeController.load(),
+    ]);
+    if (mounted) {
+      setState(() {});
+    }
   }
 
   @override
