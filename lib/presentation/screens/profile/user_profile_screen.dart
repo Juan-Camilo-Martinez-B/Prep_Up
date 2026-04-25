@@ -20,6 +20,8 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   final RelationalDatabaseService _dbService = SupabaseDatabaseService();
   final AuthService _authService = AuthService();
   UserModel? _user;
+  int _interviewCount = 0;
+  double _avgScore = 0.0;
   bool _isLoading = true;
 
   @override
@@ -32,13 +34,134 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     final currentUser = _authService.currentUser;
     if (currentUser != null) {
       final user = await _dbService.getUserById(currentUser.id);
+      
+      final history = await _dbService.getInterviewHistoryForUser(currentUser.id);
+      int count = 0;
+      double totalScore = 0;
+      
+      for (final session in history) {
+        final result = await _dbService.getInterviewResultForSession(session.id);
+        if (result != null) {
+          totalScore += result.score;
+          count++;
+        }
+      }
+      
       if (mounted) {
         setState(() {
           _user = user;
+          _interviewCount = count;
+          _avgScore = count > 0 ? totalScore / count : 0;
+          _isLoading = false;
+        });
+      }
+    } else {
+      if (mounted) {
+        setState(() {
           _isLoading = false;
         });
       }
     }
+  }
+
+  void _showEditProfileModal() {
+    if (_user == null) return;
+    
+    final nameController = TextEditingController(text: _user!.displayName);
+    final occupationController = TextEditingController(text: _user!.occupation ?? '');
+    final phoneController = TextEditingController(text: _user!.phone ?? '');
+    
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        final l10n = context.l10n;
+        
+        return Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+            left: 20,
+            right: 20,
+            top: 20,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Editar Perfil', // TODO: Move to .arb in Phase 7
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 20),
+              TextField(
+                controller: nameController,
+                decoration: InputDecoration(
+                  labelText: 'Nombre', // TODO: Move to .arb in Phase 7
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  prefixIcon: const Icon(Icons.person_outline_rounded),
+                ),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: occupationController,
+                decoration: InputDecoration(
+                  labelText: 'Ocupación', // TODO: Move to .arb in Phase 7
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  prefixIcon: const Icon(Icons.work_outline_rounded),
+                ),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: phoneController,
+                keyboardType: TextInputType.phone,
+                decoration: InputDecoration(
+                  labelText: 'Teléfono', // TODO: Move to .arb in Phase 7
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  prefixIcon: const Icon(Icons.phone_outlined),
+                ),
+              ),
+              const SizedBox(height: 24),
+              AppPrimaryButton(
+                label: l10n.genericSave,
+                onPressed: () async {
+                  final updatedUser = _user!.copyWith(
+                    displayName: nameController.text.trim(),
+                    occupation: occupationController.text.trim(),
+                    phone: phoneController.text.trim(),
+                    updatedAt: DateTime.now(),
+                  );
+                  
+                  // Show loading dialog
+                  showDialog(
+                    context: context,
+                    barrierDismissible: false,
+                    builder: (c) => const Center(child: CircularProgressIndicator()),
+                  );
+                  
+                  await _dbService.upsertUser(updatedUser);
+                  
+                  // Dismiss loading and bottom sheet
+                  if (context.mounted) {
+                    Navigator.pop(context); // close dialog
+                    Navigator.pop(context); // close sheet
+                    setState(() {
+                      _user = updatedUser;
+                    });
+                  }
+                },
+              ),
+              const SizedBox(height: 20),
+            ],
+          ),
+        );
+      },
+    );
   }
 
   @override
@@ -78,22 +201,26 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                 color: scheme.onPrimaryContainer,
               ),
             ),
-            trailing: Icon(Icons.verified_rounded, color: scheme.primary),
+            trailing: IconButton(
+              icon: Icon(Icons.edit_rounded, color: scheme.primary),
+              onPressed: _showEditProfileModal,
+            ),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _StatRow(
                   leftLabel: l10n.profileStatInterviews,
-                  leftValue: '12',
+                  leftValue: _interviewCount.toString(),
                   rightLabel: l10n.profileStatAvgScore,
-                  rightValue: '76',
+                  rightValue: _avgScore.toStringAsFixed(0),
                 ),
                 const SizedBox(height: 10),
                 _StatRow(
                   leftLabel: l10n.profileStatStreak,
-                  leftValue: '4 días',
+                  leftValue: '0',
                   rightLabel: l10n.profileStatLevel,
-                  rightValue: 'Rookie+',
+                  rightValue: _interviewCount > 5
+                      ? 'Pro' // Temporarily hardcoded, move to .arb in Phase 7
+                      : 'Rookie',
                 ),
               ],
             ),
@@ -123,10 +250,9 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
           AppPrimaryButton(
             label: l10n.backToDashboard,
             icon: Icons.home_rounded,
-            onPressed: () => Navigator.of(context).pushNamedAndRemoveUntil(
-              AppRoutes.dashboard,
-              (route) => false,
-            ),
+            onPressed: () => Navigator.of(
+              context,
+            ).pushNamedAndRemoveUntil(AppRoutes.dashboard, (route) => false),
           ),
         ],
       ),
@@ -161,7 +287,10 @@ class _StatRow extends StatelessWidget {
           child: _MiniStat(label: rightLabel, value: rightValue),
         ),
         const SizedBox(width: 0),
-        Icon(Icons.auto_awesome_rounded, color: scheme.primary.withValues(alpha: 0.6)),
+        Icon(
+          Icons.auto_awesome_rounded,
+          color: scheme.primary.withValues(alpha: 0.6),
+        ),
       ],
     );
   }
@@ -232,9 +361,9 @@ class _AchievementTile extends StatelessWidget {
               const SizedBox(height: 2),
               Text(
                 subtitle,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: scheme.onSurfaceVariant,
-                    ),
+                style: Theme.of(
+                  context,
+                ).textTheme.bodySmall?.copyWith(color: scheme.onSurfaceVariant),
               ),
             ],
           ),

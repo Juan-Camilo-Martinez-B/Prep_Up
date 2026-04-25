@@ -97,7 +97,9 @@ class InMemoryRelationalDatabaseService implements RelationalDatabaseService {
   }
 
   @override
-  Future<InterviewSessionModel?> getInterviewSessionById(String sessionId) async {
+  Future<InterviewSessionModel?> getInterviewSessionById(
+    String sessionId,
+  ) async {
     _ensureInitialized();
     return _sessionsById[sessionId];
   }
@@ -113,7 +115,6 @@ class InMemoryRelationalDatabaseService implements RelationalDatabaseService {
         .whereType<InterviewSessionModel>()
         .toList();
   }
-
   @override
   Future<void> saveInterviewResult(InterviewResultModel result) async {
     _ensureInitialized();

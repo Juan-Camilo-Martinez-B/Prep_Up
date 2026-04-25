@@ -4,9 +4,11 @@ import 'package:prep_up/core/localization/interview_l10n.dart';
 import 'package:prep_up/core/localization/l10n_extensions.dart';
 import 'package:prep_up/core/navigation/app_routes.dart';
 import 'package:prep_up/domain/entities/interview_config.dart';
+import 'package:prep_up/domain/entities/interview_result_model.dart';
 import 'package:prep_up/domain/entities/interview_results_model.dart';
 import 'package:prep_up/domain/entities/interview_session.dart';
 import 'package:prep_up/domain/entities/interview_session_model.dart';
+import 'package:prep_up/domain/entities/interview_tags.dart';
 import 'package:prep_up/domain/services/auth_service.dart';
 import 'package:prep_up/domain/services/gemini_service.dart';
 import 'package:prep_up/domain/services/relational_database_service.dart';
@@ -88,7 +90,11 @@ class _InterviewProcessingScreenState extends State<InterviewProcessingScreen> {
         final sessionModel = InterviewSessionModel(
           id: UniqueKey().toString(), // O generar un UUID real
           userId: user.id,
-          type: config.type ?? InterviewConfigType.mixed,
+          type: switch (config.type) {
+            InterviewConfigType.technical => InterviewType.technical,
+            InterviewConfigType.rrhh => InterviewType.behavioral,
+            _ => InterviewType.mixed,
+          },
           jobRole: config.jobRole?.label(l10n) ?? 'Unknown',
           status: InterviewSessionStatus.completed,
           questionCount: processedSession.turns.length,
@@ -99,11 +105,21 @@ class _InterviewProcessingScreenState extends State<InterviewProcessingScreen> {
         await _dbService.saveInterviewSession(sessionModel);
 
         // 2. Mapear y guardar el resultado
-        final resultsWithSession = results.copyWith(
+        final resultModel = InterviewResultModel(
           id: UniqueKey().toString(),
           sessionId: sessionModel.id,
+          userId: user.id,
+          analyzedAt: DateTime.now().toUtc(),
+          score: results.overallScore,
+          successProbability: results.outcome == InterviewOutcome.approved ? 80.0 : 40.0,
+          breakdown: InterviewScoreBreakdownModel(
+            bodyLanguage: 50,
+            clarity: results.breakdown.communication,
+            confidence: results.breakdown.confidence,
+          ),
+          recommendations: results.recommendations,
         );
-        await _dbService.saveInterviewResult(resultsWithSession);
+        await _dbService.saveInterviewResult(resultModel);
       }
       // --------------------
 

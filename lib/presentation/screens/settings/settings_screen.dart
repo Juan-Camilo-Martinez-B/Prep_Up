@@ -4,6 +4,8 @@ import 'package:prep_up/core/localization/l10n_extensions.dart';
 import 'package:prep_up/core/navigation/app_routes.dart';
 import 'package:prep_up/domain/entities/app_settings_model.dart';
 import 'package:prep_up/domain/services/auth_service.dart';
+import 'package:prep_up/domain/services/relational_database_service.dart';
+import 'package:prep_up/domain/services/supabase_database_service.dart';
 import 'package:prep_up/presentation/widgets/app_card.dart';
 import 'package:prep_up/presentation/widgets/app_screen_scaffold.dart';
 import 'package:prep_up/theme/app_theme.dart';
@@ -16,8 +18,44 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
-  var _haptics = true;
-  var _notifications = true;
+  final RelationalDatabaseService _dbService = SupabaseDatabaseService();
+  final AuthService _authService = AuthService();
+  
+  AppSettingsModel? _settings;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSettings();
+  }
+
+  Future<void> _loadSettings() async {
+    final user = _authService.currentUser;
+    if (user != null) {
+      final settings = await _dbService.getSettingsForUser(user.id);
+      if (mounted) {
+        setState(() {
+          _settings = settings ?? AppSettingsModel.defaults();
+          _isLoading = false;
+        });
+      }
+    } else {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _updateSettings(AppSettingsModel newSettings) async {
+    setState(() => _settings = newSettings);
+    final user = _authService.currentUser;
+    if (user != null) {
+      await _dbService.saveSettingsForUser(user.id, newSettings);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -27,6 +65,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final themeMode = themeController.themeMode;
     final localeController = AppLocaleScope.of(context);
     final locale = localeController.locale.languageCode;
+
+    if (_isLoading) {
+      return AppScreenScaffold(
+        title: l10n.settingsTitle,
+        centerTitle: true,
+        background: const TechBackground(),
+        body: const Center(child: CircularProgressIndicator()),
+      );
+    }
 
     return AppScreenScaffold(
       title: l10n.settingsTitle,
@@ -78,12 +125,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 Text(
                   l10n.myProfile,
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 const SizedBox(height: 4),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: scheme.primary.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(12),
@@ -105,9 +155,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
           Text(
             l10n.personalization,
             style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: scheme.onSurfaceVariant,
-                ),
+              fontWeight: FontWeight.bold,
+              color: scheme.onSurfaceVariant,
+            ),
           ),
           const SizedBox(height: 12),
           AppCard(
@@ -122,7 +172,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         color: scheme.primary.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: Icon(Icons.color_lens_rounded, color: scheme.primary),
+                      child: Icon(
+                        Icons.color_lens_rounded,
+                        color: scheme.primary,
+                      ),
                     ),
                     const SizedBox(width: 16),
                     Expanded(
@@ -136,7 +189,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 const SizedBox(height: 16),
                 SegmentedButton<AppThemeMode>(
                   style: SegmentedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
                   ),
                   segments: [
                     ButtonSegment(
@@ -165,8 +221,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                   ],
                   selected: {themeMode},
-                  onSelectionChanged: (selection) {
-                    themeController.setThemeMode(selection.first);
+                  onSelectionChanged: (selection) async {
+                    final newMode = selection.first;
+                    themeController.setThemeMode(newMode);
+                    if (_settings != null) {
+                      await _updateSettings(_settings!.copyWith(themeMode: newMode));
+                    }
                   },
                 ),
               ],
@@ -185,7 +245,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         color: scheme.primary.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: Icon(Icons.language_rounded, color: scheme.primary),
+                      child: Icon(
+                        Icons.language_rounded,
+                        color: scheme.primary,
+                      ),
                     ),
                     const SizedBox(width: 16),
                     Expanded(
@@ -224,6 +287,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   onSelectionChanged: (selection) {
                     final next = selection.first;
                     localeController.setLocale(Locale(next));
+                    // Language is usually stored in local preferences or we can add it to settings if we want
                   },
                 ),
               ],
@@ -236,12 +300,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
             child: Column(
               children: [
                 SwitchListTile(
-                  value: _haptics,
-                  onChanged: (v) => setState(() => _haptics = v),
+                  value: _settings?.enableHaptics ?? true,
+                  onChanged: (v) {
+                    if (_settings != null) {
+                      _updateSettings(_settings!.copyWith(enableHaptics: v));
+                    }
+                  },
                   title: Text(l10n.hapticFeedback),
                   subtitle: Text(
                     l10n.hapticSubtitle,
-                    style: TextStyle(color: scheme.onSurfaceVariant, fontSize: 12),
+                    style: TextStyle(
+                      color: scheme.onSurfaceVariant,
+                      fontSize: 12,
+                    ),
                   ),
                   secondary: Container(
                     padding: const EdgeInsets.all(8),
@@ -249,18 +320,28 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       color: scheme.secondary.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: Icon(Icons.vibration_rounded, color: scheme.secondary),
+                    child: Icon(
+                      Icons.vibration_rounded,
+                      color: scheme.secondary,
+                    ),
                   ),
                   activeThumbColor: scheme.primary,
                 ),
                 const Divider(height: 1, indent: 64),
                 SwitchListTile(
-                  value: _notifications,
-                  onChanged: (v) => setState(() => _notifications = v),
+                  value: _settings?.enableNotifications ?? true,
+                  onChanged: (v) {
+                    if (_settings != null) {
+                      _updateSettings(_settings!.copyWith(enableNotifications: v));
+                    }
+                  },
                   title: Text(l10n.pushNotifications),
                   subtitle: Text(
                     l10n.pushNotificationsSubtitle,
-                    style: TextStyle(color: scheme.onSurfaceVariant, fontSize: 12),
+                    style: TextStyle(
+                      color: scheme.onSurfaceVariant,
+                      fontSize: 12,
+                    ),
                   ),
                   secondary: Container(
                     padding: const EdgeInsets.all(8),
@@ -268,7 +349,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       color: Colors.orangeAccent.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: const Icon(Icons.notifications_active_rounded, color: Colors.orangeAccent),
+                    child: const Icon(
+                      Icons.notifications_active_rounded,
+                      color: Colors.orangeAccent,
+                    ),
                   ),
                   activeThumbColor: scheme.primary,
                 ),
@@ -280,9 +364,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
           Text(
             l10n.privacyAndAnalytics,
             style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: scheme.onSurfaceVariant,
-                ),
+              fontWeight: FontWeight.bold,
+              color: scheme.onSurfaceVariant,
+            ),
           ),
           const SizedBox(height: 12),
           AppCard(
@@ -296,7 +380,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       color: scheme.tertiary.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: Icon(Icons.video_camera_front_rounded, color: scheme.tertiary),
+                    child: Icon(
+                      Icons.video_camera_front_rounded,
+                      color: scheme.tertiary,
+                    ),
                   ),
                   title: Text(l10n.myRecordingsBeta),
                   trailing: const Icon(Icons.chevron_right_rounded),
@@ -310,11 +397,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       color: Colors.pinkAccent.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: const Icon(Icons.face_retouching_natural_rounded, color: Colors.pinkAccent),
+                    child: const Icon(
+                      Icons.face_retouching_natural_rounded,
+                      color: Colors.pinkAccent,
+                    ),
                   ),
                   title: Text(l10n.expertFacialAnalysis),
                   trailing: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 2,
+                    ),
                     decoration: BoxDecoration(
                       color: scheme.onSurface.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(12),
@@ -355,9 +448,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     Text(
                       l10n.signOutButton,
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            color: Colors.redAccent,
-                            fontWeight: FontWeight.bold,
-                          ),
+                        color: Colors.redAccent,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ],
                 ),

@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:prep_up/core/localization/interview_l10n.dart';
 import 'package:prep_up/core/localization/l10n_extensions.dart';
 import 'package:prep_up/core/navigation/app_routes.dart';
-import 'package:prep_up/domain/entities/interview_config.dart';
 import 'package:prep_up/domain/entities/interview_session_model.dart';
 import 'package:prep_up/domain/services/auth_service.dart';
 import 'package:prep_up/domain/services/relational_database_service.dart';
@@ -37,9 +35,11 @@ class _InterviewHistoryScreenState extends State<InterviewHistoryScreen> {
     if (user != null) {
       final history = await _dbService.getInterviewHistoryForUser(user.id);
       final Map<String, int> scores = {};
-      
+
       for (final session in history) {
-        final result = await _dbService.getInterviewResultForSession(session.id);
+        final result = await _dbService.getInterviewResultForSession(
+          session.id,
+        );
         if (result != null) {
           scores[session.id] = result.score;
         }
@@ -80,23 +80,25 @@ class _InterviewHistoryScreenState extends State<InterviewHistoryScreen> {
           else
             ..._history.map((session) {
               final score = _scores[session.id]?.toString() ?? '--';
-              final date = DateFormat.yMMMd(Localizations.localeOf(context).languageCode)
-                  .format(session.createdAt);
-              
+              final date = DateFormat.yMMMd(
+                Localizations.localeOf(context).languageCode,
+              ).format(session.createdAt);
+
               return Column(
                 children: [
                   AppCard(
+                    title: session.jobRole,
+                    subtitle: '${session.type.name.toUpperCase()} • $date',
                     onTap: () async {
-                      final result = await _dbService.getInterviewResultForSession(session.id);
-                      if (result != null && mounted) {
+                      final result = await _dbService
+                          .getInterviewResultForSession(session.id);
+                      if (result != null && context.mounted) {
                         Navigator.of(context).pushNamed(
                           AppRoutes.generalResults,
-                          arguments: {'results': result},
+                          arguments: {'results': result, 'session': session},
                         );
                       }
                     },
-                    title: session.jobRole,
-                    subtitle: '${session.type.name.toUpperCase()} • $date',
                     leading: _ScoreBadge(score: score),
                     trailing: const Icon(Icons.arrow_forward_rounded),
                   ),
