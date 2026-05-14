@@ -120,10 +120,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get unexpectedError => 'Unexpected error';
 
   @override
-  String get loginWelcomeBack => 'Welcome back';
+  String get loginTitle => 'Login';
 
   @override
-  String get loginSubtitle => 'Continue your training where you left off.';
+  String get loginSubtitle =>
+      'Get ready for your next big professional challenge.';
 
   @override
   String get emailLabel => 'Email';
@@ -437,7 +438,17 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get deviceCheckTitle => 'Setup';
+  String get callExitConfirmTitle => 'Cancel interview?';
+
+  @override
+  String get callExitConfirmMessage =>
+      'If you leave now, you will lose the progress of this session. Are you sure?';
+
+  @override
+  String get callExitConfirmAction => 'Yes, cancel';
+
+  @override
+  String get deviceCheckTitle => 'Preparation';
 
   @override
   String get deviceCheckChecklistTitle => 'Equipment checklist';
@@ -843,6 +854,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get metricConfidence => 'Confidence';
+
+  @override
+  String get metricSubjectMastery => 'Subject mastery';
+
+  @override
+  String get metricValidAnswers => 'Valid answers';
 
   @override
   String get detailedAnalysisChartsTitle => 'Charts per answer';

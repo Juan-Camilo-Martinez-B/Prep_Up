@@ -56,7 +56,7 @@ class SupabaseDatabaseService implements RelationalDatabaseService {
         .maybeSingle();
 
     if (response == null) return null;
-    
+
     // Mapear campos de la BD al modelo AppSettingsModel
     return AppSettingsModel(
       themeMode: AppThemeMode.values.firstWhere(
@@ -69,7 +69,10 @@ class SupabaseDatabaseService implements RelationalDatabaseService {
   }
 
   @override
-  Future<void> saveSettingsForUser(String userId, AppSettingsModel settings) async {
+  Future<void> saveSettingsForUser(
+    String userId,
+    AppSettingsModel settings,
+  ) async {
     await _supabase.from('configuraciones').upsert({
       'user_id': userId,
       'theme_mode': settings.themeMode.name,
@@ -92,6 +95,7 @@ class SupabaseDatabaseService implements RelationalDatabaseService {
       'question_count': data['questionCount'],
       'time_limit_seconds': data['timeLimitSeconds'],
       'video_reference': data['videoReference'],
+      'turns': data['turns'],
       'created_at': data['createdAt'],
       'updated_at': data['updatedAt'],
     };
@@ -99,7 +103,9 @@ class SupabaseDatabaseService implements RelationalDatabaseService {
   }
 
   @override
-  Future<InterviewSessionModel?> getInterviewSessionById(String sessionId) async {
+  Future<InterviewSessionModel?> getInterviewSessionById(
+    String sessionId,
+  ) async {
     final response = await _supabase
         .from('sesiones_entrevista')
         .select()
@@ -107,7 +113,7 @@ class SupabaseDatabaseService implements RelationalDatabaseService {
         .maybeSingle();
 
     if (response == null) return null;
-    
+
     // Remapear campos de la BD al JSON esperado por InterviewSessionModel.fromJson
     final modelData = {
       'id': response['id'],
@@ -118,6 +124,7 @@ class SupabaseDatabaseService implements RelationalDatabaseService {
       'questionCount': response['question_count'],
       'timeLimitSeconds': response['time_limit_seconds'],
       'videoReference': response['video_reference'],
+      'turns': response['turns'],
       'createdAt': response['created_at'],
       'updatedAt': response['updated_at'],
     };
@@ -125,7 +132,9 @@ class SupabaseDatabaseService implements RelationalDatabaseService {
   }
 
   @override
-  Future<List<InterviewSessionModel>> getInterviewHistoryForUser(String userId) async {
+  Future<List<InterviewSessionModel>> getInterviewHistoryForUser(
+    String userId,
+  ) async {
     final response = await _supabase
         .from('sesiones_entrevista')
         .select()
@@ -142,6 +151,7 @@ class SupabaseDatabaseService implements RelationalDatabaseService {
         'questionCount': row['question_count'],
         'timeLimitSeconds': row['time_limit_seconds'],
         'videoReference': row['video_reference'],
+        'turns': row['turns'],
         'createdAt': row['created_at'],
         'updatedAt': row['updated_at'],
       };
@@ -163,13 +173,18 @@ class SupabaseDatabaseService implements RelationalDatabaseService {
       'personalized_feedback': data['personalizedFeedback'],
       'recommendations': data['recommendations'],
       'improvement_tips': data['improvementTips'],
+      'average_response_seconds': data['averageResponseSeconds'],
+      'total_response_seconds': data['totalResponseSeconds'],
+      'valid_answers_count': data['validAnswersCount'],
       'analyzed_at': data['analyzedAt'],
     };
     await _supabase.from('resultados_entrevista').upsert(dbData);
   }
 
   @override
-  Future<InterviewResultsModel?> getInterviewResultForSession(String sessionId) async {
+  Future<InterviewResultsModel?> getInterviewResultForSession(
+    String sessionId,
+  ) async {
     final response = await _supabase
         .from('resultados_entrevista')
         .select()
@@ -189,6 +204,9 @@ class SupabaseDatabaseService implements RelationalDatabaseService {
       'personalizedFeedback': response['personalized_feedback'],
       'recommendations': response['recommendations'],
       'improvementTips': response['improvement_tips'],
+      'averageResponseSeconds': response['average_response_seconds'] ?? 0,
+      'totalResponseSeconds': response['total_response_seconds'] ?? 0,
+      'validAnswersCount': response['valid_answers_count'] ?? 0,
       'analyzedAt': response['analyzed_at'],
     };
     return InterviewResultsModel.fromJson(modelData);

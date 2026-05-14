@@ -9,6 +9,7 @@ import 'package:prep_up/domain/services/supabase_database_service.dart';
 import 'package:prep_up/presentation/widgets/app_card.dart';
 import 'package:prep_up/presentation/widgets/app_screen_scaffold.dart';
 import 'package:prep_up/theme/app_theme.dart';
+import 'package:provider/provider.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -20,7 +21,7 @@ class SettingsScreen extends StatefulWidget {
 class _SettingsScreenState extends State<SettingsScreen> {
   final RelationalDatabaseService _dbService = SupabaseDatabaseService();
   final AuthService _authService = AuthService();
-  
+
   AppSettingsModel? _settings;
   bool _isLoading = true;
 
@@ -225,7 +226,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     final newMode = selection.first;
                     themeController.setThemeMode(newMode);
                     if (_settings != null) {
-                      await _updateSettings(_settings!.copyWith(themeMode: newMode));
+                      await _updateSettings(
+                        _settings!.copyWith(themeMode: newMode),
+                      );
                     }
                   },
                 ),
@@ -332,7 +335,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   value: _settings?.enableNotifications ?? true,
                   onChanged: (v) {
                     if (_settings != null) {
-                      _updateSettings(_settings!.copyWith(enableNotifications: v));
+                      _updateSettings(
+                        _settings!.copyWith(enableNotifications: v),
+                      );
                     }
                   },
                   title: Text(l10n.pushNotifications),
@@ -429,7 +434,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             child: InkWell(
               borderRadius: BorderRadius.circular(20),
               onTap: () async {
-                final auth = AuthService();
+                final auth = context.read<AuthService>();
                 final navigator = Navigator.of(context);
                 await auth.signOut();
                 if (!mounted) return;

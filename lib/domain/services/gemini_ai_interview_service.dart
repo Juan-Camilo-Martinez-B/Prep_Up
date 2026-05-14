@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:prep_up/domain/entities/interview_results_model.dart';
 import 'package:prep_up/domain/entities/interview_session_model.dart';
+import 'package:prep_up/domain/entities/interview_tags.dart';
 import 'package:prep_up/domain/services/ai_interview_service.dart';
 import 'package:prep_up/domain/services/gemini_service.dart';
 
@@ -43,7 +44,7 @@ class GeminiAiInterviewService implements AiInterviewService {
 
     final prompt = '''
 Analiza el transcript de una entrevista simulada y genera un resultado cuantitativo.
-Rol: "${session.jobRole}"
+Rol: "${session.jobRole.name}"
 Tipo: "${session.type.name}"
 Transcript:
 """$safeTranscript"""
@@ -111,6 +112,9 @@ Reglas:
               ?.whereType<String>()
               .toList() ??
           const <String>[]),
+      averageResponseSeconds: 0,
+      totalResponseSeconds: 0,
+      validAnswersCount: 0,
     );
   }
 }

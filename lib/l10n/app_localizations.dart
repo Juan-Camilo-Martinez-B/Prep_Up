@@ -314,16 +314,16 @@ abstract class AppLocalizations {
   /// **'Unexpected error'**
   String get unexpectedError;
 
-  /// No description provided for @loginWelcomeBack.
+  /// No description provided for @loginTitle.
   ///
   /// In en, this message translates to:
-  /// **'Welcome back'**
-  String get loginWelcomeBack;
+  /// **'Login'**
+  String get loginTitle;
 
   /// No description provided for @loginSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Continue your training where you left off.'**
+  /// **'Get ready for your next big professional challenge.'**
   String get loginSubtitle;
 
   /// No description provided for @emailLabel.
@@ -896,10 +896,28 @@ abstract class AppLocalizations {
   /// **'Mode: {value}'**
   String processingConfigMode(String value);
 
+  /// No description provided for @callExitConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel interview?'**
+  String get callExitConfirmTitle;
+
+  /// No description provided for @callExitConfirmMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'If you leave now, you will lose the progress of this session. Are you sure?'**
+  String get callExitConfirmMessage;
+
+  /// No description provided for @callExitConfirmAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Yes, cancel'**
+  String get callExitConfirmAction;
+
   /// No description provided for @deviceCheckTitle.
   ///
   /// In en, this message translates to:
-  /// **'Setup'**
+  /// **'Preparation'**
   String get deviceCheckTitle;
 
   /// No description provided for @deviceCheckChecklistTitle.
@@ -1639,6 +1657,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Confidence'**
   String get metricConfidence;
+
+  /// No description provided for @metricSubjectMastery.
+  ///
+  /// In en, this message translates to:
+  /// **'Subject mastery'**
+  String get metricSubjectMastery;
+
+  /// No description provided for @metricValidAnswers.
+  ///
+  /// In en, this message translates to:
+  /// **'Valid answers'**
+  String get metricValidAnswers;
 
   /// No description provided for @detailedAnalysisChartsTitle.
   ///

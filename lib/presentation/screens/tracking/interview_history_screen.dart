@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:prep_up/core/localization/interview_l10n.dart';
 import 'package:prep_up/core/localization/l10n_extensions.dart';
 import 'package:prep_up/core/navigation/app_routes.dart';
 import 'package:prep_up/domain/entities/interview_session_model.dart';
@@ -9,6 +10,7 @@ import 'package:prep_up/presentation/widgets/app_card.dart';
 import 'package:prep_up/presentation/widgets/app_primary_button.dart';
 import 'package:prep_up/presentation/widgets/app_screen_scaffold.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 
 class InterviewHistoryScreen extends StatefulWidget {
   const InterviewHistoryScreen({super.key});
@@ -18,8 +20,6 @@ class InterviewHistoryScreen extends StatefulWidget {
 }
 
 class _InterviewHistoryScreenState extends State<InterviewHistoryScreen> {
-  final RelationalDatabaseService _dbService = SupabaseDatabaseService();
-  final AuthService _authService = AuthService();
   List<InterviewSessionModel> _history = [];
   Map<String, int> _scores = {};
   bool _isLoading = true;
@@ -27,19 +27,22 @@ class _InterviewHistoryScreenState extends State<InterviewHistoryScreen> {
   @override
   void initState() {
     super.initState();
-    _loadHistory();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadHistory();
+    });
   }
 
   Future<void> _loadHistory() async {
-    final user = _authService.currentUser;
+    final authService = context.read<AuthService>();
+    final dbService = context.read<RelationalDatabaseService>();
+
+    final user = authService.currentUser;
     if (user != null) {
-      final history = await _dbService.getInterviewHistoryForUser(user.id);
+      final history = await dbService.getInterviewHistoryForUser(user.id);
       final Map<String, int> scores = {};
 
       for (final session in history) {
-        final result = await _dbService.getInterviewResultForSession(
-          session.id,
-        );
+        final result = await dbService.getInterviewResultForSession(session.id);
         if (result != null) {
           scores[session.id] = result.overallScore;
         }
@@ -87,15 +90,20 @@ class _InterviewHistoryScreenState extends State<InterviewHistoryScreen> {
               return Column(
                 children: [
                   AppCard(
-                    title: session.jobRole,
-                    subtitle: '${session.type.name.toUpperCase()} • $date',
+                    title: session.jobRole.label(l10n),
+                    subtitle: '${session.type.label(l10n)} • $date',
                     onTap: () async {
-                      final result = await _dbService
+                      final dbService = context
+                          .read<RelationalDatabaseService>();
+                      final result = await dbService
                           .getInterviewResultForSession(session.id);
                       if (result != null && context.mounted) {
                         Navigator.of(context).pushNamed(
                           AppRoutes.generalResults,
-                          arguments: {'results': result, 'session': session},
+                          arguments: {
+                            'results': result,
+                            'session': session.toDomain(),
+                          },
                         );
                       }
                     },

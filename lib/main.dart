@@ -7,6 +7,10 @@ import 'package:prep_up/core/navigation/app_router.dart';
 import 'package:prep_up/core/navigation/app_routes.dart';
 import 'package:prep_up/domain/entities/app_settings_model.dart';
 import 'package:prep_up/domain/services/auth_preferences.dart';
+import 'package:prep_up/domain/services/auth_service.dart';
+import 'package:prep_up/domain/services/gemini_service.dart';
+import 'package:prep_up/domain/services/relational_database_service.dart';
+import 'package:prep_up/domain/services/supabase_database_service.dart';
 import 'package:prep_up/l10n/app_localizations.dart';
 import 'package:prep_up/presentation/controllers/interview_config_controller.dart';
 import 'package:prep_up/presentation/controllers/media_device_controller.dart';
@@ -51,10 +55,7 @@ class _AiInterviewTrainerAppState extends State<AiInterviewTrainerApp> {
   }
 
   Future<void> _loadInitialSettings() async {
-    await Future.wait([
-      _themeController.load(),
-      _localeController.load(),
-    ]);
+    await Future.wait([_themeController.load(), _localeController.load()]);
     if (mounted) {
       setState(() {});
     }
@@ -79,6 +80,11 @@ class _AiInterviewTrainerAppState extends State<AiInterviewTrainerApp> {
 
     return MultiProvider(
       providers: [
+        Provider<AuthService>(create: (_) => AuthService()),
+        Provider<RelationalDatabaseService>(
+          create: (_) => SupabaseDatabaseService(),
+        ),
+        Provider<GeminiService>(create: (_) => GeminiService()),
         ChangeNotifierProvider(create: (_) => InterviewConfigController()),
         ChangeNotifierProvider(create: (_) => MediaDeviceController()),
       ],

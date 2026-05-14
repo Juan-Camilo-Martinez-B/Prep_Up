@@ -17,8 +17,6 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
-  final RelationalDatabaseService _dbService = SupabaseDatabaseService();
-  final AuthService _authService = AuthService();
   List<double> _scoreHistory = [];
   int _avgTechnical = 0;
   int _avgFluency = 0;
@@ -27,13 +25,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   void initState() {
     super.initState();
-    _loadDashboardData();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadDashboardData();
+    });
   }
 
   Future<void> _loadDashboardData() async {
-    final user = _authService.currentUser;
+    final authService = context.read<AuthService>();
+    final dbService = context.read<RelationalDatabaseService>();
+
+    final user = authService.currentUser;
     if (user != null) {
-      final history = await _dbService.getInterviewHistoryForUser(user.id);
+      final history = await dbService.getInterviewHistoryForUser(user.id);
       final List<double> scores = [];
       double totalTech = 0;
       double totalFluency = 0;
@@ -41,9 +44,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
       for (final session in history.take(7)) {
         // Últimas 7 para el gráfico
-        final result = await _dbService.getInterviewResultForSession(
-          session.id,
-        );
+        final result = await dbService.getInterviewResultForSession(session.id);
         if (result != null) {
           scores.add(result.overallScore.toDouble());
           // Simulación de breakdown si no está detallado
@@ -69,189 +70,192 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final scheme = Theme.of(context).colorScheme;
     final l10n = context.l10n;
 
-    return AppScreenScaffold(
-      title: '',
-      titleWidget: Text(
-        l10n.dashboardMyAccount,
-        style: const TextStyle(fontWeight: FontWeight.w300, fontSize: 16),
-      ),
-      background: const TechBackground(),
-      actions: [
-        IconButton(
-          onPressed: () => Navigator.of(context).pushNamed(AppRoutes.settings),
-          icon: const Icon(Icons.menu_rounded),
-          tooltip: l10n.dashboardMenuTooltip,
-        ),
-      ],
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      floatingActionButton: Container(
-        height: 72,
-        width: 72,
-        margin: const EdgeInsets.only(top: 30),
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          boxShadow: [
-            BoxShadow(
-              color: scheme.primary.withValues(alpha: 0.3),
-              blurRadius: 20,
-              spreadRadius: 2,
-              offset: const Offset(0, 8),
-            ),
-          ],
-        ),
-        child: FloatingActionButton(
-          onPressed: () {
-            context.read<InterviewConfigController>().reset();
-            Navigator.of(context).pushNamed(AppRoutes.selectInterviewType);
-          },
-          backgroundColor: scheme.primary,
-          foregroundColor: scheme.onPrimary,
-          shape: const CircleBorder(),
-          elevation: 0,
-          child: const Icon(Icons.play_arrow_rounded, size: 36),
-        ),
-      ),
-      bottomNavigationBar: BottomAppBar(
-        shape: const CircularNotchedRectangle(),
-        notchMargin: 10,
-        color: Theme.of(context).cardColor.withValues(alpha: 0.85),
-        elevation: 0,
-        child: SizedBox(
-          height: 60,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              _NavBarItem(
-                icon: Icons.person_outline_rounded,
-                label: l10n.dashboardNavProfile,
-                onTap: () => Navigator.of(context).pushNamed(AppRoutes.profile),
-              ),
-              const SizedBox(width: 48),
-              _NavBarItem(
-                icon: Icons.history_rounded,
-                label: l10n.dashboardNavHistory,
-                onTap: () =>
-                    Navigator.of(context).pushNamed(AppRoutes.interviewHistory),
+    return PopScope(
+      canPop: false,
+      child: AppScreenScaffold(
+        title: '',
+        showBackButton: false,
+        background: const TechBackground(),
+        actions: [
+          IconButton(
+            onPressed: () =>
+                Navigator.of(context).pushNamed(AppRoutes.settings),
+            icon: const Icon(Icons.menu_rounded),
+            tooltip: l10n.dashboardMenuTooltip,
+          ),
+        ],
+        floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+        floatingActionButton: Container(
+          height: 72,
+          width: 72,
+          margin: const EdgeInsets.only(top: 30),
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(
+                color: scheme.primary.withValues(alpha: 0.3),
+                blurRadius: 20,
+                spreadRadius: 2,
+                offset: const Offset(0, 8),
               ),
             ],
           ),
+          child: FloatingActionButton(
+            onPressed: () {
+              context.read<InterviewConfigController>().reset();
+              Navigator.of(context).pushNamed(AppRoutes.selectInterviewType);
+            },
+            backgroundColor: scheme.primary,
+            foregroundColor: scheme.onPrimary,
+            shape: const CircleBorder(),
+            elevation: 0,
+            child: const Icon(Icons.play_arrow_rounded, size: 36),
+          ),
         ),
-      ),
-      body: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 0, 16, 100),
-        children: [
-          Text(
-            l10n.dashboardDailyStats,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: scheme.onSurfaceVariant,
-              letterSpacing: 1.2,
-            ),
-          ),
-          const SizedBox(height: 16),
-          Container(
-            height: 200,
-            decoration: BoxDecoration(
-              color: Theme.of(context).cardColor.withValues(alpha: 0.4),
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(
-                color: scheme.primary.withValues(alpha: 0.1),
-                width: 1,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: scheme.primary.withValues(alpha: 0.05),
-                  blurRadius: 30,
-                  offset: const Offset(0, 10),
-                ),
-              ],
-            ),
-            child: Padding(
-              padding: const EdgeInsets.only(
-                top: 24,
-                bottom: 8,
-                left: 16,
-                right: 16,
-              ),
-              child: _isLoading
-                  ? const Center(child: CircularProgressIndicator())
-                  : _GlowingLineChart(scores: _scoreHistory),
-            ),
-          ),
-          const SizedBox(height: 24),
-
-          _NeonStatItem(
-            index: _avgTechnical.toString(),
-            title: l10n.dashboardStatTechnicalAccuracyTitle,
-            subtitle: l10n.dashboardStatTechnicalAccuracySubtitle,
-            color: scheme.primary,
-          ),
-          const SizedBox(height: 16),
-          _NeonStatItem(
-            index: _avgFluency.toString(),
-            title: l10n.dashboardStatVerbalFluencyTitle,
-            subtitle: l10n.dashboardStatVerbalFluencySubtitle,
-            color: Colors.purpleAccent,
-          ),
-          const SizedBox(height: 24),
-
-          // --- BAR CHART SIMULATION (Acciones Rápidas con estilo barras) ---
-          Text(
-            l10n.dashboardPracticeModes,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: scheme.onSurfaceVariant,
-              letterSpacing: 1.2,
-            ),
-          ),
-          const SizedBox(height: 16),
-          Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: Theme.of(context).cardColor.withValues(alpha: 0.4),
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(
-                color: scheme.primary.withValues(alpha: 0.1),
-                width: 1,
-              ),
-            ),
+        bottomNavigationBar: BottomAppBar(
+          shape: const CircularNotchedRectangle(),
+          notchMargin: 10,
+          color: Theme.of(context).cardColor.withValues(alpha: 0.85),
+          elevation: 0,
+          child: SizedBox(
+            height: 60,
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              crossAxisAlignment: CrossAxisAlignment.end,
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                _BarAction(
-                  height: 60,
-                  color: scheme.primary,
-                  onTap: () {
-                    context.read<InterviewConfigController>().reset();
-                    Navigator.of(
-                      context,
-                    ).pushNamed(AppRoutes.selectInterviewType);
-                  },
-                  label: l10n.dashboardActionTrain,
-                ),
-                _BarAction(
-                  height: 90,
-                  color: Colors.purpleAccent,
+                _NavBarItem(
+                  icon: Icons.person_outline_rounded,
+                  label: l10n.dashboardNavProfile,
                   onTap: () =>
-                      Navigator.of(context).pushNamed(AppRoutes.statistics),
-                  label: l10n.dashboardActionMetrics,
+                      Navigator.of(context).pushNamed(AppRoutes.profile),
                 ),
-                _BarAction(
-                  height: 40,
-                  color: Colors.cyanAccent,
-                  onTap: () {},
-                  label: l10n.dashboardActionTips,
-                ),
-                _BarAction(
-                  height: 75,
-                  color: scheme.primary,
-                  onTap: () =>
-                      Navigator.of(context).pushNamed(AppRoutes.settings),
-                  label: l10n.dashboardActionSettings,
+                const SizedBox(width: 48),
+                _NavBarItem(
+                  icon: Icons.history_rounded,
+                  label: l10n.dashboardNavHistory,
+                  onTap: () => Navigator.of(
+                    context,
+                  ).pushNamed(AppRoutes.interviewHistory),
                 ),
               ],
             ),
           ),
-        ],
+        ),
+        body: ListView(
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 100),
+          children: [
+            Text(
+              l10n.dashboardDailyStats,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: scheme.onSurfaceVariant,
+                letterSpacing: 1.2,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Container(
+              height: 200,
+              decoration: BoxDecoration(
+                color: Theme.of(context).cardColor.withValues(alpha: 0.4),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: scheme.primary.withValues(alpha: 0.1),
+                  width: 1,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: scheme.primary.withValues(alpha: 0.05),
+                    blurRadius: 30,
+                    offset: const Offset(0, 10),
+                  ),
+                ],
+              ),
+              child: Padding(
+                padding: const EdgeInsets.only(
+                  top: 24,
+                  bottom: 8,
+                  left: 16,
+                  right: 16,
+                ),
+                child: _isLoading
+                    ? const Center(child: CircularProgressIndicator())
+                    : _GlowingLineChart(scores: _scoreHistory),
+              ),
+            ),
+            const SizedBox(height: 24),
+
+            _NeonStatItem(
+              index: _avgTechnical.toString(),
+              title: l10n.dashboardStatTechnicalAccuracyTitle,
+              subtitle: l10n.dashboardStatTechnicalAccuracySubtitle,
+              color: scheme.primary,
+            ),
+            const SizedBox(height: 16),
+            _NeonStatItem(
+              index: _avgFluency.toString(),
+              title: l10n.dashboardStatVerbalFluencyTitle,
+              subtitle: l10n.dashboardStatVerbalFluencySubtitle,
+              color: Colors.purpleAccent,
+            ),
+            const SizedBox(height: 24),
+
+            // --- BAR CHART SIMULATION (Acciones Rápidas con estilo barras) ---
+            Text(
+              l10n.dashboardPracticeModes,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: scheme.onSurfaceVariant,
+                letterSpacing: 1.2,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Theme.of(context).cardColor.withValues(alpha: 0.4),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: scheme.primary.withValues(alpha: 0.1),
+                  width: 1,
+                ),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  _BarAction(
+                    height: 60,
+                    color: scheme.primary,
+                    onTap: () {
+                      context.read<InterviewConfigController>().reset();
+                      Navigator.of(
+                        context,
+                      ).pushNamed(AppRoutes.selectInterviewType);
+                    },
+                    label: l10n.dashboardActionTrain,
+                  ),
+                  _BarAction(
+                    height: 90,
+                    color: Colors.purpleAccent,
+                    onTap: () =>
+                        Navigator.of(context).pushNamed(AppRoutes.statistics),
+                    label: l10n.dashboardActionMetrics,
+                  ),
+                  _BarAction(
+                    height: 40,
+                    color: Colors.cyanAccent,
+                    onTap: () {},
+                    label: l10n.dashboardActionTips,
+                  ),
+                  _BarAction(
+                    height: 75,
+                    color: scheme.primary,
+                    onTap: () =>
+                        Navigator.of(context).pushNamed(AppRoutes.settings),
+                    label: l10n.dashboardActionSettings,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -307,12 +311,12 @@ class _LineChartPainter extends CustomPainter {
       path.lineTo(points[i].dx, points[i].dy);
     }
 
-    // Glowing shadow path
+    // Shadow path (subtle glow)
     final shadowPaint = Paint()
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 6.0
-      ..color = color1.withValues(alpha: 0.5)
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 10);
+      ..strokeWidth = 4.0
+      ..color = color1.withValues(alpha: 0.3)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 5);
     canvas.drawPath(path, shadowPaint);
 
     // Gradient Line

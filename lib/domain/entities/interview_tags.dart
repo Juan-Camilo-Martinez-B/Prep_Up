@@ -1,4 +1,4 @@
-enum InterviewConfigType { technical, rrhh, mixed }
+enum InterviewType { technical, behavioral, mixed }
 
 enum InterviewMode { simulated, realtime }
 

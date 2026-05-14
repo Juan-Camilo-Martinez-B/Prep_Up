@@ -121,10 +121,11 @@ class AppLocalizationsEs extends AppLocalizations {
   String get unexpectedError => 'Error inesperado';
 
   @override
-  String get loginWelcomeBack => 'Bienvenido de vuelta';
+  String get loginTitle => 'Iniciar Sesión';
 
   @override
-  String get loginSubtitle => 'Continúa tu entrenamiento donde lo dejaste.';
+  String get loginSubtitle =>
+      'Prepárate para tu próximo gran reto profesional.';
 
   @override
   String get emailLabel => 'Correo electrónico';
@@ -442,6 +443,16 @@ class AppLocalizationsEs extends AppLocalizations {
   String processingConfigMode(String value) {
     return 'Modalidad: $value';
   }
+
+  @override
+  String get callExitConfirmTitle => '¿Cancelar entrevista?';
+
+  @override
+  String get callExitConfirmMessage =>
+      'Si sales ahora, perderás el progreso de esta sesión. ¿Estás seguro?';
+
+  @override
+  String get callExitConfirmAction => 'Sí, cancelar';
 
   @override
   String get deviceCheckTitle => 'Preparación';
@@ -851,6 +862,12 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get metricConfidence => 'Seguridad';
+
+  @override
+  String get metricSubjectMastery => 'Propiedad del tema';
+
+  @override
+  String get metricValidAnswers => 'Respuestas válidas';
 
   @override
   String get detailedAnalysisChartsTitle => 'Gráficos por respuesta';

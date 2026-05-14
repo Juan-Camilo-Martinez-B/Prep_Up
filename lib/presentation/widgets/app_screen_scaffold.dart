@@ -15,6 +15,7 @@ class AppScreenScaffold extends StatelessWidget {
     this.padding = const EdgeInsets.all(16),
     this.centerTitle = false,
     this.extendBodyBehindAppBar = false,
+    this.showBackButton = true,
   });
 
   final String title;
@@ -28,23 +29,24 @@ class AppScreenScaffold extends StatelessWidget {
   final EdgeInsetsGeometry padding;
   final bool centerTitle;
   final bool extendBodyBehindAppBar;
+  final bool showBackButton;
 
   @override
   Widget build(BuildContext context) {
+    final canPop = Navigator.canPop(context);
     return Scaffold(
       extendBodyBehindAppBar: extendBodyBehindAppBar,
       appBar: AppBar(
         title: titleWidget ?? Text(title),
         centerTitle: centerTitle,
         actions: actions,
-        leading: Navigator.canPop(context)
+        automaticallyImplyLeading: false,
+        leading: (showBackButton && canPop)
             ? BackButton(
                 onPressed: () {
                   final nav = Navigator.of(context);
                   if (nav.canPop()) {
-                    nav.pop();
-                  } else {
-                    nav.pushNamedAndRemoveUntil(AppRoutes.splash, (r) => false);
+                    nav.maybePop();
                   }
                 },
               )
@@ -77,9 +79,7 @@ class TechBackground extends StatelessWidget {
     return Stack(
       children: [
         DecoratedBox(
-          decoration: BoxDecoration(
-            color: theme.scaffoldBackgroundColor,
-          ),
+          decoration: BoxDecoration(color: theme.scaffoldBackgroundColor),
           child: const SizedBox.expand(),
         ),
         Positioned(
@@ -95,7 +95,8 @@ class TechBackground extends StatelessWidget {
           bottom: -150,
           right: -100,
           child: _GlowBlob(
-            color: scheme.primary, // Using primary for both spots in the crypto aesthetic
+            color: scheme
+                .primary, // Using primary for both spots in the crypto aesthetic
             size: 500,
             opacity: isDark ? 0.25 : 0.15,
           ),

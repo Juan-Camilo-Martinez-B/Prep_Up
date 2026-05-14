@@ -56,22 +56,32 @@ class DetailedAnalysisScreen extends StatelessWidget {
             leading: Icon(Icons.analytics_outlined, color: scheme.primary),
             child: Column(
               children: [
-                _MetricBar(
+                MetricProgressBar(
                   label: l10n.metricCommunication,
                   value: results.breakdown.communication / 100,
                   icon: Icons.record_voice_over_rounded,
+                  color: scheme.primary,
                 ),
-                const SizedBox(height: 12),
-                _MetricBar(
-                  label: l10n.metricTechnicalKnowledge,
-                  value: results.breakdown.technicalKnowledge / 100,
-                  icon: Icons.code_rounded,
+                const SizedBox(height: 16),
+                MetricProgressBar(
+                  label: l10n.metricSubjectMastery,
+                  value: results.breakdown.subjectMastery / 100,
+                  icon: Icons.psychology_rounded,
+                  color: scheme.secondary,
                 ),
-                const SizedBox(height: 12),
-                _MetricBar(
+                const SizedBox(height: 16),
+                MetricProgressBar(
                   label: l10n.metricConfidence,
                   value: results.breakdown.confidence / 100,
                   icon: Icons.shield_rounded,
+                  color: scheme.tertiary,
+                ),
+                const SizedBox(height: 16),
+                MetricProgressBar(
+                  label: l10n.metricTechnicalKnowledge,
+                  value: results.breakdown.technicalKnowledge / 100,
+                  icon: Icons.code_rounded,
+                  color: scheme.outline,
                 ),
               ],
             ),
@@ -183,42 +193,7 @@ class DetailedAnalysisScreen extends StatelessWidget {
   }
 }
 
-class _MetricBar extends StatelessWidget {
-  const _MetricBar({
-    required this.label,
-    required this.value,
-    required this.icon,
-  });
 
-  final String label;
-  final double value;
-  final IconData icon;
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    final percent = (value * 100).round();
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Icon(icon, color: scheme.primary),
-            const SizedBox(width: 10),
-            Expanded(child: Text(label)),
-            Text('$percent%'),
-          ],
-        ),
-        const SizedBox(height: 8),
-        ClipRRect(
-          borderRadius: BorderRadius.circular(999),
-          child: LinearProgressIndicator(value: value, minHeight: 10),
-        ),
-      ],
-    );
-  }
-}
 
 class _TipRow extends StatelessWidget {
   const _TipRow({required this.text});

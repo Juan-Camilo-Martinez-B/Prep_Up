@@ -8,18 +8,35 @@ class InterviewResultsBreakdownModel {
     required this.communication,
     required this.technicalKnowledge,
     required this.confidence,
+    required this.subjectMastery,
   });
 
   final int communication;
   final int technicalKnowledge;
   final int confidence;
+  final int subjectMastery;
+
+  InterviewResultsBreakdownModel copyWith({
+    int? communication,
+    int? technicalKnowledge,
+    int? confidence,
+    int? subjectMastery,
+  }) {
+    return InterviewResultsBreakdownModel(
+      communication: communication ?? this.communication,
+      technicalKnowledge: technicalKnowledge ?? this.technicalKnowledge,
+      confidence: confidence ?? this.confidence,
+      subjectMastery: subjectMastery ?? this.subjectMastery,
+    );
+  }
 
   factory InterviewResultsBreakdownModel.fromJson(Map<String, dynamic> json) {
     return InterviewResultsBreakdownModel(
       communication: _toInt(json['communication']).clamp(0, 100).toInt(),
       technicalKnowledge:
-          _toInt(json['technicalKnowledge']).clamp(0, 100).toInt(),
+          _toInt(json['technicalKnowledge'] ?? json['subjectMastery']).clamp(0, 100).toInt(),
       confidence: _toInt(json['confidence']).clamp(0, 100).toInt(),
+      subjectMastery: _toInt(json['subjectMastery'] ?? json['technicalKnowledge']).clamp(0, 100).toInt(),
     );
   }
 
@@ -28,6 +45,7 @@ class InterviewResultsBreakdownModel {
       'communication': communication,
       'technicalKnowledge': technicalKnowledge,
       'confidence': confidence,
+      'subjectMastery': subjectMastery,
     };
   }
 }
@@ -45,6 +63,9 @@ class InterviewResultsModel {
     required this.personalizedFeedback,
     required this.recommendations,
     required this.improvementTips,
+    required this.averageResponseSeconds,
+    required this.totalResponseSeconds,
+    required this.validAnswersCount,
   });
 
   final String id;
@@ -58,6 +79,9 @@ class InterviewResultsModel {
   final String personalizedFeedback;
   final List<String> recommendations;
   final List<String> improvementTips;
+  final int averageResponseSeconds;
+  final int totalResponseSeconds;
+  final int validAnswersCount;
 
   InterviewResultsModel copyWith({
     String? id,
@@ -71,6 +95,9 @@ class InterviewResultsModel {
     String? personalizedFeedback,
     List<String>? recommendations,
     List<String>? improvementTips,
+    int? averageResponseSeconds,
+    int? totalResponseSeconds,
+    int? validAnswersCount,
   }) {
     return InterviewResultsModel(
       id: id ?? this.id,
@@ -84,6 +111,10 @@ class InterviewResultsModel {
       personalizedFeedback: personalizedFeedback ?? this.personalizedFeedback,
       recommendations: recommendations ?? this.recommendations,
       improvementTips: improvementTips ?? this.improvementTips,
+      averageResponseSeconds:
+          averageResponseSeconds ?? this.averageResponseSeconds,
+      totalResponseSeconds: totalResponseSeconds ?? this.totalResponseSeconds,
+      validAnswersCount: validAnswersCount ?? this.validAnswersCount,
     );
   }
 
@@ -93,36 +124,31 @@ class InterviewResultsModel {
     final outcome = switch (outcomeRaw.trim().toLowerCase()) {
       'approved' || 'aprobado' => InterviewOutcome.approved,
       'improve' || 'mejorar' => InterviewOutcome.improve,
-      _ => overallScore >= 70 ? InterviewOutcome.approved : InterviewOutcome.improve,
+      _ => overallScore >= 70
+          ? InterviewOutcome.approved
+          : InterviewOutcome.improve,
     };
 
-    final highlights =
-        (json['highlights'] as List?)?.whereType<String>().toList() ??
-            const <String>[];
-    final recommendations =
-        (json['recommendations'] as List?)?.whereType<String>().toList() ??
-            const <String>[];
-    final improvementTips =
-        (json['improvementTips'] as List?)?.whereType<String>().toList() ??
-            const <String>[];
-
     return InterviewResultsModel(
-      id: json['id'] as String? ?? '',
-      sessionId: json['sessionId'] as String? ?? '',
-      userId: json['userId'] as String? ?? '',
-      analyzedAt: json['analyzedAt'] != null 
-          ? DateTime.parse(json['analyzedAt'] as String).toLocal()
-          : DateTime.now(),
+      id: (json['id'] as String?) ?? '',
+      sessionId: (json['sessionId'] as String?) ?? '',
+      userId: (json['userId'] as String?) ?? '',
+      analyzedAt: DateTime.tryParse((json['analyzedAt'] as String?) ?? '') ??
+          DateTime.now(),
       overallScore: overallScore,
       outcome: outcome,
       breakdown: InterviewResultsBreakdownModel.fromJson(
-        (json['breakdown'] as Map?)?.cast<String, dynamic>() ??
-            const <String, dynamic>{},
+        (json['breakdown'] as Map?)?.cast<String, dynamic>() ?? {},
       ),
-      highlights: highlights,
+      highlights: (json['highlights'] as List?)?.cast<String>() ?? const [],
       personalizedFeedback: (json['personalizedFeedback'] as String?) ?? '',
-      recommendations: recommendations,
-      improvementTips: improvementTips,
+      recommendations:
+          (json['recommendations'] as List?)?.cast<String>() ?? const [],
+      improvementTips:
+          (json['improvementTips'] as List?)?.cast<String>() ?? const [],
+      averageResponseSeconds: _toInt(json['averageResponseSeconds']).toInt(),
+      totalResponseSeconds: _toInt(json['totalResponseSeconds']).toInt(),
+      validAnswersCount: _toInt(json['validAnswersCount']).toInt(),
     );
   }
 
@@ -139,6 +165,9 @@ class InterviewResultsModel {
       'personalizedFeedback': personalizedFeedback,
       'recommendations': recommendations,
       'improvementTips': improvementTips,
+      'averageResponseSeconds': averageResponseSeconds,
+      'totalResponseSeconds': totalResponseSeconds,
+      'validAnswersCount': validAnswersCount,
     };
   }
 }

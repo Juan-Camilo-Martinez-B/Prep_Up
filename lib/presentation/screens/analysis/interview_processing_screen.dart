@@ -29,8 +29,6 @@ class InterviewProcessingScreen extends StatefulWidget {
 }
 
 class _InterviewProcessingScreenState extends State<InterviewProcessingScreen> {
-  final RelationalDatabaseService _dbService = SupabaseDatabaseService();
-  final AuthService _authService = AuthService();
   InterviewResultsModel? _results;
   InterviewSession? _processedSession;
   String? _error;
@@ -71,52 +69,59 @@ class _InterviewProcessingScreenState extends State<InterviewProcessingScreen> {
     });
 
     try {
-      final processedSession = await GeminiService().analyzeInterviewSession(
+      final geminiService = context.read<GeminiService>();
+      final authService = context.read<AuthService>();
+      final dbService = context.read<RelationalDatabaseService>();
+
+      final processedSession = await geminiService.analyzeInterviewSession(
         config: config,
         session: session,
         language: languageCode,
       );
-      final results = await GeminiService().generateInterviewResults(
+      final results = await geminiService.generateInterviewResults(
         config: config,
         session: processedSession,
         language: languageCode,
       );
 
       // --- PERSISTENCIA ---
-      final user = _authService.currentUser;
+      final user = authService.currentUser;
       if (user != null) {
-        // 1. Mapear y guardar la sesión
+        // Generar IDs estables
+        final timestamp = DateTime.now().millisecondsSinceEpoch;
+        final sessionId = 'sess_${user.id.substring(0, 8)}_$timestamp';
+        final resultId = 'res_${user.id.substring(0, 8)}_$timestamp';
+
+        // 1. Mapear y guardar la sesión (incluyendo turnos)
         final sessionModel = InterviewSessionModel(
-          id: UniqueKey().toString(), // O generar un UUID real
+          id: sessionId,
           userId: user.id,
-          type: switch (config.type) {
-            InterviewConfigType.technical => InterviewType.technical,
-            InterviewConfigType.rrhh => InterviewType.behavioral,
-            _ => InterviewType.mixed,
-          },
-          jobRole: config.jobRole?.label(l10n) ?? 'Unknown',
+          type: config.type ?? InterviewType.mixed,
+          jobRole: config.jobRole ?? JobRole.frontendDeveloper,
           status: InterviewSessionStatus.completed,
           questionCount: processedSession.turns.length,
           timeLimitSeconds: (config.durationMinutes ?? 3) * 60,
           createdAt: processedSession.startedAt,
           updatedAt: DateTime.now().toUtc(),
+          turns: processedSession.turns,
         );
-        await _dbService.saveInterviewSession(sessionModel);
+        await dbService.saveInterviewSession(sessionModel);
 
         // 2. Mapear y guardar el resultado
         final resultModel = results.copyWith(
-          id: UniqueKey().toString(),
-          sessionId: sessionModel.id,
+          id: resultId,
+          sessionId: sessionId,
           userId: user.id,
           analyzedAt: DateTime.now().toUtc(),
         );
-        await _dbService.saveInterviewResult(resultModel);
+        await dbService.saveInterviewResult(resultModel);
       }
       // --------------------
 
       if (!mounted) return;
       setState(() {
-        _results = results; // We can keep the one from gemini, or the resultModel. Either way it has the data.
+        _results =
+            results; // We can keep the one from gemini, or the resultModel. Either way it has the data.
         _processedSession = processedSession;
         _isLoading = false;
       });

@@ -192,6 +192,11 @@
       }
     }
   },
+  "loginTitle": "Iniciar Sesión",
+  "loginSubtitle": "Prepárate para tu próximo gran reto profesional.",
+  "callExitConfirmTitle": "¿Cancelar entrevista?",
+  "callExitConfirmMessage": "Si sales ahora, perderás el progreso de esta sesión. ¿Estás seguro?",
+  "callExitConfirmAction": "Sí, cancelar",
   "deviceCheckTitle": "Preparación",
   "deviceCheckChecklistTitle": "Checklist de equipo",
   "deviceCheckChecklistSubtitle": "Cámara y micrófono",
@@ -405,6 +410,8 @@
   "metricCommunication": "Comunicación",
   "metricTechnicalKnowledge": "Conocimiento técnico",
   "metricConfidence": "Seguridad",
+  "metricSubjectMastery": "Propiedad del tema",
+  "metricValidAnswers": "Respuestas válidas",
   "detailedAnalysisChartsTitle": "Gráficos por respuesta",
   "detailedAnalysisChartsSubtitle": "Evolución de score, calidad y tiempo",
   "detailedAnalysisScorePerAnswerTitle": "Score por respuesta",

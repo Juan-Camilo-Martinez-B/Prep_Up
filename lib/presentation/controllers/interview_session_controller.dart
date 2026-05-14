@@ -16,6 +16,7 @@ class InterviewSessionController extends ChangeNotifier {
   }) : _geminiService = geminiService,
        _config = config,
        _speech = SpeechToText(),
+       _selectedFocusAreas = geminiService.getRandomFocusAreas(5),
        _session = InterviewSession(
          startedAt: DateTime.now().toUtc(),
          turns: const [],
@@ -24,6 +25,7 @@ class InterviewSessionController extends ChangeNotifier {
   final GeminiService _geminiService;
   final InterviewConfig _config;
   final SpeechToText _speech;
+  final List<String> _selectedFocusAreas;
   bool get _isEnglish =>
       AppLocaleRuntime.languageCode.toLowerCase().startsWith('en');
 
@@ -75,10 +77,11 @@ class InterviewSessionController extends ChangeNotifier {
       }
 
       final questions = await _geminiService.generateInterviewQuestions(
-        type: _mapType(_config.type!),
+        type: _config.type!,
         jobRole: jobRole,
         count: 1,
         language: _isEnglish ? 'en' : 'es',
+        selectedFocus: _selectedFocusAreas,
       );
 
       _currentQuestion = questions.isNotEmpty ? questions.first : '';
@@ -110,7 +113,7 @@ class InterviewSessionController extends ChangeNotifier {
         question: question,
         userAnswer: safeAnswer,
         jobRole: _config.jobRole == null ? '' : _config.jobRole!.label(l10n),
-        type: _mapType(_config.type ?? InterviewConfigType.mixed),
+        type: _config.type ?? InterviewType.mixed,
         language: _isEnglish ? 'en' : 'es',
       );
 
@@ -162,8 +165,12 @@ class InterviewSessionController extends ChangeNotifier {
       final jobRole = _config.jobRole == null
           ? ''
           : _config.jobRole!.label(l10n);
-      final type = _config.type ?? InterviewConfigType.mixed;
+      final type = _config.type ?? InterviewType.mixed;
       final history = _formatHistoryForPrompt(_session.turns);
+      final varietyInstructions = _geminiService.getVarietyInstructions(
+        _selectedFocusAreas,
+        _isEnglish,
+      );
 
       final prompt = _isEnglish
           ? '''
@@ -178,6 +185,9 @@ Generate the next question in English:
 - It must adapt to the last answer.
 - If score was low, ask for clarification or a concrete example.
 - If score was high, increase difficulty or go deeper.
+$varietyInstructions
+- AVOID generic or overused topics (e.g., "microservices vs monoliths", "SQL vs NoSQL") unless directly related to the previous answer.
+- Ensure the topic is different from previous questions in the history to maintain variety.
 - No numbering.
 - No markdown.
 Return ONLY the question text.
@@ -194,6 +204,9 @@ Genera la siguiente pregunta en español:
 - Debe adaptarse a la última respuesta.
 - Si el score fue bajo, pide aclaración o un ejemplo concreto.
 - Si el score fue alto, incrementa dificultad o profundiza.
+$varietyInstructions
+- EVITA temas trillados o genéricos (ej. "microservicios vs monolitos", "SQL vs NoSQL") a menos que estén directamente relacionados con la respuesta anterior.
+- Asegúrate de variar el tema respecto a las preguntas anteriores en el historial.
 - Sin numeración.
 - Sin markdown.
 Devuelve SOLO el texto de la pregunta.
@@ -302,14 +315,6 @@ int _estimateQuestionCount(int durationMinutes) {
   final safeMinutes = durationMinutes <= 0 ? 3 : durationMinutes;
   final estimated = (safeMinutes * 60 / 95).round();
   return estimated.clamp(1, 12).toInt();
-}
-
-InterviewType _mapType(InterviewConfigType type) {
-  return switch (type) {
-    InterviewConfigType.technical => InterviewType.technical,
-    InterviewConfigType.rrhh => InterviewType.behavioral,
-    InterviewConfigType.mixed => InterviewType.mixed,
-  };
 }
 
 String _formatHistoryForPrompt(List<InterviewTurn> turns) {

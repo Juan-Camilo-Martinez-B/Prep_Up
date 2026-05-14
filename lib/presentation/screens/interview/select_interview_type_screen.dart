@@ -43,7 +43,7 @@ class SelectInterviewTypeScreen extends StatelessWidget {
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 32),
-          for (final option in InterviewConfigType.values) ...[
+          for (final option in InterviewType.values) ...[
             _TypeCard(
               option: option,
               selected: selected == option,
@@ -69,9 +69,7 @@ class SelectInterviewTypeScreen extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           TextButton(
-            onPressed: () => Navigator.of(
-              context,
-            ).pushNamedAndRemoveUntil(AppRoutes.dashboard, (r) => false),
+            onPressed: () => Navigator.of(context).maybePop(),
             style: TextButton.styleFrom(
               minimumSize: const Size(double.infinity, 56),
               shape: RoundedRectangleBorder(
@@ -100,7 +98,7 @@ class _TypeCard extends StatelessWidget {
     required this.onTap,
   });
 
-  final InterviewConfigType option;
+  final InterviewType option;
   final bool selected;
   final VoidCallback onTap;
 
@@ -110,19 +108,19 @@ class _TypeCard extends StatelessWidget {
     final l10n = context.l10n;
 
     final (title, subtitle, icon, gradientColors) = switch (option) {
-      InterviewConfigType.technical => (
+      InterviewType.technical => (
         l10n.interviewTypeTechnical,
         l10n.interviewTypeTechnicalSubtitle,
         Icons.terminal_rounded,
         [const Color(0xFF00C6FF), const Color(0xFF0072FF)],
       ),
-      InterviewConfigType.rrhh => (
+      InterviewType.behavioral => (
         l10n.interviewTypeBehavioral,
         l10n.interviewTypeBehavioralSubtitle,
         Icons.people_alt_rounded,
         [const Color(0xFFFDC830), const Color(0xFFF37335)],
       ),
-      InterviewConfigType.mixed => (
+      InterviewType.mixed => (
         l10n.interviewTypeMixed,
         l10n.interviewTypeMixedSubtitle,
         Icons.auto_awesome_rounded,

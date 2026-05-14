@@ -10,7 +10,7 @@ class InterviewConfig {
     this.mode,
   });
 
-  final InterviewConfigType? type;
+  final InterviewType? type;
   final JobRole? jobRole;
   final int? durationMinutes;
   final InterviewMode? mode;
@@ -32,7 +32,7 @@ class InterviewConfig {
   }
 
   InterviewConfig copyWith({
-    InterviewConfigType? type,
+    InterviewType? type,
     JobRole? jobRole,
     int? durationMinutes,
     InterviewMode? mode,

@@ -1,6 +1,7 @@
 class AnswerEvaluationModel {
   static const empty = AnswerEvaluationModel(
     overallScore: 0,
+    subjectMastery: 0,
     strengths: <String>[],
     improvements: <String>[],
     suggestedAnswer: '',
@@ -9,6 +10,7 @@ class AnswerEvaluationModel {
 
   const AnswerEvaluationModel({
     required this.overallScore,
+    required this.subjectMastery,
     required this.strengths,
     required this.improvements,
     required this.suggestedAnswer,
@@ -16,6 +18,7 @@ class AnswerEvaluationModel {
   });
 
   final int overallScore;
+  final int subjectMastery;
   final List<String> strengths;
   final List<String> improvements;
   final String suggestedAnswer;
@@ -40,8 +43,17 @@ class AnswerEvaluationModel {
       _ => 0,
     };
 
+    final subjectMasteryRaw = json['subjectMastery'] ?? json['technicalKnowledge'] ?? 0;
+    final subjectMastery = switch (subjectMasteryRaw) {
+      int v => v,
+      double v => v.round(),
+      String v => int.tryParse(v) ?? 0,
+      _ => 0,
+    };
+
     return AnswerEvaluationModel(
       overallScore: overallScore.clamp(0, 100).toInt(),
+      subjectMastery: subjectMastery.clamp(0, 100).toInt(),
       strengths: strengths,
       improvements: improvements,
       suggestedAnswer: (json['suggestedAnswer'] as String?) ?? '',
@@ -52,6 +64,7 @@ class AnswerEvaluationModel {
   Map<String, dynamic> toJson() {
     return {
       'overallScore': overallScore,
+      'subjectMastery': subjectMastery,
       'strengths': strengths,
       'improvements': improvements,
       'suggestedAnswer': suggestedAnswer,

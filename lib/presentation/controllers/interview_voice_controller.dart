@@ -9,7 +9,6 @@ import 'package:prep_up/domain/entities/answer_evaluation_model.dart';
 import 'package:prep_up/domain/entities/interview_config.dart';
 import 'package:prep_up/domain/entities/interview_feedback_model.dart';
 import 'package:prep_up/domain/entities/interview_session.dart';
-import 'package:prep_up/domain/entities/interview_session_model.dart';
 import 'package:prep_up/domain/entities/interview_tags.dart';
 import 'package:prep_up/domain/services/gemini_service.dart';
 import 'package:prep_up/l10n/app_localizations.dart';
@@ -31,6 +30,7 @@ class InterviewVoiceController extends ChangeNotifier {
        _languageCode = languageCode,
        _tts = flutterTts ?? FlutterTts(),
        _speech = speech ?? SpeechToText(),
+       _selectedFocusAreas = geminiService.getRandomFocusAreas(5),
        _session = InterviewSession(
          startedAt: DateTime.now().toUtc(),
          turns: const [],
@@ -43,6 +43,7 @@ class InterviewVoiceController extends ChangeNotifier {
   final String _languageCode;
   final FlutterTts _tts;
   final SpeechToText _speech;
+  final List<String> _selectedFocusAreas;
 
   InterviewSession _session;
   InterviewConversationState _state = InterviewConversationState.idle;
@@ -65,6 +66,7 @@ class InterviewVoiceController extends ChangeNotifier {
   DateTime? _currentQuestionAskedAt;
   bool _isInterviewComplete = false;
   String? _completionReason;
+  bool _isSessionCancelled = false;
 
   InterviewSession get session => _session;
   InterviewConversationState get state => _state;
@@ -113,7 +115,7 @@ class InterviewVoiceController extends ChangeNotifier {
       _session.turns.isEmpty ? null : _session.turns.last;
 
   Future<void> start() async {
-    if (_isStarting || _hasStarted) return;
+    if (_isStarting || _hasStarted || _isSessionCancelled) return;
     _isStarting = true;
     _isInterviewComplete = false;
     _completionReason = null;
@@ -123,17 +125,23 @@ class InterviewVoiceController extends ChangeNotifier {
 
     try {
       await _initializeAudio();
+      if (_isSessionCancelled) return;
+
       final openingQuestion = await _generateOpeningQuestion();
+      if (_isSessionCancelled) return;
+
       _hasStarted = true;
       await _deliverQuestion(
         openingQuestion,
         introMessage: _l10n.interviewStarted,
       );
     } catch (e) {
-      _setIdle();
-      _error = e.toString();
-      _statusMessage = _l10n.interviewCouldNotStart;
-      _notifySafely();
+      if (!_isSessionCancelled) {
+        _setIdle();
+        _error = e.toString();
+        _statusMessage = _l10n.interviewCouldNotStart;
+        _notifySafely();
+      }
     } finally {
       _isStarting = false;
     }
@@ -194,12 +202,16 @@ class InterviewVoiceController extends ChangeNotifier {
       }
 
       final nextQuestion = await _generateAdaptiveNextQuestion(turn);
+      if (_isSessionCancelled) return;
+
       await _deliverQuestion(nextQuestion);
     } catch (e) {
-      _setIdle();
-      _error = e.toString();
-      _statusMessage = _l10n.interviewCouldNotProcess;
-      _notifySafely();
+      if (!_isSessionCancelled) {
+        _setIdle();
+        _error = e.toString();
+        _statusMessage = _l10n.interviewCouldNotProcess;
+        _notifySafely();
+      }
     }
   }
 
@@ -219,15 +231,19 @@ class InterviewVoiceController extends ChangeNotifier {
       await _speech.stop();
       await _tts.stop();
       final nextQuestion = await _generateAlternativeQuestion();
+      if (_isSessionCancelled) return;
+
       await _deliverQuestion(
         nextQuestion,
         introMessage: _l10n.interviewDifferentQuestionIntro,
       );
     } catch (e) {
-      _setIdle();
-      _error = e.toString();
-      _statusMessage = _l10n.interviewCouldNotSkipCurrentQuestion;
-      _notifySafely();
+      if (!_isSessionCancelled) {
+        _setIdle();
+        _error = e.toString();
+        _statusMessage = _l10n.interviewCouldNotSkipCurrentQuestion;
+        _notifySafely();
+      }
     }
   }
 
@@ -254,6 +270,7 @@ class InterviewVoiceController extends ChangeNotifier {
   }
 
   Future<void> stopConversation() async {
+    _isSessionCancelled = true;
     _hasStarted = false;
     _isInterviewComplete = false;
     _setIdle();
@@ -362,14 +379,42 @@ class InterviewVoiceController extends ChangeNotifier {
       throw GeminiException(_l10n.interviewMissingType);
     }
 
-    final questions = await _geminiService.generateInterviewQuestions(
-      type: _mapType(_config.type!),
-      jobRole: jobRole,
-      count: 1,
-      language: _aiLanguage,
+    final varietyInstructions = _geminiService.getVarietyInstructions(
+      _selectedFocusAreas,
+      _isEnglish,
     );
 
-    final question = questions.isNotEmpty ? questions.first.trim() : '';
+    final prompt = _isEnglish
+        ? '''
+You are a professional and friendly interviewer for the role: "$jobRole".
+Introduce yourself briefly and ask the first question for a ${_config.type?.label(_l10n)} interview.
+$varietyInstructions
+Rules:
+- Return ONLY the text of the greeting and the question.
+- DO NOT use JSON, markdown, or any other formatting.
+- Be natural and professional.
+'''
+        : '''
+Eres un entrevistador profesional y amable para el rol: "$jobRole".
+Preséntate brevemente y haz la primera pregunta para una entrevista de tipo ${_config.type?.label(_l10n)}.
+$varietyInstructions
+Reglas:
+- Devuelve SOLO el texto del saludo y la pregunta.
+- NO uses JSON, markdown o cualquier otro formato.
+- Sé natural y profesional.
+''';
+
+    final response = await _geminiService.sendPrompt(
+      prompt: prompt,
+      systemInstruction: _isEnglish
+          ? 'You are a human interviewer. Start with a greeting. Do not use markdown. Be concise but complete.'
+          : 'Eres un entrevistador humano. Empieza con un saludo. No uses markdown. Sé conciso pero completa la pregunta.',
+      temperature: 0.7,
+      maxOutputTokens: 1024,
+    );
+
+    final parsedFromJson = _tryExtractNextQuestion(response);
+    final question = _sanitizeQuestion(parsedFromJson ?? response);
     if (question.isEmpty) {
       throw GeminiException(_l10n.interviewCouldNotGenerateFirstQuestion);
     }
@@ -380,74 +425,56 @@ class InterviewVoiceController extends ChangeNotifier {
     final jobRole = _config.jobRole == null
         ? ''
         : _config.jobRole!.label(_l10n);
-    final type = _config.type ?? InterviewConfigType.mixed;
-    final history = _formatHistoryForPrompt(_session.turns);
+    final type = _config.type ?? InterviewType.mixed;
+    // Optimize tokens by taking only last 4 turns
+    final limitedTurns = _session.turns.length > 4
+        ? _session.turns.sublist(_session.turns.length - 4)
+        : _session.turns;
+    final history = _formatHistoryForPrompt(limitedTurns);
+    final varietyInstructions = _geminiService.getVarietyInstructions(
+      _selectedFocusAreas,
+      _isEnglish,
+    );
 
     final prompt = _isEnglish
         ? '''
-Act as a senior interviewer for the "$jobRole" role.
-Interview type: ${type.label(_l10n)}.
+Interviewer for "$jobRole" (${type.label(_l10n)}).
+Last Q: "${lastTurn.question}"
+Candidate A: "${lastTurn.answer}"
 
-Your goal is to formulate the next question in a smart, complete, and conversational way.
+Goal: Ask the next question. 
+1. Briefly acknowledge or react to the candidate's last answer.
+2. Ask a follow-up or a new relevant question.
+$varietyInstructions
+3. Keep it natural and professional.
+4. Return ONLY the text of the reaction and the question. No JSON.
 
-Last question:
-"${lastTurn.question}"
-
-Last candidate answer:
-"${lastTurn.answer}"
-
-Real history:
+History context:
 $history
-
-Return ONLY JSON with this exact schema:
-{"nextQuestion":"..."}
-
-Mandatory rules for nextQuestion:
-- It must be a single question in English.
-- It must sound like a real interview question.
-- It must have enough context to be spoken out loud.
-- It must refer to something concrete from the last answer or ask for an example, decision, metric, trade-off, or result.
-- Use the last answer to decide whether to clarify, challenge, or go deeper.
-- Do not repeat the previous question.
-- Avoid vague questions like "can you elaborate?" without context.
-- No markdown.
 '''
         : '''
-Actua como entrevistador senior para el rol "$jobRole".
-Tipo de entrevista: ${type.label(_l10n)}.
+Entrevistador para "$jobRole" (${type.label(_l10n)}).
+Ultima Q: "${lastTurn.question}"
+Respuesta: "${lastTurn.answer}"
 
-Tu objetivo es formular la siguiente pregunta de forma inteligente, completa y conversacional.
+Objetivo: Haz la siguiente pregunta.
+1. Reconoce brevemente o reacciona a la última respuesta del candidato.
+2. Haz una pregunta de seguimiento o una nueva pregunta relevante.
+$varietyInstructions
+3. Sé natural y profesional.
+4. Devuelve SOLO el texto de la reacción y la pregunta. Sin JSON.
 
-Ultima pregunta:
-"${lastTurn.question}"
-
-Ultima respuesta del candidato:
-"${lastTurn.answer}"
-
-Historial real:
+Contexto historial:
 $history
-
-Devuelve SOLO JSON con este esquema exacto:
-{"nextQuestion":"..."}
-
-Reglas obligatorias para nextQuestion:
-- Debe ser una sola pregunta en espanol.
-- Debe sonar como una pregunta real de entrevista, no como una frase incompleta.
-- Debe tener contexto suficiente por si se escucha en voz alta.
-- Debe referirse a algo concreto de la ultima respuesta o pedir un ejemplo, decision, metrica, trade-off o resultado.
-- Usa la ultima respuesta para decidir si debes aclarar, desafiar o profundizar.
-- No repitas la pregunta anterior.
-- Evita preguntas vagas como "puedes profundizar?" o "me cuentas mas?" sin contexto.
-- Sin markdown.
 ''';
 
     final next = await _geminiService.sendPrompt(
       prompt: prompt,
       systemInstruction: _isEnglish
-          ? 'You are a human interviewer. Be natural and direct.'
-          : 'Eres un entrevistador humano. Se natural y directo.',
+          ? 'You are a human interviewer. Be natural and direct. Do not use markdown. Ensure the question is finished.'
+          : 'Eres un entrevistador humano. Se natural y directo. No uses markdown. Asegúrate de terminar la pregunta.',
       temperature: 0.65,
-      maxOutputTokens: 320,
+      maxOutputTokens: 1024,
     );
 
     final parsedFromJson = _tryExtractNextQuestion(next);
@@ -479,8 +506,12 @@ Reglas obligatorias para nextQuestion:
     final jobRole = _config.jobRole == null
         ? ''
         : _config.jobRole!.label(_l10n);
-    final type = _config.type ?? InterviewConfigType.mixed;
+    final type = _config.type ?? InterviewType.mixed;
     final history = _formatHistoryForPrompt(_session.turns);
+    final varietyInstructions = _geminiService.getVarietyInstructions(
+      _selectedFocusAreas,
+      _isEnglish,
+    );
 
     final prompt = _isEnglish
         ? '''
@@ -494,6 +525,7 @@ Real history:
 $history
 
 Generate a new question in English to replace the current one.
+$varietyInstructions
 Rules:
 - It must be different from the current question.
 - It must keep continuity with the history.
@@ -513,6 +545,7 @@ Historial real:
 $history
 
 Genera una nueva pregunta en espanol para reemplazar la actual.
+$varietyInstructions
 Reglas:
 - Debe ser diferente a la pregunta actual.
 - Debe mantener continuidad con el historial.
@@ -539,7 +572,7 @@ Devuelve SOLO el texto de la pregunta.
   }
 
   Future<void> _deliverQuestion(String question, {String? introMessage}) async {
-    if (_isInterviewComplete) return;
+    if (_isInterviewComplete || _isSessionCancelled) return;
     _currentQuestion = question.trim();
     _currentQuestionAskedAt = DateTime.now().toUtc();
     _voiceDraft = '';
@@ -611,13 +644,17 @@ Devuelve SOLO el texto de la pregunta.
 
       await _speech.listen(
         onResult: _onSpeechResult,
-        listenFor: const Duration(seconds: 90),
-        pauseFor: const Duration(seconds: 3),
+        listenFor: const Duration(
+          seconds: 180,
+        ), // Aumentado a 3 minutos máximo por respuesta
+        pauseFor: const Duration(
+          seconds: 6,
+        ), // Aumentado a 6 segundos de silencio antes de cortar
         localeId: _speechLocaleId,
         onSoundLevelChange: _onSoundLevelChange,
         listenOptions: SpeechListenOptions(
           listenMode: ListenMode.dictation,
-          cancelOnError: true,
+          cancelOnError: false, // Evita que errores menores detengan la escucha
           partialResults: true,
           autoPunctuation: true,
         ),
@@ -826,12 +863,14 @@ Devuelve SOLO el texto de la pregunta.
   }
 
   void _notifySafely() {
-    if (_isDisposed) return;
-    notifyListeners();
+    if (!_isDisposed && !_isSessionCancelled) {
+      notifyListeners();
+    }
   }
 
   @override
   void dispose() {
+    _isSessionCancelled = true;
     _isDisposed = true;
     _speech.cancel();
     _tts.stop();
@@ -852,7 +891,17 @@ int _estimateQuestionCount(int durationMinutes) {
 }
 
 String? _tryExtractNextQuestion(String raw) {
-  final trimmed = raw.trim();
+  var trimmed = raw.trim();
+
+  // Remove markdown code blocks if present
+  if (trimmed.startsWith('```')) {
+    final firstBrace = trimmed.indexOf('{');
+    final lastBrace = trimmed.lastIndexOf('}');
+    if (firstBrace >= 0 && lastBrace > firstBrace) {
+      trimmed = trimmed.substring(firstBrace, lastBrace + 1);
+    }
+  }
+
   try {
     final decoded = jsonDecode(trimmed);
     if (decoded is Map<String, dynamic>) {
@@ -863,6 +912,7 @@ String? _tryExtractNextQuestion(String raw) {
     }
   } catch (_) {}
 
+  // Fallback to manual extraction
   final start = trimmed.indexOf('{');
   final end = trimmed.lastIndexOf('}');
   if (start >= 0 && end > start) {
@@ -882,16 +932,40 @@ String? _tryExtractNextQuestion(String raw) {
 
 String _sanitizeQuestion(String raw) {
   var value = raw.trim();
+
+  // Try to extract from JSON if the AI ignored the "no JSON" rule
+  final fromJson = _tryExtractNextQuestion(value);
+  if (fromJson != null) {
+    value = fromJson;
+  }
+
+  // Remove markdown code blocks
+  value = value.replaceAll(RegExp(r'```(?:json)?|```'), '');
+
+  // Remove common JSON artifacts if they leaked into the string
+  value = value.replaceAll(RegExp(r'''\{"nextQuestion":\s*["']?'''), '');
+  value = value.replaceAll(RegExp(r'''["']?\}$'''), '');
+
+  // Remove surrounding quotes and excessive whitespace
   value = value.replaceAll(RegExp("^[\"'`]+|[\"'`]+\$"), '');
   value = value.replaceAll(RegExp(r'\s+'), ' ').trim();
+
+  // Remove technical prefixes
   value = value.replaceFirst(
     RegExp(r'^(Pregunta|Question)\s*:\s*', caseSensitive: false),
     '',
   );
+
   if (value.isEmpty) return value;
-  if (!value.endsWith('?')) {
+
+  // Ensure it ends with a question mark if it looks like a question
+  if (!value.endsWith('?') &&
+      (value.contains('¿') ||
+          value.toLowerCase().contains('qué') ||
+          value.toLowerCase().contains('cómo'))) {
     value = '$value?';
   }
+
   return value;
 }
 
@@ -907,7 +981,7 @@ bool _isSmartInterviewQuestion(
       .split(RegExp(r'\s+'))
       .where((w) => w.isNotEmpty)
       .length;
-  if (wordCount < 8) return false;
+  if (wordCount < 3) return false;
 
   const vaguePatterns = <String>[
     'puedes profundizar',
@@ -979,18 +1053,10 @@ Reglas:
         ? 'You are a human interviewer. Create clear and specific spoken questions.'
         : 'Eres un entrevistador humano. Formula preguntas orales claras y especificas.',
     temperature: 0.55,
-    maxOutputTokens: 180,
+    maxOutputTokens: 512,
   );
 
   return _sanitizeQuestion(rewritten);
-}
-
-InterviewType _mapType(InterviewConfigType type) {
-  return switch (type) {
-    InterviewConfigType.technical => InterviewType.technical,
-    InterviewConfigType.rrhh => InterviewType.behavioral,
-    InterviewConfigType.mixed => InterviewType.mixed,
-  };
 }
 
 String _formatHistoryForPrompt(List<InterviewTurn> turns) {

@@ -14,7 +14,7 @@ class InterviewConfigController extends ChangeNotifier {
     notifyListeners();
   }
 
-  void setType(InterviewConfigType value) {
+  void setType(InterviewType value) {
     _config = _config.copyWith(type: value);
     notifyListeners();
   }

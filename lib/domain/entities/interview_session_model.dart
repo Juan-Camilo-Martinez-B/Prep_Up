@@ -1,16 +1,7 @@
-enum InterviewType {
-  behavioral,
-  technical,
-  mixed,
-}
+import 'package:prep_up/domain/entities/interview_session.dart';
+import 'package:prep_up/domain/entities/interview_tags.dart';
 
-enum InterviewSessionStatus {
-  draft,
-  ready,
-  inProgress,
-  completed,
-  analyzed,
-}
+enum InterviewSessionStatus { draft, ready, inProgress, completed, analyzed }
 
 class InterviewSessionModel {
   const InterviewSessionModel({
@@ -24,6 +15,7 @@ class InterviewSessionModel {
     required this.questionCount,
     required this.timeLimitSeconds,
     this.videoReference,
+    this.turns,
   });
 
   final String id;
@@ -31,11 +23,12 @@ class InterviewSessionModel {
   final DateTime createdAt;
   final DateTime updatedAt;
   final InterviewType type;
-  final String jobRole;
+  final JobRole jobRole;
   final InterviewSessionStatus status;
   final int questionCount;
   final int timeLimitSeconds;
   final String? videoReference;
+  final List<InterviewTurn>? turns;
 
   // TODO: persistir esta sesión en base de datos relacional (historial/estado).
   // TODO: vincular videoReference a almacenamiento no relacional (video/blob).
@@ -46,11 +39,12 @@ class InterviewSessionModel {
     DateTime? createdAt,
     DateTime? updatedAt,
     InterviewType? type,
-    String? jobRole,
+    JobRole? jobRole,
     InterviewSessionStatus? status,
     int? questionCount,
     int? timeLimitSeconds,
     String? videoReference,
+    List<InterviewTurn>? turns,
   }) {
     return InterviewSessionModel(
       id: id ?? this.id,
@@ -63,6 +57,7 @@ class InterviewSessionModel {
       questionCount: questionCount ?? this.questionCount,
       timeLimitSeconds: timeLimitSeconds ?? this.timeLimitSeconds,
       videoReference: videoReference ?? this.videoReference,
+      turns: turns ?? this.turns,
     );
   }
 
@@ -71,6 +66,13 @@ class InterviewSessionModel {
     final type = InterviewType.values.firstWhere(
       (e) => e.name == typeRaw,
       orElse: () => InterviewType.behavioral,
+    );
+
+    final jobRoleRaw =
+        (json['jobRole'] as String?) ?? JobRole.frontendDeveloper.name;
+    final jobRole = JobRole.values.firstWhere(
+      (e) => e.name == jobRoleRaw,
+      orElse: () => JobRole.frontendDeveloper,
     );
 
     final statusRaw =
@@ -83,16 +85,21 @@ class InterviewSessionModel {
     return InterviewSessionModel(
       id: (json['id'] as String?) ?? '',
       userId: (json['userId'] as String?) ?? '',
-      createdAt: DateTime.tryParse((json['createdAt'] as String?) ?? '') ??
+      createdAt:
+          DateTime.tryParse((json['createdAt'] as String?) ?? '') ??
           DateTime.fromMillisecondsSinceEpoch(0, isUtc: true),
-      updatedAt: DateTime.tryParse((json['updatedAt'] as String?) ?? '') ??
+      updatedAt:
+          DateTime.tryParse((json['updatedAt'] as String?) ?? '') ??
           DateTime.fromMillisecondsSinceEpoch(0, isUtc: true),
       type: type,
-      jobRole: (json['jobRole'] as String?) ?? '',
+      jobRole: jobRole,
       status: status,
       questionCount: (json['questionCount'] as int?) ?? 0,
       timeLimitSeconds: (json['timeLimitSeconds'] as int?) ?? 0,
       videoReference: json['videoReference'] as String?,
+      turns: (json['turns'] as List?)
+          ?.map((t) => InterviewTurn.fromJson(t as Map<String, dynamic>))
+          .toList(),
     );
   }
 
@@ -103,11 +110,12 @@ class InterviewSessionModel {
       'createdAt': createdAt.toUtc().toIso8601String(),
       'updatedAt': updatedAt.toUtc().toIso8601String(),
       'type': type.name,
-      'jobRole': jobRole,
+      'jobRole': jobRole.name,
       'status': status.name,
       'questionCount': questionCount,
       'timeLimitSeconds': timeLimitSeconds,
       'videoReference': videoReference,
+      'turns': turns?.map((t) => t.toJson()).toList(),
     };
   }
 
@@ -147,5 +155,9 @@ class InterviewSessionModel {
       timeLimitSeconds,
       videoReference,
     );
+  }
+
+  InterviewSession toDomain() {
+    return InterviewSession(startedAt: createdAt, turns: turns ?? const []);
   }
 }

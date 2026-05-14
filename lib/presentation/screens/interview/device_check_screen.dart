@@ -84,7 +84,14 @@ class _DeviceCheckScreenState extends State<DeviceCheckScreen> {
                   fit: StackFit.expand,
                   children: [
                     if (media.isCameraReady && media.cameraController != null)
-                      CameraPreview(media.cameraController!)
+                      FittedBox(
+                        fit: BoxFit.cover,
+                        child: SizedBox(
+                          width: media.cameraController!.value.previewSize?.height ?? 1,
+                          height: media.cameraController!.value.previewSize?.width ?? 1,
+                          child: CameraPreview(media.cameraController!),
+                        ),
+                      )
                     else
                       DecoratedBox(
                         decoration: BoxDecoration(

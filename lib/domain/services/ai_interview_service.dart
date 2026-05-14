@@ -1,5 +1,6 @@
 import 'package:prep_up/domain/entities/interview_results_model.dart';
 import 'package:prep_up/domain/entities/interview_session_model.dart';
+import 'package:prep_up/domain/entities/interview_tags.dart';
 
 abstract class AiInterviewService {
   Future<List<String>> generateQuestions({
@@ -49,7 +50,9 @@ class FakeAiInterviewService implements AiInterviewService {
       InterviewType.mixed => 75,
     };
 
-    final outcome = score >= 70 ? InterviewOutcome.approved : InterviewOutcome.improve;
+    final outcome = score >= 70
+        ? InterviewOutcome.approved
+        : InterviewOutcome.improve;
 
     return InterviewResultsModel(
       id: 'result_${session.id}',
@@ -62,15 +65,20 @@ class FakeAiInterviewService implements AiInterviewService {
         communication: 74,
         technicalKnowledge: 70,
         confidence: 77,
+        subjectMastery: 70,
       ),
       highlights: const ['Buena comunicación'],
-      personalizedFeedback: 'El candidato mostró buenas habilidades comunicativas.',
+      personalizedFeedback:
+          'El candidato mostró buenas habilidades comunicativas.',
       recommendations: const [
         'Mantén respuestas más estructuradas (situación, acción, resultado).',
         'Practica pausas cortas para mejorar claridad.',
         'Refuerza ejemplos con métricas y resultados concretos.',
       ],
       improvementTips: const ['Tip 1', 'Tip 2'],
+      averageResponseSeconds: 0,
+      totalResponseSeconds: 0,
+      validAnswersCount: 0,
     );
   }
 }

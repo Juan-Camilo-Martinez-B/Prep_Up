@@ -36,6 +36,33 @@ class InterviewTurn {
           responseDurationSeconds ?? this.responseDurationSeconds,
     );
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'question': question,
+      'answer': answer,
+      'evaluation': evaluation.toJson(),
+      'feedback': feedback.toJson(),
+      'createdAt': createdAt.toUtc().toIso8601String(),
+      'responseDurationSeconds': responseDurationSeconds,
+    };
+  }
+
+  factory InterviewTurn.fromJson(Map<String, dynamic> json) {
+    return InterviewTurn(
+      question: (json['question'] as String?) ?? '',
+      answer: (json['answer'] as String?) ?? '',
+      evaluation: AnswerEvaluationModel.fromJson(
+        (json['evaluation'] as Map?)?.cast<String, dynamic>() ?? {},
+      ),
+      feedback: InterviewFeedbackModel.fromJson(
+        (json['feedback'] as Map?)?.cast<String, dynamic>() ?? {},
+      ),
+      createdAt: DateTime.tryParse((json['createdAt'] as String?) ?? '') ??
+          DateTime.now(),
+      responseDurationSeconds: (json['responseDurationSeconds'] as int?) ?? 0,
+    );
+  }
 }
 
 class InterviewSession {
@@ -52,4 +79,23 @@ class InterviewSession {
   }
 
   bool get hasTurns => turns.isNotEmpty;
+
+  Map<String, dynamic> toJson() {
+    return {
+      'startedAt': startedAt.toUtc().toIso8601String(),
+      'turns': turns.map((t) => t.toJson()).toList(),
+    };
+  }
+
+  factory InterviewSession.fromJson(Map<String, dynamic> json) {
+    return InterviewSession(
+      startedAt: DateTime.tryParse((json['startedAt'] as String?) ?? '') ??
+          DateTime.now(),
+      turns: (json['turns'] as List?)
+              ?.map((t) => InterviewTurn.fromJson(t as Map<String, dynamic>))
+              .toList() ??
+          const [],
+    );
+  }
 }
+

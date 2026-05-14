@@ -119,7 +119,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
             content: Text(l10n.registerSuccess),
           ),
         );
-        Navigator.of(context).pushReplacementNamed(AppRoutes.login);
+        Navigator.of(
+          context,
+        ).pushNamedAndRemoveUntil(AppRoutes.dashboard, (route) => false);
       }
     } catch (e) {
       if (mounted) {
@@ -168,6 +170,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
     return AppScreenScaffold(
       title: '', // Emptied for immersive effect
+      showBackButton: true,
       extendBodyBehindAppBar: true,
       background: const TechBackground(),
       body: SafeArea(
