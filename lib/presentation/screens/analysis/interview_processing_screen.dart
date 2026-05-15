@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:prep_up/core/errors/user_friendly_error.dart';
 import 'package:prep_up/core/localization/app_locale.dart';
 import 'package:prep_up/core/localization/interview_l10n.dart';
 import 'package:prep_up/core/localization/l10n_extensions.dart';
@@ -128,7 +129,7 @@ class _InterviewProcessingScreenState extends State<InterviewProcessingScreen> {
     } catch (e) {
       if (!mounted) return;
       setState(() {
-        _error = e.toString();
+        _error = userFriendlyErrorMessage(e, l10n);
         _isLoading = false;
       });
     }

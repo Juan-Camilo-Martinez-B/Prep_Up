@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:prep_up/core/errors/user_friendly_error.dart';
 import 'package:prep_up/core/localization/app_locale.dart';
 import 'package:prep_up/core/localization/l10n_extensions.dart';
 import 'package:prep_up/core/navigation/app_routes.dart';
@@ -32,14 +33,29 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<void> _loadSettings() async {
+    final l10n = context.l10n;
     final user = _authService.currentUser;
     if (user != null) {
-      final settings = await _dbService.getSettingsForUser(user.id);
-      if (mounted) {
+      try {
+        final settings = await _dbService.getSettingsForUser(user.id);
+        if (!mounted) return;
         setState(() {
           _settings = settings ?? AppSettingsModel.defaults();
           _isLoading = false;
         });
+      } catch (e) {
+        if (!mounted) return;
+        setState(() {
+          _settings = AppSettingsModel.defaults();
+          _isLoading = false;
+        });
+        final message = userFriendlyErrorMessage(e, l10n);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(message),
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
+        );
       }
     } else {
       if (mounted) {
@@ -51,10 +67,24 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<void> _updateSettings(AppSettingsModel newSettings) async {
+    final l10n = context.l10n;
+    final previous = _settings;
     setState(() => _settings = newSettings);
     final user = _authService.currentUser;
     if (user != null) {
-      await _dbService.saveSettingsForUser(user.id, newSettings);
+      try {
+        await _dbService.saveSettingsForUser(user.id, newSettings);
+      } catch (e) {
+        if (!mounted) return;
+        setState(() => _settings = previous);
+        final message = userFriendlyErrorMessage(e, l10n);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(message),
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
+        );
+      }
     }
   }
 

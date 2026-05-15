@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:prep_up/core/errors/user_friendly_error.dart';
 import 'package:prep_up/core/localization/l10n_extensions.dart';
 import 'package:prep_up/core/navigation/app_routes.dart';
 import 'package:prep_up/domain/entities/user_model.dart';
@@ -31,14 +32,21 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   }
 
   Future<void> _loadUserData() async {
+    final l10n = context.l10n;
     final currentUser = _authService.currentUser;
-    if (currentUser != null) {
+    if (currentUser == null) {
+      if (mounted) setState(() => _isLoading = false);
+      return;
+    }
+
+    try {
       final user = await _dbService.getUserById(currentUser.id);
-      
-      final history = await _dbService.getInterviewHistoryForUser(currentUser.id);
-      int count = 0;
-      double totalScore = 0;
-      
+      final history = await _dbService.getInterviewHistoryForUser(
+        currentUser.id,
+      );
+      var count = 0;
+      var totalScore = 0.0;
+
       for (final session in history) {
         final result = await _dbService.getInterviewResultForSession(session.id);
         if (result != null) {
@@ -46,21 +54,24 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
           count++;
         }
       }
-      
-      if (mounted) {
-        setState(() {
-          _user = user;
-          _interviewCount = count;
-          _avgScore = count > 0 ? totalScore / count : 0;
-          _isLoading = false;
-        });
-      }
-    } else {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
+
+      if (!mounted) return;
+      setState(() {
+        _user = user;
+        _interviewCount = count;
+        _avgScore = count > 0 ? totalScore / count : 0;
+        _isLoading = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _isLoading = false);
+      final message = userFriendlyErrorMessage(e, l10n);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(message),
+          backgroundColor: Theme.of(context).colorScheme.error,
+        ),
+      );
     }
   }
 
@@ -143,16 +154,25 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                     barrierDismissible: false,
                     builder: (c) => const Center(child: CircularProgressIndicator()),
                   );
-                  
-                  await _dbService.upsertUser(updatedUser);
-                  
-                  // Dismiss loading and bottom sheet
-                  if (context.mounted) {
-                    Navigator.pop(context); // close dialog
-                    Navigator.pop(context); // close sheet
+
+                  try {
+                    await _dbService.upsertUser(updatedUser);
+                    if (!context.mounted) return;
+                    Navigator.pop(context);
+                    Navigator.pop(context);
                     setState(() {
                       _user = updatedUser;
                     });
+                  } catch (e) {
+                    if (!context.mounted) return;
+                    Navigator.pop(context);
+                    final message = userFriendlyErrorMessage(e, l10n);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(message),
+                        backgroundColor: Theme.of(context).colorScheme.error,
+                      ),
+                    );
                   }
                 },
               ),

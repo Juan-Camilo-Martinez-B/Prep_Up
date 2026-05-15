@@ -120,6 +120,51 @@ class AppLocalizationsEn extends AppLocalizations {
   String get unexpectedError => 'Unexpected error';
 
   @override
+  String get authErrorGeneric => 'Authentication error. Please try again.';
+
+  @override
+  String get forgotPasswordErrorGeneric =>
+      'We couldn\'t send the recovery link. Please check the email and try again.';
+
+  @override
+  String get errorNoInternet =>
+      'No internet connection. Check your connection and try again.';
+
+  @override
+  String get errorTimeout => 'The connection took too long. Please try again.';
+
+  @override
+  String get errorServerUnavailable =>
+      'Service unavailable right now. Please try again later.';
+
+  @override
+  String get errorCouldNotLoadData =>
+      'We couldn\'t load the information. Please try again.';
+
+  @override
+  String get errorCouldNotSaveChanges =>
+      'We couldn\'t save the changes. Please try again.';
+
+  @override
+  String get deviceErrorNoCameraDetected =>
+      'No camera was detected on this device.';
+
+  @override
+  String get deviceErrorCameraInitFailed =>
+      'We couldn\'t enable the camera. Check permissions and try again.';
+
+  @override
+  String get deviceErrorMicrophoneInitFailed =>
+      'We couldn\'t enable the microphone. Check permissions and try again.';
+
+  @override
+  String get deviceErrorVideoStreamFailed =>
+      'We couldn\'t start the camera stream. Please try again.';
+
+  @override
+  String get loginWelcomeBack => 'Welcome back';
+
+  @override
   String get loginTitle => 'Login';
 
   @override

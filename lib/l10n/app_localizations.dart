@@ -314,6 +314,78 @@ abstract class AppLocalizations {
   /// **'Unexpected error'**
   String get unexpectedError;
 
+  /// No description provided for @authErrorGeneric.
+  ///
+  /// In en, this message translates to:
+  /// **'Authentication error. Please try again.'**
+  String get authErrorGeneric;
+
+  /// No description provided for @forgotPasswordErrorGeneric.
+  ///
+  /// In en, this message translates to:
+  /// **'We couldn\'t send the recovery link. Please check the email and try again.'**
+  String get forgotPasswordErrorGeneric;
+
+  /// No description provided for @errorNoInternet.
+  ///
+  /// In en, this message translates to:
+  /// **'No internet connection. Check your connection and try again.'**
+  String get errorNoInternet;
+
+  /// No description provided for @errorTimeout.
+  ///
+  /// In en, this message translates to:
+  /// **'The connection took too long. Please try again.'**
+  String get errorTimeout;
+
+  /// No description provided for @errorServerUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Service unavailable right now. Please try again later.'**
+  String get errorServerUnavailable;
+
+  /// No description provided for @errorCouldNotLoadData.
+  ///
+  /// In en, this message translates to:
+  /// **'We couldn\'t load the information. Please try again.'**
+  String get errorCouldNotLoadData;
+
+  /// No description provided for @errorCouldNotSaveChanges.
+  ///
+  /// In en, this message translates to:
+  /// **'We couldn\'t save the changes. Please try again.'**
+  String get errorCouldNotSaveChanges;
+
+  /// No description provided for @deviceErrorNoCameraDetected.
+  ///
+  /// In en, this message translates to:
+  /// **'No camera was detected on this device.'**
+  String get deviceErrorNoCameraDetected;
+
+  /// No description provided for @deviceErrorCameraInitFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'We couldn\'t enable the camera. Check permissions and try again.'**
+  String get deviceErrorCameraInitFailed;
+
+  /// No description provided for @deviceErrorMicrophoneInitFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'We couldn\'t enable the microphone. Check permissions and try again.'**
+  String get deviceErrorMicrophoneInitFailed;
+
+  /// No description provided for @deviceErrorVideoStreamFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'We couldn\'t start the camera stream. Please try again.'**
+  String get deviceErrorVideoStreamFailed;
+
+  /// No description provided for @loginWelcomeBack.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome back'**
+  String get loginWelcomeBack;
+
   /// No description provided for @loginTitle.
   ///
   /// In en, this message translates to:
