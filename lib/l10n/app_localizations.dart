@@ -1244,6 +1244,12 @@ abstract class AppLocalizations {
   /// **'Detected or typed answer'**
   String get callAnswerFieldLabel;
 
+  /// No description provided for @callAnswerFieldHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Start typing or press the microphone...'**
+  String get callAnswerFieldHint;
+
   /// No description provided for @callAnswerHelperTts.
   ///
   /// In en, this message translates to:

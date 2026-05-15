@@ -645,6 +645,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get callAnswerFieldLabel => 'Respuesta detectada o escrita';
 
   @override
+  String get callAnswerFieldHint =>
+      'Empieza a escribir o presiona el micrófono...';
+
+  @override
   String get callAnswerHelperTts => 'Gemini pregunta por voz y texto.';
 
   @override

@@ -318,6 +318,7 @@
   "callYourAnswerSubtitleListening": "Real-time transcription",
   "callYourAnswerSubtitleFallback": "Voice with text fallback",
   "callAnswerFieldLabel": "Detected or typed answer",
+  "callAnswerFieldHint": "Start typing or press the microphone...",
   "callAnswerHelperTts": "Gemini asks by voice and text.",
   "callAnswerHelperFallback": "Fallback enabled: read the question on screen.",
   "callMicStop": "Stop",

@@ -318,6 +318,7 @@
   "callYourAnswerSubtitleListening": "Transcripción en tiempo real",
   "callYourAnswerSubtitleFallback": "Voz con fallback a texto",
   "callAnswerFieldLabel": "Respuesta detectada o escrita",
+  "callAnswerFieldHint": "Empieza a escribir o presiona el micrófono...",
   "callAnswerHelperTts": "Gemini pregunta por voz y texto.",
   "callAnswerHelperFallback": "Fallback activo: lee la pregunta en pantalla.",
   "callMicStop": "Detener",

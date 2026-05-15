@@ -71,25 +71,28 @@ class RecommendationsScreen extends StatelessWidget {
             title: l10n.recommendationsNextSessionTitle,
             subtitle: l10n.recommendationsNextSessionSubtitle,
             leading: Icon(Icons.replay_rounded, color: scheme.secondary),
-            child: Row(
+            child: Wrap(
+              spacing: 12,
+              runSpacing: 12,
               children: [
-                Expanded(
+                SizedBox(
+                  width: (MediaQuery.of(context).size.width - 80) / 2,
                   child: OutlinedButton.icon(
                     onPressed: () => Navigator.of(
                       context,
                     ).pushNamed(AppRoutes.selectInterviewType),
                     style: OutlinedButton.styleFrom(
-                      minimumSize: const Size(0, 48),
+                      minimumSize: const Size(0, 54),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14),
+                        borderRadius: BorderRadius.circular(16),
                       ),
                     ),
                     icon: const Icon(Icons.play_arrow_rounded),
                     label: Text(l10n.repeatButton),
                   ),
                 ),
-                const SizedBox(width: 12),
-                Expanded(
+                SizedBox(
+                  width: (MediaQuery.of(context).size.width - 80) / 2,
                   child: AppPrimaryButton(
                     label: l10n.dashboardButton,
                     icon: Icons.home_rounded,

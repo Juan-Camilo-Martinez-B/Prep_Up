@@ -287,6 +287,17 @@ class InterviewVoiceController extends ChangeNotifier {
     await _tts.stop();
   }
 
+  /// Pauses TTS and STT immediately when the user starts interacting manually (e.g. typing).
+  void onUserInteractionStarted() {
+    if (isSpeaking || isListening) {
+      unawaited(_tts.stop());
+      unawaited(_speech.stop());
+      _setIdle();
+      _statusMessage = _l10n.interviewWaitingAnswer;
+      _notifySafely();
+    }
+  }
+
   void clearError() {
     _error = null;
     _notifySafely();
@@ -736,7 +747,7 @@ class InterviewVoiceController extends ChangeNotifier {
     return remaining < minimumNeededForAnotherQuestion;
   }
 
-  void _completeInterview({required String reason}) {
+  Future<void> _completeInterview({required String reason}) async {
     _isInterviewComplete = true;
     _completionReason = reason;
     _currentQuestion = '';
@@ -745,6 +756,19 @@ class InterviewVoiceController extends ChangeNotifier {
     _setIdle();
     _statusMessage = reason;
     _notifySafely();
+
+    // Deliver a final farewell message if TTS is available
+    if (_isTtsAvailable) {
+      try {
+        _state = InterviewConversationState.speaking;
+        _notifySafely();
+        await _tts.speak(reason);
+        _setIdle();
+        _notifySafely();
+      } catch (_) {
+        _isTtsAvailable = false;
+      }
+    }
   }
 
   String _buildCompletionReason() {
@@ -771,6 +795,7 @@ class InterviewVoiceController extends ChangeNotifier {
     _tts.stop();
     super.dispose();
   }
+
   int _calculateResponseDurationSeconds(DateTime? askedAt) {
     if (askedAt == null) return 0;
     final elapsed = DateTime.now().toUtc().difference(askedAt).inSeconds;

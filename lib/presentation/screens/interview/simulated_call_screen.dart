@@ -81,6 +81,14 @@ class _SimulatedCallScreenState extends State<SimulatedCallScreen> {
       }
     });
 
+    _answerController.addListener(() {
+      if (!mounted) return;
+      if (_answerController.text.isNotEmpty &&
+          (_voiceController.isSpeaking || _voiceController.isListening)) {
+        _voiceController.onUserInteractionStarted();
+      }
+    });
+
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       await _mediaController.refreshPermissions();
       if (!_mediaController.isCameraPermissionGranted ||
@@ -472,18 +480,50 @@ class _SimulatedCallScreenState extends State<SimulatedCallScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      TextField(
-                        controller: _answerController,
-                        minLines: 3,
-                        maxLines: 6,
-                        decoration: InputDecoration(
-                          labelText: l10n.callAnswerFieldLabel,
-                          alignLabelWithHint: true,
-                          helperText: _voiceController.hasTextToSpeech
-                              ? l10n.callAnswerHelperTts
-                              : l10n.callAnswerHelperFallback,
-                        ),
-                        enabled: (canInteract || isListening) && !isComplete,
+                      Stack(
+                        alignment: Alignment.bottomRight,
+                        children: [
+                          TextField(
+                            controller: _answerController,
+                            minLines: 3,
+                            maxLines: 6,
+                            decoration: InputDecoration(
+                              labelText: l10n.callAnswerFieldLabel,
+                              alignLabelWithHint: true,
+                              hintText: l10n.callAnswerFieldHint,
+                              helperText: _voiceController.hasTextToSpeech
+                                  ? l10n.callAnswerHelperTts
+                                  : l10n.callAnswerHelperFallback,
+                              contentPadding: const EdgeInsets.fromLTRB(
+                                16,
+                                16,
+                                64,
+                                16,
+                              ),
+                            ),
+                            enabled:
+                                (canInteract || isListening) && !isComplete,
+                          ),
+                          Positioned(
+                            bottom: 12,
+                            right: 8,
+                            child: IconButton.filledTonal(
+                              onPressed: canInteract || isListening
+                                  ? () async {
+                                      await _voiceController.toggleListening();
+                                    }
+                                  : null,
+                              icon: Icon(
+                                isListening
+                                    ? Icons.mic_off_rounded
+                                    : Icons.mic_rounded,
+                              ),
+                              tooltip: isListening
+                                  ? l10n.callMicStop
+                                  : l10n.callMicTalk,
+                            ),
+                          ),
+                        ],
                       ),
                       if (statusMessage.isNotEmpty) ...[
                         const SizedBox(height: 8),
@@ -496,22 +536,6 @@ class _SimulatedCallScreenState extends State<SimulatedCallScreen> {
                       const SizedBox(height: 12),
                       Row(
                         children: [
-                          OutlinedButton.icon(
-                            onPressed: canInteract || isListening
-                                ? () async {
-                                    await _voiceController.toggleListening();
-                                  }
-                                : null,
-                            icon: Icon(
-                              isListening
-                                  ? Icons.mic_off_rounded
-                                  : Icons.mic_rounded,
-                            ),
-                            label: Text(
-                              isListening ? l10n.callMicStop : l10n.callMicTalk,
-                            ),
-                          ),
-                          const SizedBox(width: 12),
                           Expanded(
                             child: OutlinedButton.icon(
                               onPressed:
@@ -528,29 +552,27 @@ class _SimulatedCallScreenState extends State<SimulatedCallScreen> {
                               label: Text(l10n.callRepeatQuestion),
                             ),
                           ),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-                      ValueListenableBuilder<TextEditingValue>(
-                        valueListenable: _answerController,
-                        builder: (context, value, _) {
-                          final canSend =
-                              canInteract && value.text.trim().isNotEmpty;
+                          const SizedBox(width: 12),
+                          ValueListenableBuilder<TextEditingValue>(
+                            valueListenable: _answerController,
+                            builder: (context, value, _) {
+                              final canSend =
+                                  canInteract && value.text.trim().isNotEmpty;
 
-                          return AppPrimaryButton(
-                            isExpanded: true,
-                            label: l10n.callSendToGemini,
-                            icon: Icons.send_rounded,
-                            isLoading: isBusy,
-                            onPressed: canSend
-                                ? () async {
-                                    await _voiceController.submitAnswer(
-                                      value.text,
-                                    );
-                                  }
-                                : null,
-                          );
-                        },
+                              return FilledButton.icon(
+                                onPressed: canSend
+                                    ? () async {
+                                        await _voiceController.submitAnswer(
+                                          value.text,
+                                        );
+                                      }
+                                    : null,
+                                icon: const Icon(Icons.send_rounded),
+                                label: Text(l10n.callSendToGemini),
+                              );
+                            },
+                          ),
+                        ],
                       ),
                       if (_voiceController.error != null) ...[
                         const SizedBox(height: 10),
