@@ -5,6 +5,7 @@ import 'package:prep_up/domain/entities/interview_results_model.dart';
 import 'package:prep_up/presentation/widgets/app_card.dart';
 import 'package:prep_up/presentation/widgets/app_primary_button.dart';
 import 'package:prep_up/presentation/widgets/app_screen_scaffold.dart';
+import 'package:prep_up/presentation/widgets/feedback_content_widget.dart';
 
 class RecommendationsScreen extends StatelessWidget {
   const RecommendationsScreen({super.key, required this.results});
@@ -37,26 +38,17 @@ class RecommendationsScreen extends StatelessWidget {
       title: l10n.recommendationsTitle,
       background: const TechBackground(),
       body: ListView(
+        padding: const EdgeInsets.only(bottom: 24),
         children: [
           AppCard(
             title: l10n.recommendationsSuggestionsTitle,
             subtitle: l10n.recommendationsSuggestionsSubtitle,
             leading: Icon(Icons.lightbulb_rounded, color: scheme.primary),
-            child: Column(
-              children: [
-                if (results.recommendations.isEmpty)
-                  Text(
-                    l10n.recommendationsNone,
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: scheme.onSurfaceVariant,
-                        ),
-                  )
-                else
-                  for (final r in results.recommendations) ...[
-                    _RecommendationRow(text: r),
-                    const SizedBox(height: 10),
-                  ],
-              ],
+            child: SectionFeedbackCard(
+              title: l10n.feedbackKeyPhrasesTitle,
+              items: results.recommendations,
+              icon: Icons.auto_awesome_rounded,
+              color: scheme.primary,
             ),
           ),
           const SizedBox(height: 14),
@@ -64,14 +56,13 @@ class RecommendationsScreen extends StatelessWidget {
             AppCard(
               title: l10n.recommendationsTipsTitle,
               subtitle: l10n.recommendationsTipsSubtitle,
-              leading: Icon(Icons.tips_and_updates_rounded, color: scheme.secondary),
-              child: Column(
-                children: [
-                  for (final tip in results.improvementTips) ...[
-                    _RecommendationRow(text: tip),
-                    const SizedBox(height: 10),
-                  ],
-                ],
+              leading:
+                  Icon(Icons.tips_and_updates_rounded, color: scheme.secondary),
+              child: SectionFeedbackCard(
+                title: l10n.feedbackActionItemsTitle,
+                items: results.improvementTips,
+                icon: Icons.check_circle_rounded,
+                color: scheme.secondary,
               ),
             ),
             const SizedBox(height: 14),
@@ -84,8 +75,9 @@ class RecommendationsScreen extends StatelessWidget {
               children: [
                 Expanded(
                   child: OutlinedButton.icon(
-                    onPressed: () =>
-                        Navigator.of(context).pushNamed(AppRoutes.selectInterviewType),
+                    onPressed: () => Navigator.of(
+                      context,
+                    ).pushNamed(AppRoutes.selectInterviewType),
                     style: OutlinedButton.styleFrom(
                       minimumSize: const Size(0, 48),
                       shape: RoundedRectangleBorder(
@@ -101,10 +93,9 @@ class RecommendationsScreen extends StatelessWidget {
                   child: AppPrimaryButton(
                     label: l10n.dashboardButton,
                     icon: Icons.home_rounded,
-                    onPressed: () => Navigator.of(context).pushNamedAndRemoveUntil(
-                      AppRoutes.dashboard,
-                      (r) => false,
-                    ),
+                    onPressed: () => Navigator.of(
+                      context,
+                    ).pushNamedAndRemoveUntil(AppRoutes.dashboard, (r) => false),
                   ),
                 ),
               ],
@@ -112,25 +103,6 @@ class RecommendationsScreen extends StatelessWidget {
           ),
         ],
       ),
-    );
-  }
-}
-
-class _RecommendationRow extends StatelessWidget {
-  const _RecommendationRow({required this.text});
-
-  final String text;
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Icon(Icons.auto_awesome_rounded, size: 18, color: scheme.primary),
-        const SizedBox(width: 10),
-        Expanded(child: Text(text)),
-      ],
     );
   }
 }

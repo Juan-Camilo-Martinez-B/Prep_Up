@@ -754,5 +754,9 @@
       "lastAnswer": { "type": "String" }
     }
   },
-  "aiPromptSystemInterviewerSpoken": "Eres un entrevistador humano. Formula preguntas orales claras y específicas."
+  "aiPromptSystemInterviewerSpoken": "Eres un entrevistador humano. Formula preguntas orales claras y específicas.",
+  "feedbackSummaryTitle": "Análisis de Desempeño",
+  "feedbackActionItemsTitle": "Pasos a Seguir",
+  "feedbackKeyPhrasesTitle": "Frases Clave Recomendadas",
+  "errorAIFailureFriendly": "No pudimos procesar el feedback detallado en este momento. Por favor, revisa tus puntajes abajo."
 }

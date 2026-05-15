@@ -1569,4 +1569,17 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get aiPromptSystemInterviewerSpoken =>
       'Eres un entrevistador humano. Formula preguntas orales claras y específicas.';
+
+  @override
+  String get feedbackSummaryTitle => 'Análisis de Desempeño';
+
+  @override
+  String get feedbackActionItemsTitle => 'Pasos a Seguir';
+
+  @override
+  String get feedbackKeyPhrasesTitle => 'Frases Clave Recomendadas';
+
+  @override
+  String get errorAIFailureFriendly =>
+      'No pudimos procesar el feedback detallado en este momento. Por favor, revisa tus puntajes abajo.';
 }

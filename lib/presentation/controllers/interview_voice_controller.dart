@@ -13,6 +13,7 @@ import 'package:prep_up/domain/entities/interview_session.dart';
 import 'package:prep_up/domain/entities/interview_tags.dart';
 import 'package:prep_up/domain/services/gemini_service.dart';
 import 'package:prep_up/l10n/app_localizations.dart';
+import 'package:prep_up/core/utils/ai_utils.dart';
 import 'package:speech_to_text/speech_recognition_error.dart';
 import 'package:speech_to_text/speech_recognition_result.dart';
 import 'package:speech_to_text/speech_to_text.dart';
@@ -458,7 +459,7 @@ class InterviewVoiceController extends ChangeNotifier {
       l10n: _l10n,
     );
 
-    final cleaned = next.trim();
+    final cleaned = _sanitizeQuestion(next);
     if (cleaned.isEmpty) {
       throw GeminiException(_l10n.interviewCouldNotGenerateAlternativeQuestion);
     }
@@ -808,34 +809,26 @@ class InterviewVoiceController extends ChangeNotifier {
   }
 
   String _sanitizeQuestion(String raw) {
-    var value = raw.trim();
-
-    // Try to extract from JSON if the AI ignored the "no JSON" rule
-    final fromJson = _tryExtractNextQuestion(value);
-    if (fromJson != null) {
-      value = fromJson;
-    }
-
-    // Remove markdown code blocks
-    value = value.replaceAll(RegExp(r'```(?:json)?|```'), '');
-
-    // Remove surrounding quotes and excessive whitespace
-    value = value.replaceAll(RegExp("^[\"'`]+|[\"'`]+\$"), '');
-    value = value.replaceAll(RegExp(r'\s+'), ' ').trim();
-
-    // Remove technical prefixes
-    value = value.replaceFirst(
-      RegExp(r'^(Pregunta|Question)\s*:\s*', caseSensitive: false),
-      '',
-    );
+    // Use the centralized AI utility for robust cleaning
+    var value = AiUtils.sanitizeAIText(raw, _l10n);
 
     if (value.isEmpty) return value;
+
+    // Remove technical prefixes that might leak
+    value = value.replaceFirst(
+      RegExp(r'^(Pregunta|Question|AI)\s*:\s*', caseSensitive: false),
+      '',
+    );
 
     // Ensure it ends with a question mark if it looks like a question
     if (!value.endsWith('?') &&
         (value.contains('¿') ||
             value.toLowerCase().contains('qué') ||
-            value.toLowerCase().contains('cómo'))) {
+            value.toLowerCase().contains('cómo') ||
+            value.toLowerCase().contains('cuál') ||
+            value.toLowerCase().contains('donde') ||
+            value.toLowerCase().contains('quién') ||
+            value.toLowerCase().contains('por qué'))) {
       value = '$value?';
     }
 

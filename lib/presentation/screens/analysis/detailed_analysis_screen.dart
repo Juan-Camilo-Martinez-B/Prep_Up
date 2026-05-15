@@ -7,6 +7,7 @@ import 'package:prep_up/presentation/widgets/app_card.dart';
 import 'package:prep_up/presentation/widgets/app_primary_button.dart';
 import 'package:prep_up/presentation/widgets/app_screen_scaffold.dart';
 import 'package:prep_up/presentation/widgets/interview_statistics_widgets.dart';
+import 'package:prep_up/presentation/widgets/feedback_content_widget.dart';
 
 class DetailedAnalysisScreen extends StatelessWidget {
   const DetailedAnalysisScreen({
@@ -132,23 +133,19 @@ class DetailedAnalysisScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  results.personalizedFeedback.trim().isEmpty
+                FeedbackContentWidget(
+                  content: results.personalizedFeedback.trim().isEmpty
                       ? l10n.detailedAnalysisNoFeedback
                       : results.personalizedFeedback.trim(),
+                  title: l10n.feedbackSummaryTitle,
+                  color: scheme.primary,
                 ),
-                if (results.improvementTips.isNotEmpty) ...[
-                  const SizedBox(height: 14),
-                  Text(
-                    l10n.detailedAnalysisImprovementTipsTitle,
-                    style: Theme.of(context).textTheme.titleSmall,
-                  ),
-                  const SizedBox(height: 8),
-                  for (final tip in results.improvementTips) ...[
-                    _TipRow(text: tip),
-                    const SizedBox(height: 8),
-                  ],
-                ],
+                SectionFeedbackCard(
+                  title: l10n.feedbackActionItemsTitle,
+                  items: results.improvementTips,
+                  icon: Icons.tips_and_updates_rounded,
+                  color: scheme.secondary,
+                ),
               ],
             ),
           ),

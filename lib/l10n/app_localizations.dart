@@ -2819,6 +2819,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'You are a human interviewer. Create clear and specific spoken questions.'**
   String get aiPromptSystemInterviewerSpoken;
+
+  /// No description provided for @feedbackSummaryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Performance Analysis'**
+  String get feedbackSummaryTitle;
+
+  /// No description provided for @feedbackActionItemsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Next Steps'**
+  String get feedbackActionItemsTitle;
+
+  /// No description provided for @feedbackKeyPhrasesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Recommended Key Phrases'**
+  String get feedbackKeyPhrasesTitle;
+
+  /// No description provided for @errorAIFailureFriendly.
+  ///
+  /// In en, this message translates to:
+  /// **'We couldn\'t process the detailed feedback at this moment. Please check your scores below.'**
+  String get errorAIFailureFriendly;
 }
 
 class _AppLocalizationsDelegate

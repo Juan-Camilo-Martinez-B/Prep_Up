@@ -13,6 +13,7 @@ import 'package:prep_up/domain/entities/interview_session.dart';
 import 'package:prep_up/domain/entities/interview_session_model.dart';
 import 'package:prep_up/domain/entities/interview_tags.dart';
 import 'package:prep_up/l10n/app_localizations.dart';
+import 'package:prep_up/core/utils/ai_utils.dart';
 
 class GeminiException implements Exception {
   const GeminiException(this.message, {this.statusCode, this.details});
@@ -426,7 +427,7 @@ class GeminiService {
     if (decoded != null) return InterviewFeedbackModel.fromJson(decoded);
 
     return InterviewFeedbackModel(
-      summary: raw.trim(),
+      summary: AiUtils.sanitizeAIText(raw, l10n),
       actionItems: const [],
       keyPhrasesToUse: const [],
     );
@@ -671,9 +672,7 @@ class GeminiService {
           subjectMastery: avgScore,
         ),
         highlights: const [],
-        personalizedFeedback: raw.trim().isNotEmpty
-            ? raw.trim()
-            : l10n.errorGeminiFallbackFeedback,
+        personalizedFeedback: AiUtils.sanitizeAIText(raw, l10n),
         recommendations: const [],
         improvementTips: const [],
         averageResponseSeconds: 0,
@@ -719,8 +718,11 @@ class GeminiService {
         technicalKnowledge: avgSubjectMastery,
         subjectMastery: avgSubjectMastery,
       ),
-      highlights: parsed.highlights,
-      personalizedFeedback: parsed.personalizedFeedback,
+      highlights: (decoded['highlights'] as List?)?.cast<String>() ?? const [],
+      personalizedFeedback: AiUtils.sanitizeAIText(
+        (decoded['personalizedFeedback'] as String?) ?? raw,
+        l10n,
+      ),
       recommendations: parsed.recommendations,
       improvementTips: parsed.improvementTips,
       averageResponseSeconds: averageResponseSeconds,
@@ -728,6 +730,7 @@ class GeminiService {
       validAnswersCount: validAnswersCount,
     );
   }
+
 }
 
 String? _tryExtractApiErrorMessage(String body) {

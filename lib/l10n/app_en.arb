@@ -755,5 +755,9 @@
       "lastAnswer": { "type": "String" }
     }
   },
-  "aiPromptSystemInterviewerSpoken": "You are a human interviewer. Create clear and specific spoken questions."
+  "aiPromptSystemInterviewerSpoken": "You are a human interviewer. Create clear and specific spoken questions.",
+  "feedbackSummaryTitle": "Performance Analysis",
+  "feedbackActionItemsTitle": "Next Steps",
+  "feedbackKeyPhrasesTitle": "Recommended Key Phrases",
+  "errorAIFailureFriendly": "We couldn't process the detailed feedback at this moment. Please check your scores below."
 }
