@@ -5,7 +5,6 @@ import 'package:prep_up/core/navigation/app_routes.dart';
 import 'package:prep_up/domain/entities/user_model.dart';
 import 'package:prep_up/domain/services/auth_service.dart';
 import 'package:prep_up/domain/services/relational_database_service.dart';
-import 'package:prep_up/domain/services/supabase_database_service.dart';
 import 'package:prep_up/presentation/widgets/app_card.dart';
 import 'package:prep_up/presentation/widgets/app_primary_button.dart';
 import 'package:prep_up/presentation/widgets/app_screen_scaffold.dart';
@@ -243,45 +242,11 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
               icon: Icon(Icons.edit_rounded, color: scheme.primary),
               onPressed: _showEditProfileModal,
             ),
-            child: Column(
-              children: [
-                _StatRow(
-                  leftLabel: l10n.profileStatInterviews,
-                  leftValue: _interviewCount.toString(),
-                  rightLabel: l10n.profileStatAvgScore,
-                  rightValue: _avgScore.toStringAsFixed(0),
-                ),
-                const SizedBox(height: 10),
-                _StatRow(
-                  leftLabel: l10n.profileStatStreak,
-                  leftValue: '0',
-                  rightLabel: l10n.profileStatLevel,
-                  rightValue: _interviewCount > 5
-                      ? l10n.profileLevelPro
-                      : l10n.profileLevelRookie,
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 14),
-          AppCard(
-            title: l10n.profileAchievementsTitle,
-            subtitle: l10n.profileAchievementsSubtitle,
-            leading: Icon(Icons.emoji_events_rounded, color: scheme.secondary),
-            child: Column(
-              children: [
-                _AchievementTile(
-                  icon: Icons.bolt_rounded,
-                  title: l10n.profileAchievementFirstWeekTitle,
-                  subtitle: l10n.profileAchievementFirstWeekSubtitle,
-                ),
-                const SizedBox(height: 10),
-                _AchievementTile(
-                  icon: Icons.psychology_alt_rounded,
-                  title: l10n.profileAchievementAiModeTitle,
-                  subtitle: l10n.profileAchievementAiModeSubtitle,
-                ),
-              ],
+            child: _StatRow(
+              leftLabel: l10n.profileStatInterviews,
+              leftValue: _interviewCount.toString(),
+              rightLabel: l10n.profileStatAvgScore,
+              rightValue: _avgScore.toStringAsFixed(0),
             ),
           ),
           const SizedBox(height: 14),
@@ -364,49 +329,3 @@ class _MiniStat extends StatelessWidget {
   }
 }
 
-class _AchievementTile extends StatelessWidget {
-  const _AchievementTile({
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-  });
-
-  final IconData icon;
-  final String title;
-  final String subtitle;
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-
-    return Row(
-      children: [
-        Container(
-          width: 44,
-          height: 44,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(14),
-            color: scheme.primary.withValues(alpha: 0.12),
-          ),
-          child: Icon(icon, color: scheme.primary),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(title, style: Theme.of(context).textTheme.titleSmall),
-              const SizedBox(height: 2),
-              Text(
-                subtitle,
-                style: Theme.of(
-                  context,
-                ).textTheme.bodySmall?.copyWith(color: scheme.onSurfaceVariant),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-}

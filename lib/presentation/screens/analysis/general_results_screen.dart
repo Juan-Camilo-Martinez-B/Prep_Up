@@ -181,15 +181,7 @@ class GeneralResultsScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 18),
-          AppPrimaryButton(
-            label: l10n.generalResultsViewFullStats,
-            icon: Icons.bar_chart_rounded,
-            onPressed: () => Navigator.of(context).pushNamed(
-              AppRoutes.statistics,
-              arguments: {'results': results, 'session': session},
-            ),
-          ),
-          const SizedBox(height: 10),
+
           AppPrimaryButton(
             label: l10n.generalResultsViewDetailedAnalysis,
             icon: Icons.analytics_rounded,

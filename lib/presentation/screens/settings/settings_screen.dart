@@ -6,7 +6,6 @@ import 'package:prep_up/core/navigation/app_routes.dart';
 import 'package:prep_up/domain/entities/app_settings_model.dart';
 import 'package:prep_up/domain/services/auth_service.dart';
 import 'package:prep_up/domain/services/relational_database_service.dart';
-import 'package:prep_up/domain/services/supabase_database_service.dart';
 import 'package:prep_up/presentation/widgets/app_card.dart';
 import 'package:prep_up/presentation/widgets/app_screen_scaffold.dart';
 import 'package:prep_up/theme/app_theme.dart';
@@ -118,75 +117,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       body: ListView(
         padding: const EdgeInsets.only(bottom: 60),
         children: [
-          // Header del perfil creativo
-          Center(
-            child: Column(
-              children: [
-                Container(
-                  width: 100,
-                  height: 100,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: LinearGradient(
-                      colors: [scheme.primary, scheme.secondary],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: scheme.primary.withValues(alpha: 0.4),
-                        blurRadius: 20,
-                        offset: const Offset(0, 10),
-                      ),
-                    ],
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(4.0),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Theme.of(context).scaffoldBackgroundColor,
-                      ),
-                      child: Center(
-                        child: Icon(
-                          Icons.person_rounded,
-                          size: 50,
-                          color: scheme.primary,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  l10n.myProfile,
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: scheme.primary.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    l10n.freeAccount,
-                    style: TextStyle(
-                      color: scheme.primary,
-                      fontWeight: FontWeight.w600,
-                      fontSize: 12,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 32),
+
 
           Text(
             l10n.personalization,
@@ -332,136 +263,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
           ),
 
-          const SizedBox(height: 16),
-          AppCard(
-            padding: EdgeInsets.zero,
-            child: Column(
-              children: [
-                SwitchListTile(
-                  value: _settings?.enableHaptics ?? true,
-                  onChanged: (v) {
-                    if (_settings != null) {
-                      _updateSettings(_settings!.copyWith(enableHaptics: v));
-                    }
-                  },
-                  title: Text(l10n.hapticFeedback),
-                  subtitle: Text(
-                    l10n.hapticSubtitle,
-                    style: TextStyle(
-                      color: scheme.onSurfaceVariant,
-                      fontSize: 12,
-                    ),
-                  ),
-                  secondary: Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: scheme.secondary.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Icon(
-                      Icons.vibration_rounded,
-                      color: scheme.secondary,
-                    ),
-                  ),
-                  activeThumbColor: scheme.primary,
-                ),
-                const Divider(height: 1, indent: 64),
-                SwitchListTile(
-                  value: _settings?.enableNotifications ?? true,
-                  onChanged: (v) {
-                    if (_settings != null) {
-                      _updateSettings(
-                        _settings!.copyWith(enableNotifications: v),
-                      );
-                    }
-                  },
-                  title: Text(l10n.pushNotifications),
-                  subtitle: Text(
-                    l10n.pushNotificationsSubtitle,
-                    style: TextStyle(
-                      color: scheme.onSurfaceVariant,
-                      fontSize: 12,
-                    ),
-                  ),
-                  secondary: Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: Colors.orangeAccent.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const Icon(
-                      Icons.notifications_active_rounded,
-                      color: Colors.orangeAccent,
-                    ),
-                  ),
-                  activeThumbColor: scheme.primary,
-                ),
-              ],
-            ),
-          ),
 
-          const SizedBox(height: 24),
-          Text(
-            l10n.privacyAndAnalytics,
-            style: Theme.of(context).textTheme.labelLarge?.copyWith(
-              fontWeight: FontWeight.bold,
-              color: scheme.onSurfaceVariant,
-            ),
-          ),
-          const SizedBox(height: 12),
-          AppCard(
-            padding: EdgeInsets.zero,
-            child: Column(
-              children: [
-                ListTile(
-                  leading: Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: scheme.tertiary.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Icon(
-                      Icons.video_camera_front_rounded,
-                      color: scheme.tertiary,
-                    ),
-                  ),
-                  title: Text(l10n.myRecordingsBeta),
-                  trailing: const Icon(Icons.chevron_right_rounded),
-                  onTap: () {},
-                ),
-                const Divider(height: 1, indent: 64),
-                ListTile(
-                  leading: Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: Colors.pinkAccent.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const Icon(
-                      Icons.face_retouching_natural_rounded,
-                      color: Colors.pinkAccent,
-                    ),
-                  ),
-                  title: Text(l10n.expertFacialAnalysis),
-                  trailing: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 2,
-                    ),
-                    decoration: BoxDecoration(
-                      color: scheme.onSurface.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Text(
-                      l10n.comingSoon,
-                      style: const TextStyle(fontSize: 10),
-                    ),
-                  ),
-                  onTap: () {},
-                ),
-              ],
-            ),
-          ),
 
           const SizedBox(height: 32),
           AppCard(

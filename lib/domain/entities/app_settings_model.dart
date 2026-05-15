@@ -7,31 +7,21 @@ enum AppThemeMode {
 class AppSettingsModel {
   const AppSettingsModel({
     required this.themeMode,
-    required this.enableHaptics,
-    required this.enableNotifications,
   });
 
   final AppThemeMode themeMode;
-  final bool enableHaptics;
-  final bool enableNotifications;
 
   factory AppSettingsModel.defaults() {
     return const AppSettingsModel(
       themeMode: AppThemeMode.system,
-      enableHaptics: true,
-      enableNotifications: true,
     );
   }
 
   AppSettingsModel copyWith({
     AppThemeMode? themeMode,
-    bool? enableHaptics,
-    bool? enableNotifications,
   }) {
     return AppSettingsModel(
       themeMode: themeMode ?? this.themeMode,
-      enableHaptics: enableHaptics ?? this.enableHaptics,
-      enableNotifications: enableNotifications ?? this.enableNotifications,
     );
   }
 
@@ -44,22 +34,18 @@ class AppSettingsModel {
 
     return AppSettingsModel(
       themeMode: themeMode,
-      enableHaptics: (json['enableHaptics'] as bool?) ?? true,
-      enableNotifications: (json['enableNotifications'] as bool?) ?? true,
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
       'themeMode': themeMode.name,
-      'enableHaptics': enableHaptics,
-      'enableNotifications': enableNotifications,
     };
   }
 
   @override
   String toString() {
-    return 'AppSettingsModel(themeMode: ${themeMode.name}, enableHaptics: $enableHaptics, enableNotifications: $enableNotifications)';
+    return 'AppSettingsModel(themeMode: ${themeMode.name})';
   }
 
   @override
@@ -67,13 +53,11 @@ class AppSettingsModel {
     return identical(this, other) ||
         other is AppSettingsModel &&
             runtimeType == other.runtimeType &&
-            themeMode == other.themeMode &&
-            enableHaptics == other.enableHaptics &&
-            enableNotifications == other.enableNotifications;
+            themeMode == other.themeMode;
   }
 
   @override
   int get hashCode {
-    return Object.hash(themeMode, enableHaptics, enableNotifications);
+    return themeMode.hashCode;
   }
 }

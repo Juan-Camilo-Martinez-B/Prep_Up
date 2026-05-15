@@ -63,8 +63,6 @@ class SupabaseDatabaseService implements RelationalDatabaseService {
         (e) => e.name == response['theme_mode'],
         orElse: () => AppThemeMode.system,
       ),
-      enableHaptics: response['enable_haptics'] ?? true,
-      enableNotifications: response['enable_notifications'] ?? true,
     );
   }
 
@@ -76,8 +74,6 @@ class SupabaseDatabaseService implements RelationalDatabaseService {
     await _supabase.from('configuraciones').upsert({
       'user_id': userId,
       'theme_mode': settings.themeMode.name,
-      'enable_haptics': settings.enableHaptics,
-      'enable_notifications': settings.enableNotifications,
       'updated_at': DateTime.now().toUtc().toIso8601String(),
     });
   }

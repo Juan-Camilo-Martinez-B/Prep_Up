@@ -232,19 +232,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     label: l10n.dashboardActionTrain,
                   ),
                   _BarAction(
-                    height: 90,
-                    color: Colors.purpleAccent,
-                    onTap: () =>
-                        Navigator.of(context).pushNamed(AppRoutes.statistics),
-                    label: l10n.dashboardActionMetrics,
-                  ),
-                  _BarAction(
-                    height: 40,
-                    color: Colors.cyanAccent,
-                    onTap: () {},
-                    label: l10n.dashboardActionTips,
-                  ),
-                  _BarAction(
                     height: 75,
                     color: scheme.primary,
                     onTap: () =>

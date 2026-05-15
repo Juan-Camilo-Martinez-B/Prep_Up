@@ -160,21 +160,7 @@ class DetailedAnalysisScreen extends StatelessWidget {
             ).pushNamed(AppRoutes.recommendations, arguments: results),
           ),
           const SizedBox(height: 10),
-          OutlinedButton.icon(
-            onPressed: () => Navigator.of(context).pushNamed(
-              AppRoutes.statistics,
-              arguments: {'results': results, 'session': session},
-            ),
-            style: OutlinedButton.styleFrom(
-              minimumSize: const Size(double.infinity, 48),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(14),
-              ),
-            ),
-            icon: const Icon(Icons.pie_chart_rounded),
-            label: Text(l10n.generalResultsViewFullStats),
-          ),
-          const SizedBox(height: 10),
+
           OutlinedButton(
             onPressed: () => Navigator.of(
               context,

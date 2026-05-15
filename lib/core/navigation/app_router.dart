@@ -20,8 +20,6 @@ import 'package:prep_up/presentation/screens/interview/simulated_call_screen.dar
 import 'package:prep_up/presentation/screens/profile/user_profile_screen.dart';
 import 'package:prep_up/presentation/screens/settings/settings_screen.dart';
 import 'package:prep_up/presentation/screens/tracking/interview_history_screen.dart';
-import 'package:prep_up/presentation/screens/tracking/repeat_interview_screen.dart';
-import 'package:prep_up/presentation/screens/tracking/statistics_screen.dart';
 
 class AppRouter {
   const AppRouter._();
@@ -102,11 +100,6 @@ class AppRouter {
       ),
       AppRoutes.recommendations => RecommendationsScreen(results: resultsArg),
       AppRoutes.interviewHistory => const InterviewHistoryScreen(),
-      AppRoutes.statistics => StatisticsScreen(
-        results: resultsArg,
-        session: sessionArg,
-      ),
-      AppRoutes.repeatInterview => const RepeatInterviewScreen(),
       _ => const SplashScreen(),
     };
   }

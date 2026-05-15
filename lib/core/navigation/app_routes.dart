@@ -24,8 +24,6 @@ class AppRoutes {
   static const recommendations = '/analysis/recommendations';
 
   static const interviewHistory = '/tracking/interview-history';
-  static const statistics = '/tracking/statistics';
-  static const repeatInterview = '/tracking/repeat-interview';
 
   static const all = <String>[
     splash,
@@ -46,7 +44,5 @@ class AppRoutes {
     detailedAnalysis,
     recommendations,
     interviewHistory,
-    statistics,
-    repeatInterview,
   ];
 }

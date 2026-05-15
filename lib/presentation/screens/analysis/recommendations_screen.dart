@@ -85,7 +85,7 @@ class RecommendationsScreen extends StatelessWidget {
                 Expanded(
                   child: OutlinedButton.icon(
                     onPressed: () =>
-                        Navigator.of(context).pushNamed(AppRoutes.repeatInterview),
+                        Navigator.of(context).pushNamed(AppRoutes.selectInterviewType),
                     style: OutlinedButton.styleFrom(
                       minimumSize: const Size(0, 48),
                       shape: RoundedRectangleBorder(
