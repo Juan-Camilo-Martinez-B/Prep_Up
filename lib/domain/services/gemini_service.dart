@@ -86,7 +86,10 @@ class GeminiService {
   }
 
   /// Genera las instrucciones de variedad para el prompt basándose en los temas seleccionados.
-  String getVarietyInstructions(AppLocalizations l10n, List<String> selectedFocus) {
+  String getVarietyInstructions(
+    AppLocalizations l10n,
+    List<String> selectedFocus,
+  ) {
     final focusText = selectedFocus.join(', ');
     return l10n.aiPromptVarietyInstructions(focusText);
   }
@@ -370,7 +373,8 @@ class GeminiService {
     final systemInstruction = l10n.aiPromptSystemInterviewer(l10n.localeName);
 
     final seed = DateTime.now().millisecondsSinceEpoch;
-    const jsonSchema = '{"overallScore": 0, "subjectMastery": 0, "strengths": ["..."], "improvements": ["..."], "suggestedAnswer": "...", "followUpQuestions": ["..."]}';
+    const jsonSchema =
+        '{"overallScore": 0, "subjectMastery": 0, "strengths": ["..."], "improvements": ["..."], "suggestedAnswer": "...", "followUpQuestions": ["..."]}';
     final prompt = l10n.aiPromptEvaluation(
       typeLabel,
       jobRole,
@@ -408,7 +412,8 @@ class GeminiService {
   }) async {
     final systemInstruction = l10n.aiPromptSystemCoach(l10n.localeName);
 
-    const jsonSchema = '{"summary": "...", "actionItems": ["..."], "keyPhrasesToUse": ["..."]}';
+    const jsonSchema =
+        '{"summary": "...", "actionItems": ["..."], "keyPhrasesToUse": ["..."]}';
     final prompt = l10n.aiPromptFeedback(
       question,
       userAnswer,
@@ -491,10 +496,27 @@ class GeminiService {
       prompt: prompt,
       systemInstruction: l10n.aiPromptSystemInterviewer(l10n.localeName),
       temperature: 0.8,
-      maxOutputTokens: 256,
+      maxOutputTokens: 1025,
     );
 
     return next.trim();
+  }
+
+  Future<String> generateClosingMessage({
+    required String jobRole,
+    required AppLocalizations l10n,
+  }) async {
+    final systemInstruction = l10n.aiPromptSystemInterviewer(l10n.localeName);
+    final prompt = l10n.aiPromptClosing(jobRole);
+
+    final closing = await sendPrompt(
+      prompt: prompt,
+      systemInstruction: systemInstruction,
+      temperature: 0.7,
+      maxOutputTokens: 512,
+    );
+
+    return closing.trim();
   }
 
   Future<String> generateOpeningQuestion({
@@ -578,13 +600,16 @@ class GeminiService {
       prompt: prompt,
       systemInstruction: l10n.aiPromptSystemInterviewer(l10n.localeName),
       temperature: 0.85,
-      maxOutputTokens: 256,
+      maxOutputTokens: 512,
     );
 
     return next.trim();
   }
 
-  String formatTurnsForHistory(List<InterviewTurn> turns, AppLocalizations l10n) {
+  String formatTurnsForHistory(
+    List<InterviewTurn> turns,
+    AppLocalizations l10n,
+  ) {
     if (turns.isEmpty) return '- (no history)';
     final buffer = StringBuffer();
     for (var i = 0; i < turns.length; i++) {
@@ -594,7 +619,9 @@ class GeminiService {
       buffer.writeln('A: ${t.answer}');
       buffer.writeln('Score: ${t.evaluation.overallScore}');
       if (t.evaluation.improvements.isNotEmpty) {
-        buffer.writeln('Improvements: ${t.evaluation.improvements.join(' | ')}');
+        buffer.writeln(
+          'Improvements: ${t.evaluation.improvements.join(' | ')}',
+        );
       }
       buffer.writeln('');
     }
@@ -628,7 +655,8 @@ class GeminiService {
 
     final systemInstruction = l10n.aiPromptSystemInterviewer(l10n.localeName);
 
-    const jsonSchema = '{"overallScore": 0, "outcome": "...", "breakdown": {"communication": 75, "technicalKnowledge": 70, "confidence": 72}, "highlights": ["..."], "personalizedFeedback": "...", "recommendations": ["..."], "improvementTips": ["..."]}';
+    const jsonSchema =
+        '{"overallScore": 0, "outcome": "...", "breakdown": {"communication": 75, "technicalKnowledge": 70, "confidence": 72}, "highlights": ["..."], "personalizedFeedback": "...", "recommendations": ["..."], "improvementTips": ["..."]}';
     final prompt = l10n.aiPromptResultsAnalysis(
       jobRole,
       typeLabel,
@@ -730,7 +758,6 @@ class GeminiService {
       validAnswersCount: validAnswersCount,
     );
   }
-
 }
 
 String? _tryExtractApiErrorMessage(String body) {

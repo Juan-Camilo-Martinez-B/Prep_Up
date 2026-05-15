@@ -71,9 +71,7 @@ class InterviewSessionController extends ChangeNotifier {
     final l10n = lookupAppLocalizations(AppLocaleRuntime.locale);
     try {
       if (_config.jobRole == null) {
-        throw GeminiException(
-          l10n.interviewMissingJobRole,
-        );
+        throw GeminiException(l10n.interviewMissingJobRole);
       }
       final jobRole = _config.jobRole!.label(l10n);
       if (_config.type == null) {
@@ -150,12 +148,30 @@ class InterviewSessionController extends ChangeNotifier {
 
     if (_error != null) return;
     if (_shouldFinishAfterTurn()) {
-      _isInterviewComplete = true;
-      _currentQuestion = '';
-      notifyListeners();
+      await _completeInterview();
       return;
     }
     await generateNextQuestion();
+  }
+
+  Future<void> _completeInterview() async {
+    final l10n = lookupAppLocalizations(AppLocaleRuntime.locale);
+    try {
+      final jobRole = _config.jobRole?.label(l10n) ?? '';
+      final closing = await _geminiService.generateClosingMessage(
+        jobRole: jobRole,
+        l10n: l10n,
+      );
+      _currentQuestion = closing;
+    } catch (_) {
+      _currentQuestion = l10n.interviewTimeCompleted;
+    }
+
+    _isInterviewComplete = true;
+    notifyListeners();
+
+    // Esperar un poco antes de que la pantalla de resultados tome el control
+    await Future.delayed(const Duration(seconds: 3));
   }
 
   Future<void> generateNextQuestion() async {
@@ -181,9 +197,7 @@ class InterviewSessionController extends ChangeNotifier {
 
       final cleaned = next.trim();
       if (cleaned.isEmpty) {
-        throw GeminiException(
-          l10n.interviewCouldNotGenerateQualityQuestion,
-        );
+        throw GeminiException(l10n.interviewCouldNotGenerateQualityQuestion);
       }
       _currentQuestion = cleaned;
       _currentQuestionAskedAt = DateTime.now().toUtc();

@@ -2744,6 +2744,12 @@ abstract class AppLocalizations {
     String varietyInstructions,
   );
 
+  /// No description provided for @aiPromptClosing.
+  ///
+  /// In en, this message translates to:
+  /// **'Act as a professional and human interviewer. The interview for the \"{jobRole}\" role has ended. Thank the candidate for their time, confirm that the process has successfully concluded, and say goodbye in a friendly and professional manner, maintaining the tone of the conversation. Rules: - Return ONLY the farewell text. - Do not use JSON or markdown. - Be brief but warm (max 2-3 sentences). - Do not mention technical results or feedback in this message.'**
+  String aiPromptClosing(String jobRole);
+
   /// No description provided for @statsLabelQuestionPrefix.
   ///
   /// In en, this message translates to:

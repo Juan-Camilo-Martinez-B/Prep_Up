@@ -1515,6 +1515,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String aiPromptClosing(String jobRole) {
+    return 'Act as a professional and human interviewer. The interview for the \"$jobRole\" role has ended. Thank the candidate for their time, confirm that the process has successfully concluded, and say goodbye in a friendly and professional manner, maintaining the tone of the conversation. Rules: - Return ONLY the farewell text. - Do not use JSON or markdown. - Be brief but warm (max 2-3 sentences). - Do not mention technical results or feedback in this message.';
+  }
+
+  @override
   String get statsLabelQuestionPrefix => 'Q';
 
   @override

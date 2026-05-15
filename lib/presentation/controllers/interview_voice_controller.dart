@@ -70,6 +70,7 @@ class InterviewVoiceController extends ChangeNotifier {
   String? _speechLocaleId;
   DateTime? _currentQuestionAskedAt;
   bool _isInterviewComplete = false;
+  bool _isFinishing = false;
   String? _completionReason;
   bool _isSessionCancelled = false;
 
@@ -82,12 +83,13 @@ class InterviewVoiceController extends ChangeNotifier {
   String? get error => _error;
   double get soundLevel => _soundLevel;
   bool get isInterviewComplete => _isInterviewComplete;
+  bool get isFinishing => _isFinishing;
   String? get completionReason => _completionReason;
   int get targetQuestionCount =>
       _estimateQuestionCount(_config.durationMinutes ?? 3);
   int get answeredQuestionCount => _session.turns.length;
   int get currentQuestionNumber {
-    if (_isInterviewComplete) {
+    if (_isInterviewComplete || _isFinishing) {
       return answeredQuestionCount == 0 ? 1 : answeredQuestionCount;
     }
     return math.min(targetQuestionCount, answeredQuestionCount + 1);
@@ -164,7 +166,7 @@ class InterviewVoiceController extends ChangeNotifier {
       return;
     }
 
-    await _beginListening(clearDraft: true);
+    await _beginListening(clearDraft: true, stopTts: true);
   }
 
   Future<void> submitAnswer(String answer) async {
@@ -202,7 +204,7 @@ class InterviewVoiceController extends ChangeNotifier {
       _notifySafely();
 
       if (_shouldFinishAfterTurn()) {
-        _completeInterview(reason: _buildCompletionReason());
+        await _completeInterview(reason: _buildCompletionReason());
         return;
       }
 
@@ -271,7 +273,12 @@ class InterviewVoiceController extends ChangeNotifier {
         _isInterviewComplete) {
       return;
     }
-    await _beginListening(clearDraft: true);
+    await _beginListening(clearDraft: true, stopTts: true);
+  }
+
+  Future<void> finishInterviewGracefully() async {
+    if (_isFinishing || _isInterviewComplete) return;
+    await _completeInterview(reason: _buildCompletionReason());
   }
 
   Future<void> stopConversation() async {
@@ -502,7 +509,12 @@ class InterviewVoiceController extends ChangeNotifier {
         _state = InterviewConversationState.speaking;
         _statusMessage = _l10n.interviewAiSpeaking;
         _notifySafely();
+
+        // Esperar a que el TTS termine realmente antes de seguir
         await _tts.speak(speechText);
+
+        // Pequeño delay de seguridad para evitar cortes abruptos en el audio
+        await Future.delayed(const Duration(milliseconds: 500));
       } catch (e) {
         _isTtsAvailable = false;
         _error = _l10n.interviewCouldNotPlayQuestionTextMode;
@@ -517,7 +529,8 @@ class InterviewVoiceController extends ChangeNotifier {
     }
 
     if (_isSpeechAvailable) {
-      await _beginListening(clearDraft: true);
+      // Pasamos false para que no intente detener un TTS que ya debería haber terminado
+      await _beginListening(clearDraft: true, stopTts: false);
     } else {
       _setIdle();
       _statusMessage = _l10n.interviewTypeAnswerContinue;
@@ -525,7 +538,10 @@ class InterviewVoiceController extends ChangeNotifier {
     }
   }
 
-  Future<void> _beginListening({required bool clearDraft}) async {
+  Future<void> _beginListening({
+    required bool clearDraft,
+    bool stopTts = true,
+  }) async {
     if (!_isSpeechAvailable ||
         _currentQuestion.trim().isEmpty ||
         _isInterviewComplete) {
@@ -533,7 +549,9 @@ class InterviewVoiceController extends ChangeNotifier {
     }
 
     try {
-      await _tts.stop();
+      if (stopTts) {
+        await _tts.stop();
+      }
       await _speech.stop();
 
       if (clearDraft) {
@@ -647,7 +665,7 @@ class InterviewVoiceController extends ChangeNotifier {
       }
     }
 
-    await _beginListening(clearDraft: true);
+    await _beginListening(clearDraft: true, stopTts: true);
   }
 
   Future<String?> _resolveTtsLanguage() async {
@@ -748,27 +766,55 @@ class InterviewVoiceController extends ChangeNotifier {
   }
 
   Future<void> _completeInterview({required String reason}) async {
-    _isInterviewComplete = true;
+    if (_isFinishing || _isInterviewComplete) return;
+
+    _isFinishing = true;
     _completionReason = reason;
-    _currentQuestion = '';
-    _currentQuestionAskedAt = null;
     _voiceDraft = '';
-    _setIdle();
     _statusMessage = reason;
     _notifySafely();
 
-    // Deliver a final farewell message if TTS is available
+    String finalMessage = reason;
+
+    // Generar un cierre natural con IA si es posible
+    try {
+      final jobRole = _config.jobRole?.label(_l10n) ?? '';
+      final closingMsg = await _geminiService.generateClosingMessage(
+        jobRole: jobRole,
+        l10n: _l10n,
+      );
+      if (closingMsg.isNotEmpty) {
+        finalMessage = closingMsg;
+      }
+    } catch (e) {
+      debugPrint('Error generating closing message: $e');
+    }
+
+    _currentQuestion = finalMessage;
+    _currentQuestionAskedAt = null;
+    _notifySafely();
+
+    // Entregar el mensaje final por TTS si está disponible
     if (_isTtsAvailable) {
       try {
         _state = InterviewConversationState.speaking;
+        _statusMessage = _l10n.interviewAiSpeaking;
         _notifySafely();
-        await _tts.speak(reason);
-        _setIdle();
-        _notifySafely();
+        await _tts.speak(finalMessage);
+        // Esperamos un poco más para que el audio termine de sonar y la transición no sea instantánea
+        await Future.delayed(const Duration(seconds: 2));
       } catch (_) {
         _isTtsAvailable = false;
       }
+    } else {
+      // Si no hay voz, esperamos un tiempo razonable para que el usuario lea el mensaje
+      await Future.delayed(const Duration(seconds: 3));
     }
+
+    _setIdle();
+    _isInterviewComplete = true;
+    _isFinishing = false;
+    _notifySafely();
   }
 
   String _buildCompletionReason() {

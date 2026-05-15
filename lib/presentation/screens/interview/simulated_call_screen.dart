@@ -47,7 +47,7 @@ class _SimulatedCallScreenState extends State<SimulatedCallScreen> {
       if (_secondsLeft <= 0) return;
       setState(() => _secondsLeft -= 1);
       if (_secondsLeft <= 0) {
-        unawaited(_finishInterview());
+        unawaited(_voiceController.finishInterviewGracefully());
       }
     });
 
@@ -370,18 +370,27 @@ class _SimulatedCallScreenState extends State<SimulatedCallScreen> {
                     _voiceController.currentQuestionNumber;
                 final totalQuestions = _voiceController.targetQuestionCount;
                 final isLoading = !hasQuestion && _voiceController.isStarting;
+                final isFinishing = _voiceController.isFinishing;
 
                 return AppCard(
-                  title: l10n.callQuestionCardTitle(
-                    currentQuestionNumber,
-                    totalQuestions,
-                  ),
+                  title: isFinishing
+                      ? (AppLocaleRuntime.isSpanish ? 'Cierre' : 'Closure')
+                      : l10n.callQuestionCardTitle(
+                          currentQuestionNumber,
+                          totalQuestions,
+                        ),
                   subtitle: _voiceController.isSpeaking
                       ? l10n.callQuestionSubtitleSpeaking
-                      : l10n.callQuestionSubtitleDefault,
+                      : (isFinishing
+                            ? (AppLocaleRuntime.isSpanish
+                                  ? 'Finalizando...'
+                                  : 'Finishing...')
+                            : l10n.callQuestionSubtitleDefault),
                   leading: Icon(
-                    Icons.smart_toy_outlined,
-                    color: scheme.primary,
+                    isFinishing
+                        ? Icons.check_circle_outline
+                        : Icons.smart_toy_outlined,
+                    color: isFinishing ? scheme.primary : scheme.primary,
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -389,12 +398,12 @@ class _SimulatedCallScreenState extends State<SimulatedCallScreen> {
                       ClipRRect(
                         borderRadius: BorderRadius.circular(999),
                         child: LinearProgressIndicator(
-                          value: totalQuestions <= 0
-                              ? 0
-                              : (currentQuestionNumber / totalQuestions).clamp(
-                                  0.0,
-                                  1.0,
-                                ),
+                          value: isFinishing
+                              ? 1.0
+                              : (totalQuestions <= 0
+                                    ? 0
+                                    : (currentQuestionNumber / totalQuestions)
+                                          .clamp(0.0, 1.0)),
                           minHeight: 8,
                           backgroundColor: scheme.surfaceContainerHighest,
                         ),

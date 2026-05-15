@@ -6,6 +6,8 @@ class AppLocaleRuntime {
 
   static Locale get locale => _locale;
   static String get languageCode => _locale.languageCode;
+  static bool get isSpanish => _locale.languageCode == 'es';
+  static bool get isEnglish => _locale.languageCode == 'en';
 
   static void setLocale(Locale locale) {
     _locale = locale;

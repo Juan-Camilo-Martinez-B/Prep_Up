@@ -1526,6 +1526,11 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String aiPromptClosing(String jobRole) {
+    return 'Actúa como un entrevistador profesional y humano. La entrevista para el rol \"$jobRole\" ha terminado. Agradece al candidato por su tiempo, confirma que el proceso ha concluido con éxito y despídete de manera amigable y profesional, manteniendo el tono de la conversación. Reglas: - Devuelve SOLO el texto de la despedida. - No uses JSON ni markdown. - Sé breve pero cálido (máximo 2-3 frases). - No menciones resultados técnicos ni feedback en este mensaje.';
+  }
+
+  @override
   String get statsLabelQuestionPrefix => 'P';
 
   @override
