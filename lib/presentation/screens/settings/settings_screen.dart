@@ -20,24 +20,26 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
-  final RelationalDatabaseService _dbService = SupabaseDatabaseService();
-  final AuthService _authService = AuthService();
-
   AppSettingsModel? _settings;
   bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    _loadSettings();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadSettings();
+    });
   }
 
   Future<void> _loadSettings() async {
+    final authService = context.read<AuthService>();
+    final dbService = context.read<RelationalDatabaseService>();
     final l10n = context.l10n;
-    final user = _authService.currentUser;
+    
+    final user = authService.currentUser;
     if (user != null) {
       try {
-        final settings = await _dbService.getSettingsForUser(user.id);
+        final settings = await dbService.getSettingsForUser(user.id);
         if (!mounted) return;
         setState(() {
           _settings = settings ?? AppSettingsModel.defaults();
@@ -67,13 +69,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<void> _updateSettings(AppSettingsModel newSettings) async {
+    final authService = context.read<AuthService>();
+    final dbService = context.read<RelationalDatabaseService>();
     final l10n = context.l10n;
+    
     final previous = _settings;
     setState(() => _settings = newSettings);
-    final user = _authService.currentUser;
+    final user = authService.currentUser;
     if (user != null) {
       try {
-        await _dbService.saveSettingsForUser(user.id, newSettings);
+        await dbService.saveSettingsForUser(user.id, newSettings);
       } catch (e) {
         if (!mounted) return;
         setState(() => _settings = previous);
