@@ -42,6 +42,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Future<void> _loadDashboardData() async {
+    final l10n = context.l10n;
     final authService = context.read<AuthService>();
     final dbService = context.read<RelationalDatabaseService>();
 
@@ -49,7 +50,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     if (user != null) {
       final dbUser = await dbService.getUserById(user.id);
       final history = await dbService.getInterviewHistoryForUser(user.id);
-      
+
       final List<ChartData> dataPoints = [];
       int totalScore = 0;
       int resultsCount = 0;
@@ -59,16 +60,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
       for (var i = 0; i < history.length; i++) {
         final session = history[i];
         final result = await dbService.getInterviewResultForSession(session.id);
-        
+
         if (result != null) {
           if (resultsCount < 7) {
             final date = session.createdAt;
-            final label = '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}';
-            dataPoints.add(ChartData(score: result.overallScore.toDouble(), label: label));
+            final label =
+                '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}';
+            dataPoints.add(
+              ChartData(score: result.overallScore.toDouble(), label: label),
+            );
           }
           totalScore += result.overallScore;
           resultsCount++;
-          
+
           if (latestSession == null) {
             latestSession = session;
             latestResult = result;
@@ -78,17 +82,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
       if (mounted) {
         setState(() {
-          _firstName = dbUser?.displayName.split(' ').first ?? 'Usuario';
-          
+          _firstName = dbUser?.displayName.split(' ').first ?? l10n.profileDemoName;
+
           var historyData = dataPoints.reversed.toList();
-          // Fix for single data point: Add an 'Inicio' point to draw a flat line
           if (historyData.length == 1) {
-            historyData.insert(0, ChartData(score: historyData.first.score, label: 'Inicio'));
+            historyData.insert(
+              0,
+              ChartData(score: historyData.first.score, label: l10n.statsLabelChartStart),
+            );
           }
-          
+
           _scoreHistory = historyData;
           _totalInterviews = resultsCount;
-          _avgOverallScore = resultsCount > 0 ? (totalScore / resultsCount).round() : 0;
+          _avgOverallScore = resultsCount > 0
+              ? (totalScore / resultsCount).round()
+              : 0;
           _latestSession = latestSession;
           _latestResult = latestResult;
           _isLoading = false;
@@ -113,7 +121,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             onPressed: () =>
                 Navigator.of(context).pushNamed(AppRoutes.settings),
             icon: const Icon(Icons.settings_rounded),
-            tooltip: 'Ajustes',
+            tooltip: l10n.dashboardSettingsTooltip,
           ),
         ],
         floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
@@ -172,173 +180,185 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
           ),
         ),
-        body: _isLoading 
-            ? const Center(child: CircularProgressIndicator()) 
+        body: _isLoading
+            ? const Center(child: CircularProgressIndicator())
             : ListView(
-          padding: const EdgeInsets.fromLTRB(16, 0, 16, 100),
-          children: [
-            // Welcome Header
-            Text(
-              'Hola, $_firstName',
-              style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: scheme.onSurface,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              _totalInterviews == 0 
-                  ? '¿Listo para tu primera simulación?'
-                  : 'Continuemos mejorando tu nivel.',
-              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                color: scheme.onSurfaceVariant,
-              ),
-            ),
-            const SizedBox(height: 24),
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 100),
+                children: [
+                  // Welcome Header
+                  Text(
+                    l10n.dashboardWelcomeGreeting(_firstName),
+                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: scheme.onSurface,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    _totalInterviews == 0
+                        ? l10n.dashboardSubtitleEmpty
+                        : l10n.dashboardSubtitleReady,
+                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                      color: scheme.onSurfaceVariant,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
 
-            if (_totalInterviews == 0) ...[
-              // Empty State
-              AppCard(
-                title: 'Comienza a Entrenar',
-                subtitle: 'Aún no tienes historial',
-                leading: Icon(Icons.rocket_launch_rounded, color: scheme.primary),
-                child: Column(
-                  children: [
-                    const SizedBox(height: 10),
-                    Icon(
-                      Icons.insights_rounded,
-                      size: 64,
-                      color: scheme.onSurfaceVariant.withValues(alpha: 0.5),
+                  if (_totalInterviews == 0) ...[
+                    // Empty State
+                    AppCard(
+                      title: l10n.dashboardEmptyStateTitle,
+                      subtitle: l10n.dashboardEmptyStateSubtitle,
+                      leading: Icon(
+                        Icons.rocket_launch_rounded,
+                        color: scheme.primary,
+                      ),
+                      child: Column(
+                        children: [
+                          const SizedBox(height: 10),
+                          Icon(
+                            Icons.insights_rounded,
+                            size: 64,
+                            color: scheme.onSurfaceVariant.withValues(
+                              alpha: 0.5,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            l10n.dashboardEmptyStateBody,
+                            textAlign: TextAlign.center,
+                            style: Theme.of(context).textTheme.bodyMedium
+                                ?.copyWith(color: scheme.onSurfaceVariant),
+                          ),
+                          const SizedBox(height: 10),
+                        ],
+                      ),
+                    ),
+                  ] else ...[
+                    // Glowing Line Chart
+                    AppCard(
+                      title: l10n.dashboardChartTitle,
+                      subtitle: l10n.dashboardChartSubtitle(_scoreHistory.length),
+                      leading: Icon(
+                        Icons.show_chart_rounded,
+                        color: scheme.primary,
+                      ),
+                      child: SizedBox(
+                        height: 220,
+                        child: Padding(
+                          padding: const EdgeInsets.only(
+                            top: 16,
+                            bottom: 8,
+                            left: 8,
+                            right: 8,
+                          ),
+                          child: _GlowingLineChart(data: _scoreHistory),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+
+                    // Real Metrics
+                    _NeonStatItem(
+                      index: _avgOverallScore.toString(),
+                      title: l10n.dashboardStatAvgScoreTitle,
+                      subtitle: l10n.dashboardStatAvgScoreSubtitle(_totalInterviews),
+                      color: scheme.primary,
                     ),
                     const SizedBox(height: 16),
+                    _NeonStatItem(
+                      index: _totalInterviews.toString(),
+                      title: l10n.dashboardStatTotalTitle,
+                      subtitle: l10n.dashboardStatTotalSubtitle,
+                      color: Colors.purpleAccent,
+                    ),
+                    const SizedBox(height: 24),
+
+                    // Recent Activity Card
                     Text(
-                      'Realiza tu primera entrevista para desbloquear métricas y gráficas de tu rendimiento.',
-                      textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      l10n.dashboardLastInterviewLabel,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: scheme.onSurfaceVariant,
+                        letterSpacing: 1.2,
                       ),
                     ),
-                    const SizedBox(height: 10),
-                  ],
-                ),
-              ),
-            ] else ...[
-              // Glowing Line Chart
-              AppCard(
-                title: 'Evolución de Rendimiento',
-                subtitle: 'Progreso en tus últimas ${_scoreHistory.length} entrevistas',
-                leading: Icon(Icons.show_chart_rounded, color: scheme.primary),
-                child: SizedBox(
-                  height: 220,
-                  child: Padding(
-                    padding: const EdgeInsets.only(
-                      top: 16,
-                      bottom: 8,
-                      left: 8,
-                      right: 8,
-                    ),
-                    child: _GlowingLineChart(data: _scoreHistory),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 24),
-
-              // Real Metrics
-              _NeonStatItem(
-                index: _avgOverallScore.toString(),
-                title: 'Puntaje Promedio',
-                subtitle: 'Basado en $_totalInterviews entrevistas',
-                color: scheme.primary,
-              ),
-              const SizedBox(height: 16),
-              _NeonStatItem(
-                index: _totalInterviews.toString(),
-                title: 'Entrevistas Completadas',
-                subtitle: 'Total de simulaciones realizadas',
-                color: Colors.purpleAccent,
-              ),
-              const SizedBox(height: 24),
-
-              // Recent Activity Card
-              Text(
-                'ÚLTIMA ENTREVISTA',
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: scheme.onSurfaceVariant,
-                  letterSpacing: 1.2,
-                ),
-              ),
-              const SizedBox(height: 16),
-              InkWell(
-                onTap: () {
-                  if (_latestSession != null && _latestResult != null) {
-                    Navigator.of(context).pushNamed(
-                      AppRoutes.generalResults,
-                      arguments: {
-                        'results': _latestResult,
-                        'session': _latestSession,
+                    const SizedBox(height: 16),
+                    InkWell(
+                      onTap: () {
+                        if (_latestSession != null && _latestResult != null) {
+                          Navigator.of(context).pushNamed(
+                            AppRoutes.generalResults,
+                            arguments: {
+                              'results': _latestResult,
+                              'session': _latestSession,
+                            },
+                          );
+                        }
                       },
-                    );
-                  }
-                },
-                borderRadius: BorderRadius.circular(20),
-                child: Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).cardColor.withValues(alpha: 0.4),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
-                      color: scheme.outlineVariant.withValues(alpha: 0.5),
-                      width: 1,
-                    ),
-                  ),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 48,
-                        height: 48,
+                      borderRadius: BorderRadius.circular(20),
+                      child: Container(
+                        padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: scheme.secondary.withValues(alpha: 0.2),
-                          shape: BoxShape.circle,
+                          color: Theme.of(
+                            context,
+                          ).cardColor.withValues(alpha: 0.4),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: scheme.outlineVariant.withValues(alpha: 0.5),
+                            width: 1,
+                          ),
                         ),
-                        child: Icon(
-                          Icons.work_outline_rounded,
-                          color: scheme.secondary,
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                        child: Row(
                           children: [
-                            Text(
-                              _latestSession?.jobRole.name ?? 'General',
-                              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                fontWeight: FontWeight.bold,
+                            Container(
+                              width: 48,
+                              height: 48,
+                              decoration: BoxDecoration(
+                                color: scheme.secondary.withValues(alpha: 0.2),
+                                shape: BoxShape.circle,
                               ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
+                              child: Icon(
+                                Icons.work_outline_rounded,
+                                color: scheme.secondary,
+                              ),
                             ),
-                            const SizedBox(height: 4),
-                            Text(
-                              'Puntaje: ${_latestResult?.overallScore ?? 0} / 100',
-                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: scheme.onSurfaceVariant,
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    _latestSession?.jobRole.name ??
+                                        l10n.dashboardJobRoleFallback,
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .titleMedium
+                                        ?.copyWith(fontWeight: FontWeight.bold),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    l10n.dashboardScoreDetail(_latestResult?.overallScore ?? 0),
+                                    style: Theme.of(context).textTheme.bodySmall
+                                        ?.copyWith(
+                                          color: scheme.onSurfaceVariant,
+                                        ),
+                                  ),
+                                ],
                               ),
+                            ),
+                            Icon(
+                              Icons.chevron_right_rounded,
+                              color: scheme.onSurfaceVariant,
                             ),
                           ],
                         ),
                       ),
-                      Icon(
-                        Icons.chevron_right_rounded,
-                        color: scheme.onSurfaceVariant,
-                      ),
-                    ],
-                  ),
-                ),
+                    ),
+                  ],
+                ],
               ),
-            ],
-          ],
-        ),
       ),
     );
   }
@@ -365,7 +385,10 @@ class _GlowingLineChartState extends State<_GlowingLineChart>
       vsync: this,
       duration: const Duration(milliseconds: 1500),
     );
-    _animation = CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic);
+    _animation = CurvedAnimation(
+      parent: _controller,
+      curve: Curves.easeOutCubic,
+    );
     _controller.forward();
   }
 
@@ -427,7 +450,7 @@ class _LineChartPainter extends CustomPainter {
     final points = <Offset>[];
     final paddingX = 20.0;
     final usableW = w - paddingX * 2;
-    
+
     final paddingTop = 30.0;
     final paddingBottom = 30.0; // Aumentado para separar etiquetas
     final usableH = h - paddingTop - paddingBottom;
@@ -453,19 +476,16 @@ class _LineChartPainter extends CustomPainter {
       // 1. Fill underneath (Animated via ClipRect)
       canvas.save();
       canvas.clipRect(Rect.fromLTWH(0, 0, paddingX + usableW * progress, h));
-      
+
       final fillPathStatic = Path.from(path)
         ..lineTo(points.last.dx, usableH + paddingTop)
         ..lineTo(points.first.dx, usableH + paddingTop)
         ..close();
 
       final fillGradient = ui.Gradient.linear(
-        Offset(0, paddingTop), 
-        Offset(0, usableH + paddingTop), 
-        [
-          color1.withValues(alpha: 0.3),
-          color1.withValues(alpha: 0.0),
-        ]
+        Offset(0, paddingTop),
+        Offset(0, usableH + paddingTop),
+        [color1.withValues(alpha: 0.3), color1.withValues(alpha: 0.0)],
       );
 
       final fillPaint = Paint()
@@ -500,7 +520,8 @@ class _LineChartPainter extends CustomPainter {
       canvas.drawPath(animatedPath, linePaint);
     } else if (points.length == 1) {
       // Handle single point edge case
-      final animatedPath = Path()..addOval(Rect.fromCircle(center: points.first, radius: 1));
+      final animatedPath = Path()
+        ..addOval(Rect.fromCircle(center: points.first, radius: 1));
       final linePaint = Paint()
         ..style = PaintingStyle.stroke
         ..strokeWidth = 4.0
@@ -535,7 +556,10 @@ class _LineChartPainter extends CustomPainter {
           textDirection: TextDirection.ltr,
         );
         textPainter.layout();
-        textPainter.paint(canvas, Offset(p.dx - textPainter.width / 2, p.dy - 20));
+        textPainter.paint(
+          canvas,
+          Offset(p.dx - textPainter.width / 2, p.dy - 20),
+        );
 
         final datePainter = TextPainter(
           text: TextSpan(
@@ -548,7 +572,10 @@ class _LineChartPainter extends CustomPainter {
           textDirection: TextDirection.ltr,
         );
         datePainter.layout();
-        datePainter.paint(canvas, Offset(p.dx - datePainter.width / 2, usableH + paddingTop + 12));
+        datePainter.paint(
+          canvas,
+          Offset(p.dx - datePainter.width / 2, usableH + paddingTop + 12),
+        );
       }
     }
   }
@@ -557,7 +584,7 @@ class _LineChartPainter extends CustomPainter {
     final gridPaint = Paint()
       ..color = Colors.white.withValues(alpha: 0.05)
       ..strokeWidth = 1.0;
-      
+
     final paddingTop = 30.0;
     final usableH = h - paddingTop - 30.0; // Consistente con paddingBottom
 
@@ -565,7 +592,7 @@ class _LineChartPainter extends CustomPainter {
     for (final val in values) {
       final y = paddingTop + usableH - (val / 100 * usableH);
       canvas.drawLine(Offset(0, y), Offset(w, y), gridPaint);
-      
+
       final labelPainter = TextPainter(
         text: TextSpan(
           text: val.toInt().toString(),

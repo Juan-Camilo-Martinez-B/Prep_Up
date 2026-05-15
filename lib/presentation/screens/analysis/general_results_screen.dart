@@ -46,6 +46,7 @@ class GeneralResultsScreen extends StatelessWidget {
         : scheme.secondary;
     final analytics = buildInterviewAnalytics(
       theme: Theme.of(context),
+      l10n: l10n,
       results: results,
       session: session,
     );

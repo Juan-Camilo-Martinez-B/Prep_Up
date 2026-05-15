@@ -1370,65 +1370,101 @@ abstract class AppLocalizations {
   /// **'History'**
   String get dashboardNavHistory;
 
-  /// No description provided for @dashboardDailyStats.
-  ///
-  /// In en, this message translates to:
-  /// **'Daily statistics'**
-  String get dashboardDailyStats;
-
-  /// No description provided for @dashboardStatTechnicalAccuracyTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Technical Accuracy'**
-  String get dashboardStatTechnicalAccuracyTitle;
-
-  /// No description provided for @dashboardStatTechnicalAccuracySubtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Your accuracy answering coding questions has increased by 15% statistically.'**
-  String get dashboardStatTechnicalAccuracySubtitle;
-
-  /// No description provided for @dashboardStatVerbalFluencyTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Verbal Fluency'**
-  String get dashboardStatVerbalFluencyTitle;
-
-  /// No description provided for @dashboardStatVerbalFluencySubtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'You show great cadence. Keep reducing filler words during the interview.'**
-  String get dashboardStatVerbalFluencySubtitle;
-
-  /// No description provided for @dashboardPracticeModes.
-  ///
-  /// In en, this message translates to:
-  /// **'Practice modes'**
-  String get dashboardPracticeModes;
-
-  /// No description provided for @dashboardActionTrain.
-  ///
-  /// In en, this message translates to:
-  /// **'Train'**
-  String get dashboardActionTrain;
-
-  /// No description provided for @dashboardActionMetrics.
-  ///
-  /// In en, this message translates to:
-  /// **'Metrics'**
-  String get dashboardActionMetrics;
-
-  /// No description provided for @dashboardActionTips.
-  ///
-  /// In en, this message translates to:
-  /// **'Tips'**
-  String get dashboardActionTips;
-
-  /// No description provided for @dashboardActionSettings.
+  /// No description provided for @dashboardSettingsTooltip.
   ///
   /// In en, this message translates to:
   /// **'Settings'**
-  String get dashboardActionSettings;
+  String get dashboardSettingsTooltip;
+
+  /// No description provided for @dashboardWelcomeGreeting.
+  ///
+  /// In en, this message translates to:
+  /// **'Hello, {firstName}'**
+  String dashboardWelcomeGreeting(String firstName);
+
+  /// No description provided for @dashboardSubtitleReady.
+  ///
+  /// In en, this message translates to:
+  /// **'Let\'s keep improving your level.'**
+  String get dashboardSubtitleReady;
+
+  /// No description provided for @dashboardSubtitleEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Ready for your first simulation?'**
+  String get dashboardSubtitleEmpty;
+
+  /// No description provided for @dashboardEmptyStateTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Start Training'**
+  String get dashboardEmptyStateTitle;
+
+  /// No description provided for @dashboardEmptyStateSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No history yet'**
+  String get dashboardEmptyStateSubtitle;
+
+  /// No description provided for @dashboardEmptyStateBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete your first interview to unlock metrics and performance charts.'**
+  String get dashboardEmptyStateBody;
+
+  /// No description provided for @dashboardChartTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Performance Evolution'**
+  String get dashboardChartTitle;
+
+  /// No description provided for @dashboardChartSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Progress across your last {count} interviews'**
+  String dashboardChartSubtitle(int count);
+
+  /// No description provided for @dashboardStatAvgScoreTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Average Score'**
+  String get dashboardStatAvgScoreTitle;
+
+  /// No description provided for @dashboardStatAvgScoreSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Based on {count} interviews'**
+  String dashboardStatAvgScoreSubtitle(int count);
+
+  /// No description provided for @dashboardStatTotalTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Completed Interviews'**
+  String get dashboardStatTotalTitle;
+
+  /// No description provided for @dashboardStatTotalSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Total simulations completed'**
+  String get dashboardStatTotalSubtitle;
+
+  /// No description provided for @dashboardLastInterviewLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'LAST INTERVIEW'**
+  String get dashboardLastInterviewLabel;
+
+  /// No description provided for @dashboardScoreDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'Score: {score} / 100'**
+  String dashboardScoreDetail(int score);
+
+  /// No description provided for @dashboardJobRoleFallback.
+  ///
+  /// In en, this message translates to:
+  /// **'General'**
+  String get dashboardJobRoleFallback;
 
   /// No description provided for @statsScreenTitle.
   ///
@@ -1555,6 +1591,72 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Your pace was agile; make sure you keep enough depth in each example.'**
   String get statsQuickReadFast;
+
+  /// No description provided for @statsLabelNoData.
+  ///
+  /// In en, this message translates to:
+  /// **'No data'**
+  String get statsLabelNoData;
+
+  /// No description provided for @statsLabelAverage.
+  ///
+  /// In en, this message translates to:
+  /// **'average'**
+  String get statsLabelAverage;
+
+  /// No description provided for @statsLabelNotEnoughData.
+  ///
+  /// In en, this message translates to:
+  /// **'Not enough data to display chart.'**
+  String get statsLabelNotEnoughData;
+
+  /// No description provided for @statsGridScoreGeneral.
+  ///
+  /// In en, this message translates to:
+  /// **'Overall score'**
+  String get statsGridScoreGeneral;
+
+  /// No description provided for @statsGridAvgQuality.
+  ///
+  /// In en, this message translates to:
+  /// **'Avg. quality'**
+  String get statsGridAvgQuality;
+
+  /// No description provided for @statsGridValidAnswers.
+  ///
+  /// In en, this message translates to:
+  /// **'Valid answers'**
+  String get statsGridValidAnswers;
+
+  /// No description provided for @statsGridAvgTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Avg. time'**
+  String get statsGridAvgTime;
+
+  /// No description provided for @statsGridTotalTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Total time'**
+  String get statsGridTotalTime;
+
+  /// No description provided for @statsBreakdownCommunication.
+  ///
+  /// In en, this message translates to:
+  /// **'Communication'**
+  String get statsBreakdownCommunication;
+
+  /// No description provided for @statsBreakdownMastery.
+  ///
+  /// In en, this message translates to:
+  /// **'Mastery'**
+  String get statsBreakdownMastery;
+
+  /// No description provided for @statsBreakdownConfidence.
+  ///
+  /// In en, this message translates to:
+  /// **'Confidence'**
+  String get statsBreakdownConfidence;
 
   /// No description provided for @backToDashboard.
   ///
@@ -1885,36 +1987,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Repeat interview'**
   String get repeatInterviewTitle;
-
-  /// No description provided for @repeatInterviewCardTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Remix mode'**
-  String get repeatInterviewCardTitle;
-
-  /// No description provided for @repeatInterviewCardSubtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Repeat with tweaks and improve your score'**
-  String get repeatInterviewCardSubtitle;
-
-  /// No description provided for @repeatInterviewQuickSuggestionTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Quick suggestion'**
-  String get repeatInterviewQuickSuggestionTitle;
-
-  /// No description provided for @repeatInterviewQuickSuggestionBody.
-  ///
-  /// In en, this message translates to:
-  /// **'Change the interview type or role to practice different scenarios.'**
-  String get repeatInterviewQuickSuggestionBody;
-
-  /// No description provided for @repeatInterviewStartNewSimulation.
-  ///
-  /// In en, this message translates to:
-  /// **'Start new simulation'**
-  String get repeatInterviewStartNewSimulation;
 
   /// No description provided for @historyTitle.
   ///
@@ -2341,6 +2413,412 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Rookie'**
   String get profileLevelRookie;
+
+  /// No description provided for @aiFocusArea_edgeCases.
+  ///
+  /// In en, this message translates to:
+  /// **'edge cases or unusual scenarios'**
+  String get aiFocusArea_edgeCases;
+
+  /// No description provided for @aiFocusArea_performance.
+  ///
+  /// In en, this message translates to:
+  /// **'low-level optimization and performance'**
+  String get aiFocusArea_performance;
+
+  /// No description provided for @aiFocusArea_security.
+  ///
+  /// In en, this message translates to:
+  /// **'security, vulnerabilities, and prevention'**
+  String get aiFocusArea_security;
+
+  /// No description provided for @aiFocusArea_dbDesign.
+  ///
+  /// In en, this message translates to:
+  /// **'database scalability and design'**
+  String get aiFocusArea_dbDesign;
+
+  /// No description provided for @aiFocusArea_designPatterns.
+  ///
+  /// In en, this message translates to:
+  /// **'uncommon design patterns'**
+  String get aiFocusArea_designPatterns;
+
+  /// No description provided for @aiFocusArea_errorHandling.
+  ///
+  /// In en, this message translates to:
+  /// **'error handling, concurrency, and resilience'**
+  String get aiFocusArea_errorHandling;
+
+  /// No description provided for @aiFocusArea_legacyCode.
+  ///
+  /// In en, this message translates to:
+  /// **'refactoring and legacy code'**
+  String get aiFocusArea_legacyCode;
+
+  /// No description provided for @aiFocusArea_eventDriven.
+  ///
+  /// In en, this message translates to:
+  /// **'asynchronous communication and event-driven architecture'**
+  String get aiFocusArea_eventDriven;
+
+  /// No description provided for @aiFocusArea_testing.
+  ///
+  /// In en, this message translates to:
+  /// **'testing, code quality, and TDD'**
+  String get aiFocusArea_testing;
+
+  /// No description provided for @aiFocusArea_troubleshooting.
+  ///
+  /// In en, this message translates to:
+  /// **'production incident resolution (troubleshooting)'**
+  String get aiFocusArea_troubleshooting;
+
+  /// No description provided for @aiFocusArea_apiDesign.
+  ///
+  /// In en, this message translates to:
+  /// **'API design and integration best practices'**
+  String get aiFocusArea_apiDesign;
+
+  /// No description provided for @aiFocusArea_stateManagement.
+  ///
+  /// In en, this message translates to:
+  /// **'complex state management'**
+  String get aiFocusArea_stateManagement;
+
+  /// No description provided for @aiFocusArea_iac.
+  ///
+  /// In en, this message translates to:
+  /// **'Infrastructure as Code and CI/CD'**
+  String get aiFocusArea_iac;
+
+  /// No description provided for @aiFocusArea_observability.
+  ///
+  /// In en, this message translates to:
+  /// **'observability, metrics, and traceability'**
+  String get aiFocusArea_observability;
+
+  /// No description provided for @aiFocusArea_dataPrivacy.
+  ///
+  /// In en, this message translates to:
+  /// **'data governance and privacy'**
+  String get aiFocusArea_dataPrivacy;
+
+  /// No description provided for @aiFocusArea_network.
+  ///
+  /// In en, this message translates to:
+  /// **'network performance and latency'**
+  String get aiFocusArea_network;
+
+  /// No description provided for @aiFocusArea_algorithms.
+  ///
+  /// In en, this message translates to:
+  /// **'advanced algorithms and data structures'**
+  String get aiFocusArea_algorithms;
+
+  /// No description provided for @aiFocusArea_memory.
+  ///
+  /// In en, this message translates to:
+  /// **'memory management and garbage collection'**
+  String get aiFocusArea_memory;
+
+  /// No description provided for @aiFocusArea_caching.
+  ///
+  /// In en, this message translates to:
+  /// **'caching strategies (Redis, Memcached)'**
+  String get aiFocusArea_caching;
+
+  /// No description provided for @aiFocusArea_messaging.
+  ///
+  /// In en, this message translates to:
+  /// **'message queues (RabbitMQ, Kafka)'**
+  String get aiFocusArea_messaging;
+
+  /// No description provided for @aiFocusArea_auth.
+  ///
+  /// In en, this message translates to:
+  /// **'authentication and authorization (OAuth2, JWT, RBAC)'**
+  String get aiFocusArea_auth;
+
+  /// No description provided for @aiFocusArea_sqlOpt.
+  ///
+  /// In en, this message translates to:
+  /// **'SQL query optimization and indexing'**
+  String get aiFocusArea_sqlOpt;
+
+  /// No description provided for @aiFocusArea_consistency.
+  ///
+  /// In en, this message translates to:
+  /// **'eventual vs. strong consistency'**
+  String get aiFocusArea_consistency;
+
+  /// No description provided for @aiFocusArea_serverless.
+  ///
+  /// In en, this message translates to:
+  /// **'serverless architectures and FaaS'**
+  String get aiFocusArea_serverless;
+
+  /// No description provided for @aiFocusArea_containers.
+  ///
+  /// In en, this message translates to:
+  /// **'containers and orchestration (Docker, Kubernetes)'**
+  String get aiFocusArea_containers;
+
+  /// No description provided for @aiFocusArea_websockets.
+  ///
+  /// In en, this message translates to:
+  /// **'WebSockets and bi-directional communication'**
+  String get aiFocusArea_websockets;
+
+  /// No description provided for @aiFocusArea_apiComparison.
+  ///
+  /// In en, this message translates to:
+  /// **'GraphQL vs. gRPC vs. REST'**
+  String get aiFocusArea_apiComparison;
+
+  /// No description provided for @aiFocusArea_idempotency.
+  ///
+  /// In en, this message translates to:
+  /// **'idempotency in APIs'**
+  String get aiFocusArea_idempotency;
+
+  /// No description provided for @aiFocusArea_zeroDowntime.
+  ///
+  /// In en, this message translates to:
+  /// **'zero-downtime database migrations'**
+  String get aiFocusArea_zeroDowntime;
+
+  /// No description provided for @aiFocusArea_bigData.
+  ///
+  /// In en, this message translates to:
+  /// **'large-scale data handling (Sharding, Partitioning)'**
+  String get aiFocusArea_bigData;
+
+  /// No description provided for @aiFocusArea_tls.
+  ///
+  /// In en, this message translates to:
+  /// **'data transport security (TLS/SSL)'**
+  String get aiFocusArea_tls;
+
+  /// No description provided for @aiFocusArea_distributed.
+  ///
+  /// In en, this message translates to:
+  /// **'distributed systems design'**
+  String get aiFocusArea_distributed;
+
+  /// No description provided for @aiFocusArea_cleanArch.
+  ///
+  /// In en, this message translates to:
+  /// **'SOLID principles and Clean Architecture'**
+  String get aiFocusArea_cleanArch;
+
+  /// No description provided for @aiFocusArea_packaging.
+  ///
+  /// In en, this message translates to:
+  /// **'dependency management and packaging'**
+  String get aiFocusArea_packaging;
+
+  /// No description provided for @aiFocusArea_maintenance.
+  ///
+  /// In en, this message translates to:
+  /// **'task automation and maintenance scripts'**
+  String get aiFocusArea_maintenance;
+
+  /// No description provided for @aiPromptSystemInterviewer.
+  ///
+  /// In en, this message translates to:
+  /// **'You are an expert interviewer. Reply in {language}. When asked for JSON, return JSON only with no extra text.'**
+  String aiPromptSystemInterviewer(String language);
+
+  /// No description provided for @aiPromptSystemCoach.
+  ///
+  /// In en, this message translates to:
+  /// **'You are an interview coach. Reply in {language}. When asked for JSON, return JSON only with no extra text.'**
+  String aiPromptSystemCoach(String language);
+
+  /// No description provided for @aiPromptVarietyInstructions.
+  ///
+  /// In en, this message translates to:
+  /// **'IMPORTANT: Specifically focus the questions around these themes: {focusText}. DO NOT ask about \'microservicios vs monoliths\', \'SQL vs NoSQL\', or other extremely common entry-level topics unless they are the only way to address the specific themes selected. We want deep, specific, and varied questions that test real-world experience across the ENTIRE spectrum of the role.'**
+  String aiPromptVarietyInstructions(String focusText);
+
+  /// No description provided for @aiPromptQuestionGen.
+  ///
+  /// In en, this message translates to:
+  /// **'Generate {count} {type} interview questions for the role: \"{jobRole}\". Make sure the questions are highly varied, creative, and cover different angles. Avoid generic or cliché questions (e.g., \"What are your strengths?\", \"Tell me about yourself\"). {varietyInstructions} (Random Seed: {seed}) Return ONLY JSON with this exact schema: {jsonSchema} Requirements: - Questions must be clear and specific - No numbering in the question text - No markdown'**
+  String aiPromptQuestionGen(
+    int count,
+    String type,
+    String jobRole,
+    String varietyInstructions,
+    int seed,
+    String jsonSchema,
+  );
+
+  /// No description provided for @aiPromptEvaluation.
+  ///
+  /// In en, this message translates to:
+  /// **'Evaluate the user\'s answer for a {type} interview for the \"{jobRole}\" role. Question: \"{question}\" User answer: \"{answer}\" (Random Seed: {seed}) Return ONLY JSON with this exact schema: {jsonSchema} Rules: - overallScore must be an integer 0..100 - strengths/improvements: 2 to 5 items each - suggestedAnswer: concise, improved, and results-oriented - followUpQuestions: 0 to 3 highly contextual, creative, and non-cliché follow-up questions based on the user\'s specific answer. - No markdown'**
+  String aiPromptEvaluation(
+    String type,
+    String jobRole,
+    String question,
+    String answer,
+    int seed,
+    String jsonSchema,
+  );
+
+  /// No description provided for @aiPromptFeedback.
+  ///
+  /// In en, this message translates to:
+  /// **'Based on the question, the user\'s answer, and the evaluation, generate actionable feedback. Question: \"{question}\" User answer: \"{answer}\" Evaluation (JSON): {evaluationJson} Return ONLY JSON with this exact schema: {jsonSchema} Rules: - summary: max 3 sentences - actionItems: 3 to 6 actionable items - keyPhrasesToUse: 3 to 8 short phrases the user can use - No markdown'**
+  String aiPromptFeedback(
+    String question,
+    String answer,
+    String evaluationJson,
+    String jsonSchema,
+  );
+
+  /// No description provided for @aiPromptResultsAnalysis.
+  ///
+  /// In en, this message translates to:
+  /// **'Analyze the interview results for the \"{jobRole}\" role ({typeLabel} interview). Overall score (already calculated): {overallScore} Outcome: {outcome} Interview history (Q&A with per-answer scores): {history} Return ONLY a valid JSON object — no markdown, no extra text, no explanation: {jsonSchema}'**
+  String aiPromptResultsAnalysis(
+    String jobRole,
+    String typeLabel,
+    int overallScore,
+    String outcome,
+    String history,
+    String jsonSchema,
+  );
+
+  /// No description provided for @aiPromptNextQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'Act as an expert interviewer for the \"{jobRole}\" role. Interview type: {typeLabel}. History (question, answer, evaluation): {history} Generate the next question in English: - It must be a single question. - It must adapt to the last answer. - If score was low, ask for clarification or a concrete example. - If score was high, increase difficulty or go deeper. {varietyInstructions} - AVOID generic or overused topics (e.g., \'microservicios vs monoliths\', \'SQL vs NoSQL\') unless directly related to the previous answer. - Ensure the topic is different from previous questions in the history to maintain variety. - No numbering. - No markdown. Return ONLY the question text.'**
+  String aiPromptNextQuestion(
+    String jobRole,
+    String typeLabel,
+    String history,
+    String varietyInstructions,
+  );
+
+  /// No description provided for @aiPromptOpening.
+  ///
+  /// In en, this message translates to:
+  /// **'You are a professional and friendly interviewer for the role: \"{jobRole}\". Introduce yourself briefly and ask the first question for a {typeLabel} interview. {varietyInstructions} Rules: - Return ONLY the text of the greeting and the question. - DO NOT use JSON, markdown, or any other formatting. - Be natural and professional.'**
+  String aiPromptOpening(
+    String jobRole,
+    String typeLabel,
+    String varietyInstructions,
+  );
+
+  /// No description provided for @aiPromptConversationalNext.
+  ///
+  /// In en, this message translates to:
+  /// **'Interviewer for \"{jobRole}\" ({typeLabel}). Last Q: \"{lastQuestion}\" Candidate A: \"{lastAnswer}\" Goal: Ask the next question. 1. Briefly acknowledge or react to the candidate\'s last answer. 2. Ask a follow-up or a new relevant question. {varietyInstructions} 3. Keep it natural and professional. 4. Return ONLY the text of the reaction and the question. No JSON. History context: {history}'**
+  String aiPromptConversationalNext(
+    String jobRole,
+    String typeLabel,
+    String lastQuestion,
+    String lastAnswer,
+    String varietyInstructions,
+    String history,
+  );
+
+  /// No description provided for @aiPromptAlternative.
+  ///
+  /// In en, this message translates to:
+  /// **'Act as an expert interviewer for the \"{jobRole}\" role. Interview type: {typeLabel}. Current question: \"{currentQuestion}\" Real history: {history} Generate a new question in English to replace the current one. {varietyInstructions} Rules: - It must be different from the current question. - It must keep continuity with the history. - It must sound natural, concise, and direct. - No numbering. - No markdown. Return ONLY the question text.'**
+  String aiPromptAlternative(
+    String jobRole,
+    String typeLabel,
+    String currentQuestion,
+    String history,
+    String varietyInstructions,
+  );
+
+  /// No description provided for @statsLabelQuestionPrefix.
+  ///
+  /// In en, this message translates to:
+  /// **'Q'**
+  String get statsLabelQuestionPrefix;
+
+  /// No description provided for @statsLabelChartStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Start'**
+  String get statsLabelChartStart;
+
+  /// No description provided for @errorGeminiMissingKey.
+  ///
+  /// In en, this message translates to:
+  /// **'Missing GEMINI_API_KEY. Configure it in the .env file.'**
+  String get errorGeminiMissingKey;
+
+  /// No description provided for @errorGeminiContact.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not contact Gemini.'**
+  String get errorGeminiContact;
+
+  /// No description provided for @errorGeminiNoInternet.
+  ///
+  /// In en, this message translates to:
+  /// **'No internet connection or could not contact Gemini.'**
+  String get errorGeminiNoInternet;
+
+  /// No description provided for @errorGeminiParse.
+  ///
+  /// In en, this message translates to:
+  /// **'Error parsing Gemini response.'**
+  String get errorGeminiParse;
+
+  /// No description provided for @errorGeminiApiGeneric.
+  ///
+  /// In en, this message translates to:
+  /// **'Error calling Gemini.'**
+  String get errorGeminiApiGeneric;
+
+  /// No description provided for @errorGeminiInvalidResponse.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid response from Gemini.'**
+  String get errorGeminiInvalidResponse;
+
+  /// No description provided for @errorGeminiNoCandidates.
+  ///
+  /// In en, this message translates to:
+  /// **'Gemini returned no candidates.'**
+  String get errorGeminiNoCandidates;
+
+  /// No description provided for @errorGeminiEmptyResponse.
+  ///
+  /// In en, this message translates to:
+  /// **'Gemini returned an empty response.'**
+  String get errorGeminiEmptyResponse;
+
+  /// No description provided for @errorGeminiFallbackFeedback.
+  ///
+  /// In en, this message translates to:
+  /// **'Review complete. Check your score breakdown for details.'**
+  String get errorGeminiFallbackFeedback;
+
+  /// No description provided for @aiPromptRewriteQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'Rewrite this interview question so it is more complete, specific, and natural. Weak question: \"{weakQuestion}\" Previous question: \"{lastQuestion}\" Last candidate answer: \"{lastAnswer}\" Return ONLY one question in English. Rules: - Exactly one question. - It must ask for concrete context, example, decision, impact, or result. - It must not repeat the previous question. - It should not be vague or too short. - No markdown.'**
+  String aiPromptRewriteQuestion(
+    String weakQuestion,
+    String lastQuestion,
+    String lastAnswer,
+  );
+
+  /// No description provided for @aiPromptSystemInterviewerSpoken.
+  ///
+  /// In en, this message translates to:
+  /// **'You are a human interviewer. Create clear and specific spoken questions.'**
+  String get aiPromptSystemInterviewerSpoken;
 }
 
 class _AppLocalizationsDelegate

@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:prep_up/domain/entities/interview_results_model.dart';
 import 'package:prep_up/domain/entities/interview_session.dart';
+import 'package:prep_up/l10n/app_localizations.dart';
 
 // ──────────────────────────────────────────────
 // Data models
@@ -62,6 +63,7 @@ class InterviewPieSlice {
 
 InterviewAnalyticsSnapshot buildInterviewAnalytics({
   required ThemeData theme,
+  required AppLocalizations l10n,
   required InterviewResultsModel results,
   InterviewSession? session,
 }) {
@@ -79,7 +81,7 @@ InterviewAnalyticsSnapshot buildInterviewAnalytics({
       final richness = ((wordCount / 45) * 100).round().clamp(0, 100);
       final quality = ((score * 0.8) + (richness * 0.2)).round().clamp(0, 100);
       return InterviewTurnAnalytics(
-        label: 'P${index + 1}',
+        label: '${l10n.statsLabelQuestionPrefix}${index + 1}',
         score: score,
         quality: quality,
         responseSeconds: turn.responseDurationSeconds < 0
@@ -111,17 +113,17 @@ InterviewAnalyticsSnapshot buildInterviewAnalytics({
     turns: turns,
     breakdownSlices: [
       InterviewPieSlice(
-        label: 'Comunicación',
+        label: l10n.statsBreakdownCommunication,
         value: results.breakdown.communication.toDouble(),
         color: scheme.primary,
       ),
       InterviewPieSlice(
-        label: 'Propiedad',
+        label: l10n.statsBreakdownMastery,
         value: results.breakdown.subjectMastery.toDouble(),
         color: scheme.secondary,
       ),
       InterviewPieSlice(
-        label: 'Confianza',
+        label: l10n.statsBreakdownConfidence,
         value: results.breakdown.confidence.toDouble(),
         color: scheme.tertiary,
       ),
@@ -203,36 +205,37 @@ class StatsSummaryGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final scheme = Theme.of(context).colorScheme;
     final items = [
       _GridItem(
         icon: Icons.emoji_events_rounded,
         color: scheme.primary,
-        label: 'Score general',
+        label: l10n.statsGridScoreGeneral,
         value: '${analytics.overallScore}/100',
       ),
       _GridItem(
         icon: Icons.auto_graph_rounded,
         color: scheme.secondary,
-        label: 'Calidad prom.',
+        label: l10n.statsGridAvgQuality,
         value: '${analytics.averageQuality}/100',
       ),
       _GridItem(
         icon: Icons.check_circle_rounded,
         color: Colors.green,
-        label: 'Resp. válidas',
+        label: l10n.statsGridValidAnswers,
         value: '${analytics.validAnswersCount}',
       ),
       _GridItem(
         icon: Icons.timer_rounded,
         color: scheme.tertiary,
-        label: 'Tiempo prom.',
+        label: l10n.statsGridAvgTime,
         value: _formatSecs(analytics.averageResponseSeconds),
       ),
       _GridItem(
         icon: Icons.schedule_rounded,
         color: scheme.outline,
-        label: 'Tiempo total',
+        label: l10n.statsGridTotalTime,
         value: _formatSecs(analytics.totalResponseSeconds),
       ),
     ];
@@ -346,8 +349,7 @@ class StatsSummaryChips extends StatelessWidget {
   const StatsSummaryChips({super.key, required this.analytics});
   final InterviewAnalyticsSnapshot analytics;
   @override
-  Widget build(BuildContext context) =>
-      StatsSummaryGrid(analytics: analytics);
+  Widget build(BuildContext context) => StatsSummaryGrid(analytics: analytics);
 }
 
 // ──────────────────────────────────────────────
@@ -383,7 +385,7 @@ class InterviewPieChartCard extends StatelessWidget {
             child: total <= 0
                 ? Center(
                     child: Text(
-                      'Sin datos',
+                      AppLocalizations.of(context)!.statsLabelNoData,
                       style: textTheme.bodyMedium?.copyWith(
                         color: scheme.onSurfaceVariant,
                       ),
@@ -406,7 +408,7 @@ class InterviewPieChartCard extends StatelessWidget {
                             ),
                           ),
                           Text(
-                            'promedio',
+                            AppLocalizations.of(context)!.statsLabelAverage,
                             style: textTheme.labelSmall?.copyWith(
                               color: scheme.onSurfaceVariant,
                             ),
@@ -530,7 +532,7 @@ class InterviewBarChartCard extends StatelessWidget {
               padding: const EdgeInsets.symmetric(vertical: 24),
               child: Center(
                 child: Text(
-                  'Sin datos suficientes para graficar.',
+                  AppLocalizations.of(context)!.statsLabelNotEnoughData,
                   style: textTheme.bodyMedium?.copyWith(
                     color: scheme.onSurfaceVariant,
                   ),
@@ -588,7 +590,8 @@ class InterviewBarChartCard extends StatelessWidget {
                                   (bar) => SizedBox(
                                     width: math.max(
                                       44,
-                                      (MediaQuery.of(context).size.width - 120) /
+                                      (MediaQuery.of(context).size.width -
+                                              120) /
                                           bars.length.clamp(1, 8),
                                     ),
                                     child: _AnimatedBar(
@@ -716,7 +719,7 @@ class _AnimatedBarState extends State<_AnimatedBar>
                   ),
                 ),
               ),
-              const SizedBox(height: 6),
+              const SizedBox(height: 10),
               // X-axis label – never clipped
               Text(
                 widget.label,
@@ -767,10 +770,7 @@ class MetricProgressBar extends StatelessWidget {
             Icon(icon, size: 16, color: barColor),
             const SizedBox(width: 8),
             Expanded(
-              child: Text(
-                label,
-                style: Theme.of(context).textTheme.bodyMedium,
-              ),
+              child: Text(label, style: Theme.of(context).textTheme.bodyMedium),
             ),
             Text(
               '$percent%',
@@ -826,9 +826,7 @@ class _ChartCard extends StatelessWidget {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(20),
         color: scheme.surfaceContainerLow,
-        border: Border.all(
-          color: scheme.outlineVariant.withValues(alpha: 0.5),
-        ),
+        border: Border.all(color: scheme.outlineVariant.withValues(alpha: 0.5)),
         boxShadow: [
           BoxShadow(
             color: scheme.shadow.withValues(alpha: 0.05),

@@ -31,7 +31,10 @@ class InterviewVoiceController extends ChangeNotifier {
        _languageCode = languageCode,
        _tts = flutterTts ?? FlutterTts(),
        _speech = speech ?? SpeechToText(),
-       _selectedFocusAreas = geminiService.getRandomFocusAreas(5),
+       _selectedFocusAreas = geminiService.getRandomFocusAreas(
+         lookupAppLocalizations(Locale(languageCode)),
+         5,
+       ),
        _session = InterviewSession(
          startedAt: DateTime.now().toUtc(),
          turns: const [],
@@ -380,38 +383,11 @@ class InterviewVoiceController extends ChangeNotifier {
       throw GeminiException(_l10n.interviewMissingType);
     }
 
-    final varietyInstructions = _geminiService.getVarietyInstructions(
-      _selectedFocusAreas,
-      _isEnglish,
-    );
-
-    final prompt = _isEnglish
-        ? '''
-You are a professional and friendly interviewer for the role: "$jobRole".
-Introduce yourself briefly and ask the first question for a ${_config.type?.label(_l10n)} interview.
-$varietyInstructions
-Rules:
-- Return ONLY the text of the greeting and the question.
-- DO NOT use JSON, markdown, or any other formatting.
-- Be natural and professional.
-'''
-        : '''
-Eres un entrevistador profesional y amable para el rol: "$jobRole".
-Preséntate brevemente y haz la primera pregunta para una entrevista de tipo ${_config.type?.label(_l10n)}.
-$varietyInstructions
-Reglas:
-- Devuelve SOLO el texto del saludo y la pregunta.
-- NO uses JSON, markdown o cualquier otro formato.
-- Sé natural y profesional.
-''';
-
-    final response = await _geminiService.sendPrompt(
-      prompt: prompt,
-      systemInstruction: _isEnglish
-          ? 'You are a human interviewer. Start with a greeting. Do not use markdown. Be concise but complete.'
-          : 'Eres un entrevistador humano. Empieza con un saludo. No uses markdown. Sé conciso pero completa la pregunta.',
-      temperature: 0.7,
-      maxOutputTokens: 1024,
+    final response = await _geminiService.generateOpeningQuestion(
+      jobRole: jobRole,
+      type: _config.type!,
+      selectedFocus: _selectedFocusAreas,
+      l10n: _l10n,
     );
 
     final parsedFromJson = _tryExtractNextQuestion(response);
@@ -431,51 +407,15 @@ Reglas:
     final limitedTurns = _session.turns.length > 4
         ? _session.turns.sublist(_session.turns.length - 4)
         : _session.turns;
-    final history = _formatHistoryForPrompt(limitedTurns);
-    final varietyInstructions = _geminiService.getVarietyInstructions(
-      _selectedFocusAreas,
-      _isEnglish,
-    );
 
-    final prompt = _isEnglish
-        ? '''
-Interviewer for "$jobRole" (${type.label(_l10n)}).
-Last Q: "${lastTurn.question}"
-Candidate A: "${lastTurn.answer}"
-
-Goal: Ask the next question. 
-1. Briefly acknowledge or react to the candidate's last answer.
-2. Ask a follow-up or a new relevant question.
-$varietyInstructions
-3. Keep it natural and professional.
-4. Return ONLY the text of the reaction and the question. No JSON.
-
-History context:
-$history
-'''
-        : '''
-Entrevistador para "$jobRole" (${type.label(_l10n)}).
-Ultima Q: "${lastTurn.question}"
-Respuesta: "${lastTurn.answer}"
-
-Objetivo: Haz la siguiente pregunta.
-1. Reconoce brevemente o reacciona a la última respuesta del candidato.
-2. Haz una pregunta de seguimiento o una nueva pregunta relevante.
-$varietyInstructions
-3. Sé natural y profesional.
-4. Devuelve SOLO el texto de la reacción y la pregunta. Sin JSON.
-
-Contexto historial:
-$history
-''';
-
-    final next = await _geminiService.sendPrompt(
-      prompt: prompt,
-      systemInstruction: _isEnglish
-          ? 'You are a human interviewer. Be natural and direct. Do not use markdown. Ensure the question is finished.'
-          : 'Eres un entrevistador humano. Se natural y directo. No uses markdown. Asegúrate de terminar la pregunta.',
-      temperature: 0.65,
-      maxOutputTokens: 1024,
+    final next = await _geminiService.generateConversationalNextQuestion(
+      jobRole: jobRole,
+      type: type,
+      lastQuestion: lastTurn.question,
+      lastAnswer: lastTurn.answer,
+      turns: limitedTurns,
+      selectedFocus: _selectedFocusAreas,
+      l10n: _l10n,
     );
 
     final parsedFromJson = _tryExtractNextQuestion(next);
@@ -508,61 +448,14 @@ $history
         ? ''
         : _config.jobRole!.label(_l10n);
     final type = _config.type ?? InterviewType.mixed;
-    final history = _formatHistoryForPrompt(_session.turns);
-    final varietyInstructions = _geminiService.getVarietyInstructions(
-      _selectedFocusAreas,
-      _isEnglish,
-    );
 
-    final prompt = _isEnglish
-        ? '''
-Act as an expert interviewer for the "$jobRole" role.
-Interview type: ${type.label(_l10n)}.
-
-Current question:
-"$_currentQuestion"
-
-Real history:
-$history
-
-Generate a new question in English to replace the current one.
-$varietyInstructions
-Rules:
-- It must be different from the current question.
-- It must keep continuity with the history.
-- It must sound natural, concise, and direct.
-- No numbering.
-- No markdown.
-Return ONLY the question text.
-'''
-        : '''
-Actua como entrevistador experto para el rol "$jobRole".
-Tipo de entrevista: ${type.label(_l10n)}.
-
-Pregunta actual:
-"$_currentQuestion"
-
-Historial real:
-$history
-
-Genera una nueva pregunta en espanol para reemplazar la actual.
-$varietyInstructions
-Reglas:
-- Debe ser diferente a la pregunta actual.
-- Debe mantener continuidad con el historial.
-- Debe sonar natural, breve y directa.
-- Sin numeracion.
-- Sin markdown.
-Devuelve SOLO el texto de la pregunta.
-''';
-
-    final next = await _geminiService.sendPrompt(
-      prompt: prompt,
-      systemInstruction: _isEnglish
-          ? 'You are a human interviewer. Be natural and keep the interview flowing.'
-          : 'Eres un entrevistador humano. Se natural y mantienes la entrevista fluida.',
-      temperature: 0.85,
-      maxOutputTokens: 256,
+    final next = await _geminiService.generateAlternativeQuestion(
+      jobRole: jobRole,
+      type: type,
+      currentQuestion: _currentQuestion,
+      turns: _session.turns,
+      selectedFocus: _selectedFocusAreas,
+      l10n: _l10n,
     );
 
     final cleaned = next.trim();
@@ -877,199 +770,114 @@ Devuelve SOLO el texto de la pregunta.
     _tts.stop();
     super.dispose();
   }
-}
-
-int _calculateResponseDurationSeconds(DateTime? askedAt) {
-  if (askedAt == null) return 0;
-  final elapsed = DateTime.now().toUtc().difference(askedAt).inSeconds;
-  return elapsed < 0 ? 0 : elapsed;
-}
-
-int _estimateQuestionCount(int durationMinutes) {
-  final safeMinutes = durationMinutes <= 0 ? 3 : durationMinutes;
-  final estimated = (safeMinutes * 60 / 95).round();
-  return estimated.clamp(1, 12).toInt();
-}
-
-String? _tryExtractNextQuestion(String raw) {
-  var trimmed = raw.trim();
-
-  // Remove markdown code blocks if present
-  if (trimmed.startsWith('```')) {
-    final firstBrace = trimmed.indexOf('{');
-    final lastBrace = trimmed.lastIndexOf('}');
-    if (firstBrace >= 0 && lastBrace > firstBrace) {
-      trimmed = trimmed.substring(firstBrace, lastBrace + 1);
-    }
+  int _calculateResponseDurationSeconds(DateTime? askedAt) {
+    if (askedAt == null) return 0;
+    final elapsed = DateTime.now().toUtc().difference(askedAt).inSeconds;
+    return elapsed < 0 ? 0 : elapsed;
   }
 
-  try {
-    final decoded = jsonDecode(trimmed);
-    if (decoded is Map<String, dynamic>) {
-      final value = decoded['nextQuestion'];
-      if (value is String && value.trim().isNotEmpty) {
-        return value.trim();
+  int _estimateQuestionCount(int durationMinutes) {
+    final safeMinutes = durationMinutes <= 0 ? 3 : durationMinutes;
+    final estimated = (safeMinutes * 60 / 95).round();
+    return estimated.clamp(1, 12).toInt();
+  }
+
+  String? _tryExtractNextQuestion(String raw) {
+    var trimmed = raw.trim();
+
+    // Remove markdown code blocks if present
+    if (trimmed.startsWith('```')) {
+      final firstBrace = trimmed.indexOf('{');
+      final lastBrace = trimmed.lastIndexOf('}');
+      if (firstBrace >= 0 && lastBrace > firstBrace) {
+        trimmed = trimmed.substring(firstBrace, lastBrace + 1);
       }
     }
-  } catch (_) {}
 
-  // Fallback to manual extraction
-  final start = trimmed.indexOf('{');
-  final end = trimmed.lastIndexOf('}');
-  if (start >= 0 && end > start) {
     try {
-      final decoded = jsonDecode(trimmed.substring(start, end + 1));
-      if (decoded is Map<String, dynamic>) {
-        final value = decoded['nextQuestion'];
-        if (value is String && value.trim().isNotEmpty) {
-          return value.trim();
-        }
+      final decoded = jsonDecode(trimmed);
+      if (decoded is Map && decoded['nextQuestion'] != null) {
+        return '${decoded['nextQuestion']}';
+      }
+      if (decoded is Map && decoded['question'] != null) {
+        return '${decoded['question']}';
       }
     } catch (_) {}
+
+    return null;
   }
 
-  return null;
-}
+  String _sanitizeQuestion(String raw) {
+    var value = raw.trim();
 
-String _sanitizeQuestion(String raw) {
-  var value = raw.trim();
+    // Try to extract from JSON if the AI ignored the "no JSON" rule
+    final fromJson = _tryExtractNextQuestion(value);
+    if (fromJson != null) {
+      value = fromJson;
+    }
 
-  // Try to extract from JSON if the AI ignored the "no JSON" rule
-  final fromJson = _tryExtractNextQuestion(value);
-  if (fromJson != null) {
-    value = fromJson;
+    // Remove markdown code blocks
+    value = value.replaceAll(RegExp(r'```(?:json)?|```'), '');
+
+    // Remove surrounding quotes and excessive whitespace
+    value = value.replaceAll(RegExp("^[\"'`]+|[\"'`]+\$"), '');
+    value = value.replaceAll(RegExp(r'\s+'), ' ').trim();
+
+    // Remove technical prefixes
+    value = value.replaceFirst(
+      RegExp(r'^(Pregunta|Question)\s*:\s*', caseSensitive: false),
+      '',
+    );
+
+    if (value.isEmpty) return value;
+
+    // Ensure it ends with a question mark if it looks like a question
+    if (!value.endsWith('?') &&
+        (value.contains('¿') ||
+            value.toLowerCase().contains('qué') ||
+            value.toLowerCase().contains('cómo'))) {
+      value = '$value?';
+    }
+
+    return value;
   }
 
-  // Remove markdown code blocks
-  value = value.replaceAll(RegExp(r'```(?:json)?|```'), '');
+  bool _isSmartInterviewQuestion(
+    String question, {
+    required String previousQuestion,
+  }) {
+    final normalized = question.trim().toLowerCase();
+    final previous = previousQuestion.trim().toLowerCase();
+    if (normalized.isEmpty || normalized == previous) return false;
 
-  // Remove common JSON artifacts if they leaked into the string
-  value = value.replaceAll(RegExp(r'''\{"nextQuestion":\s*["']?'''), '');
-  value = value.replaceAll(RegExp(r'''["']?\}$'''), '');
+    final wordCount = normalized
+        .split(RegExp(r'\s+'))
+        .where((w) => w.isNotEmpty)
+        .length;
+    if (wordCount < 3) return false;
 
-  // Remove surrounding quotes and excessive whitespace
-  value = value.replaceAll(RegExp("^[\"'`]+|[\"'`]+\$"), '');
-  value = value.replaceAll(RegExp(r'\s+'), ' ').trim();
-
-  // Remove technical prefixes
-  value = value.replaceFirst(
-    RegExp(r'^(Pregunta|Question)\s*:\s*', caseSensitive: false),
-    '',
-  );
-
-  if (value.isEmpty) return value;
-
-  // Ensure it ends with a question mark if it looks like a question
-  if (!value.endsWith('?') &&
-      (value.contains('¿') ||
-          value.toLowerCase().contains('qué') ||
-          value.toLowerCase().contains('cómo'))) {
-    value = '$value?';
+    return normalized.contains('?');
   }
 
-  return value;
-}
+  Future<String> _rewriteAsStrongerQuestion({
+    required String weakQuestion,
+    required InterviewTurn lastTurn,
+    required bool isEnglish,
+    required GeminiService geminiService,
+  }) async {
+    final prompt = _l10n.aiPromptRewriteQuestion(
+      weakQuestion,
+      lastTurn.question,
+      lastTurn.answer,
+    );
 
-bool _isSmartInterviewQuestion(
-  String question, {
-  required String previousQuestion,
-}) {
-  final normalized = question.trim().toLowerCase();
-  final previous = previousQuestion.trim().toLowerCase();
-  if (normalized.isEmpty || normalized == previous) return false;
+    final rewritten = await geminiService.sendPrompt(
+      prompt: prompt,
+      systemInstruction: _l10n.aiPromptSystemInterviewerSpoken,
+      temperature: 0.55,
+      maxOutputTokens: 512,
+    );
 
-  final wordCount = normalized
-      .split(RegExp(r'\s+'))
-      .where((w) => w.isNotEmpty)
-      .length;
-  if (wordCount < 3) return false;
-
-  const vaguePatterns = <String>[
-    'puedes profundizar',
-    'me cuentas mas',
-    'cuentame mas',
-    'podrias ampliar',
-    'explica mas',
-    'por que',
-  ];
-
-  if (vaguePatterns.any((pattern) => normalized == '$pattern?')) {
-    return false;
+    return _sanitizeQuestion(rewritten);
   }
-
-  return normalized.contains('?');
-}
-
-Future<String> _rewriteAsStrongerQuestion({
-  required String weakQuestion,
-  required InterviewTurn lastTurn,
-  required bool isEnglish,
-  required GeminiService geminiService,
-}) async {
-  final prompt = isEnglish
-      ? '''
-Rewrite this interview question so it is more complete, specific, and natural.
-
-Weak question:
-"$weakQuestion"
-
-Previous question:
-"${lastTurn.question}"
-
-Last candidate answer:
-"${lastTurn.answer}"
-
-Return ONLY one question in English.
-Rules:
-- Exactly one question.
-- It must ask for concrete context, example, decision, impact, or result.
-- It must not repeat the previous question.
-- It should not be vague or too short.
-- No markdown.
-'''
-      : '''
-Reescribe esta pregunta de entrevista para que sea mas completa, especifica y natural.
-
-Pregunta debil:
-"$weakQuestion"
-
-Pregunta anterior:
-"${lastTurn.question}"
-
-Ultima respuesta del candidato:
-"${lastTurn.answer}"
-
-Devuelve SOLO una pregunta en espanol.
-Reglas:
-- Una sola pregunta.
-- Debe pedir contexto concreto, ejemplo, decision, impacto o resultado.
-- No puede repetir la pregunta anterior.
-- No debe ser vaga ni demasiado corta.
-- Sin markdown.
-''';
-
-  final rewritten = await geminiService.sendPrompt(
-    prompt: prompt,
-    systemInstruction: isEnglish
-        ? 'You are a human interviewer. Create clear and specific spoken questions.'
-        : 'Eres un entrevistador humano. Formula preguntas orales claras y especificas.',
-    temperature: 0.55,
-    maxOutputTokens: 512,
-  );
-
-  return _sanitizeQuestion(rewritten);
-}
-
-String _formatHistoryForPrompt(List<InterviewTurn> turns) {
-  if (turns.isEmpty) return '- (sin historial)';
-  final buffer = StringBuffer();
-  for (var i = 0; i < turns.length; i++) {
-    final turn = turns[i];
-    buffer.writeln('Turno ${i + 1}:');
-    buffer.writeln('P: ${turn.question}');
-    buffer.writeln('R: ${turn.answer}');
-    buffer.writeln('Tiempo de respuesta: ${turn.responseDurationSeconds}s');
-    buffer.writeln('');
-  }
-  return buffer.toString().trim();
 }

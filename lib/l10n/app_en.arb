@@ -339,16 +339,50 @@
   "dashboardMenuTooltip": "Menu",
   "dashboardNavProfile": "Profile",
   "dashboardNavHistory": "History",
-  "dashboardDailyStats": "Daily statistics",
-  "dashboardStatTechnicalAccuracyTitle": "Technical Accuracy",
-  "dashboardStatTechnicalAccuracySubtitle": "Your accuracy answering coding questions has increased by 15% statistically.",
-  "dashboardStatVerbalFluencyTitle": "Verbal Fluency",
-  "dashboardStatVerbalFluencySubtitle": "You show great cadence. Keep reducing filler words during the interview.",
-  "dashboardPracticeModes": "Practice modes",
-  "dashboardActionTrain": "Train",
-  "dashboardActionMetrics": "Metrics",
-  "dashboardActionTips": "Tips",
-  "dashboardActionSettings": "Settings",
+  "dashboardSettingsTooltip": "Settings",
+  "dashboardWelcomeGreeting": "Hello, {firstName}",
+  "@dashboardWelcomeGreeting": {
+    "placeholders": {
+      "firstName": {
+        "type": "String"
+      }
+    }
+  },
+  "dashboardSubtitleReady": "Let's keep improving your level.",
+  "dashboardSubtitleEmpty": "Ready for your first simulation?",
+  "dashboardEmptyStateTitle": "Start Training",
+  "dashboardEmptyStateSubtitle": "No history yet",
+  "dashboardEmptyStateBody": "Complete your first interview to unlock metrics and performance charts.",
+  "dashboardChartTitle": "Performance Evolution",
+  "dashboardChartSubtitle": "Progress across your last {count} interviews",
+  "@dashboardChartSubtitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "dashboardStatAvgScoreTitle": "Average Score",
+  "dashboardStatAvgScoreSubtitle": "Based on {count} interviews",
+  "@dashboardStatAvgScoreSubtitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "dashboardStatTotalTitle": "Completed Interviews",
+  "dashboardStatTotalSubtitle": "Total simulations completed",
+  "dashboardLastInterviewLabel": "LAST INTERVIEW",
+  "dashboardScoreDetail": "Score: {score} / 100",
+  "@dashboardScoreDetail": {
+    "placeholders": {
+      "score": {
+        "type": "int"
+      }
+    }
+  },
+  "dashboardJobRoleFallback": "General",
   "statsScreenTitle": "Statistics",
   "statsNoDataTitle": "No data",
   "statsNoDataSubtitle": "No analyzed interview selected",
@@ -391,6 +425,17 @@
   },
   "statsQuickReadSlow": "Your pace was reflective; try to synthesize your answers a bit.",
   "statsQuickReadFast": "Your pace was agile; make sure you keep enough depth in each example.",
+  "statsLabelNoData": "No data",
+  "statsLabelAverage": "average",
+  "statsLabelNotEnoughData": "Not enough data to display chart.",
+  "statsGridScoreGeneral": "Overall score",
+  "statsGridAvgQuality": "Avg. quality",
+  "statsGridValidAnswers": "Valid answers",
+  "statsGridAvgTime": "Avg. time",
+  "statsGridTotalTime": "Total time",
+  "statsBreakdownCommunication": "Communication",
+  "statsBreakdownMastery": "Mastery",
+  "statsBreakdownConfidence": "Confidence",
   "backToDashboard": "Back to Dashboard",
   "generalResultsTitle": "Results",
   "generalResultsCardTitle": "General results",
@@ -446,11 +491,6 @@
   "repeatButton": "Repeat",
   "dashboardButton": "Dashboard",
   "repeatInterviewTitle": "Repeat interview",
-  "repeatInterviewCardTitle": "Remix mode",
-  "repeatInterviewCardSubtitle": "Repeat with tweaks and improve your score",
-  "repeatInterviewQuickSuggestionTitle": "Quick suggestion",
-  "repeatInterviewQuickSuggestionBody": "Change the interview type or role to practice different scenarios.",
-  "repeatInterviewStartNewSimulation": "Start new simulation",
   "historyTitle": "History",
   "historyWhenDaysAgo": "{days} days ago",
   "@historyWhenDaysAgo": {
@@ -556,5 +596,164 @@
   "profileEditOccupation": "Occupation",
   "profileEditPhone": "Phone",
   "profileLevelPro": "Pro",
-  "profileLevelRookie": "Rookie"
+  "profileLevelRookie": "Rookie",
+  "aiFocusArea_edgeCases": "edge cases or unusual scenarios",
+  "aiFocusArea_performance": "low-level optimization and performance",
+  "aiFocusArea_security": "security, vulnerabilities, and prevention",
+  "aiFocusArea_dbDesign": "database scalability and design",
+  "aiFocusArea_designPatterns": "uncommon design patterns",
+  "aiFocusArea_errorHandling": "error handling, concurrency, and resilience",
+  "aiFocusArea_legacyCode": "refactoring and legacy code",
+  "aiFocusArea_eventDriven": "asynchronous communication and event-driven architecture",
+  "aiFocusArea_testing": "testing, code quality, and TDD",
+  "aiFocusArea_troubleshooting": "production incident resolution (troubleshooting)",
+  "aiFocusArea_apiDesign": "API design and integration best practices",
+  "aiFocusArea_stateManagement": "complex state management",
+  "aiFocusArea_iac": "Infrastructure as Code and CI/CD",
+  "aiFocusArea_observability": "observability, metrics, and traceability",
+  "aiFocusArea_dataPrivacy": "data governance and privacy",
+  "aiFocusArea_network": "network performance and latency",
+  "aiFocusArea_algorithms": "advanced algorithms and data structures",
+  "aiFocusArea_memory": "memory management and garbage collection",
+  "aiFocusArea_caching": "caching strategies (Redis, Memcached)",
+  "aiFocusArea_messaging": "message queues (RabbitMQ, Kafka)",
+  "aiFocusArea_auth": "authentication and authorization (OAuth2, JWT, RBAC)",
+  "aiFocusArea_sqlOpt": "SQL query optimization and indexing",
+  "aiFocusArea_consistency": "eventual vs. strong consistency",
+  "aiFocusArea_serverless": "serverless architectures and FaaS",
+  "aiFocusArea_containers": "containers and orchestration (Docker, Kubernetes)",
+  "aiFocusArea_websockets": "WebSockets and bi-directional communication",
+  "aiFocusArea_apiComparison": "GraphQL vs. gRPC vs. REST",
+  "aiFocusArea_idempotency": "idempotency in APIs",
+  "aiFocusArea_zeroDowntime": "zero-downtime database migrations",
+  "aiFocusArea_bigData": "large-scale data handling (Sharding, Partitioning)",
+  "aiFocusArea_tls": "data transport security (TLS/SSL)",
+  "aiFocusArea_distributed": "distributed systems design",
+  "aiFocusArea_cleanArch": "SOLID principles and Clean Architecture",
+  "aiFocusArea_packaging": "dependency management and packaging",
+  "aiFocusArea_maintenance": "task automation and maintenance scripts",
+  "aiPromptSystemInterviewer": "You are an expert interviewer. Reply in {language}. When asked for JSON, return JSON only with no extra text.",
+  "@aiPromptSystemInterviewer": {
+    "placeholders": {
+      "language": {
+        "type": "String"
+      }
+    }
+  },
+  "aiPromptSystemCoach": "You are an interview coach. Reply in {language}. When asked for JSON, return JSON only with no extra text.",
+  "@aiPromptSystemCoach": {
+    "placeholders": {
+      "language": {
+        "type": "String"
+      }
+    }
+  },
+  "aiPromptVarietyInstructions": "IMPORTANT: Specifically focus the questions around these themes: {focusText}. DO NOT ask about 'microservicios vs monoliths', 'SQL vs NoSQL', or other extremely common entry-level topics unless they are the only way to address the specific themes selected. We want deep, specific, and varied questions that test real-world experience across the ENTIRE spectrum of the role.",
+  "@aiPromptVarietyInstructions": {
+    "placeholders": {
+      "focusText": {
+        "type": "String"
+      }
+    }
+  },
+  "aiPromptQuestionGen": "Generate {count} {type} interview questions for the role: \"{jobRole}\". Make sure the questions are highly varied, creative, and cover different angles. Avoid generic or cliché questions (e.g., \"What are your strengths?\", \"Tell me about yourself\"). {varietyInstructions} (Random Seed: {seed}) Return ONLY JSON with this exact schema: {jsonSchema} Requirements: - Questions must be clear and specific - No numbering in the question text - No markdown",
+  "@aiPromptQuestionGen": {
+    "placeholders": {
+      "count": { "type": "int" },
+      "type": { "type": "String" },
+      "jobRole": { "type": "String" },
+      "varietyInstructions": { "type": "String" },
+      "seed": { "type": "int" },
+      "jsonSchema": { "type": "String" }
+    }
+  },
+  "aiPromptEvaluation": "Evaluate the user's answer for a {type} interview for the \"{jobRole}\" role. Question: \"{question}\" User answer: \"{answer}\" (Random Seed: {seed}) Return ONLY JSON with this exact schema: {jsonSchema} Rules: - overallScore must be an integer 0..100 - strengths/improvements: 2 to 5 items each - suggestedAnswer: concise, improved, and results-oriented - followUpQuestions: 0 to 3 highly contextual, creative, and non-cliché follow-up questions based on the user's specific answer. - No markdown",
+  "@aiPromptEvaluation": {
+    "placeholders": {
+      "type": { "type": "String" },
+      "jobRole": { "type": "String" },
+      "question": { "type": "String" },
+      "answer": { "type": "String" },
+      "seed": { "type": "int" },
+      "jsonSchema": { "type": "String" }
+    }
+  },
+  "aiPromptFeedback": "Based on the question, the user's answer, and the evaluation, generate actionable feedback. Question: \"{question}\" User answer: \"{answer}\" Evaluation (JSON): {evaluationJson} Return ONLY JSON with this exact schema: {jsonSchema} Rules: - summary: max 3 sentences - actionItems: 3 to 6 actionable items - keyPhrasesToUse: 3 to 8 short phrases the user can use - No markdown",
+  "@aiPromptFeedback": {
+    "placeholders": {
+      "question": { "type": "String" },
+      "answer": { "type": "String" },
+      "evaluationJson": { "type": "String" },
+      "jsonSchema": { "type": "String" }
+    }
+  },
+  "aiPromptResultsAnalysis": "Analyze the interview results for the \"{jobRole}\" role ({typeLabel} interview). Overall score (already calculated): {overallScore} Outcome: {outcome} Interview history (Q&A with per-answer scores): {history} Return ONLY a valid JSON object — no markdown, no extra text, no explanation: {jsonSchema}",
+  "@aiPromptResultsAnalysis": {
+    "placeholders": {
+      "jobRole": { "type": "String" },
+      "typeLabel": { "type": "String" },
+      "overallScore": { "type": "int" },
+      "outcome": { "type": "String" },
+      "history": { "type": "String" },
+      "jsonSchema": { "type": "String" }
+    }
+  },
+  "aiPromptNextQuestion": "Act as an expert interviewer for the \"{jobRole}\" role. Interview type: {typeLabel}. History (question, answer, evaluation): {history} Generate the next question in English: - It must be a single question. - It must adapt to the last answer. - If score was low, ask for clarification or a concrete example. - If score was high, increase difficulty or go deeper. {varietyInstructions} - AVOID generic or overused topics (e.g., 'microservicios vs monoliths', 'SQL vs NoSQL') unless directly related to the previous answer. - Ensure the topic is different from previous questions in the history to maintain variety. - No numbering. - No markdown. Return ONLY the question text.",
+  "@aiPromptNextQuestion": {
+    "placeholders": {
+      "jobRole": { "type": "String" },
+      "typeLabel": { "type": "String" },
+      "history": { "type": "String" },
+      "varietyInstructions": { "type": "String" }
+    }
+  },
+  "aiPromptOpening": "You are a professional and friendly interviewer for the role: \"{jobRole}\". Introduce yourself briefly and ask the first question for a {typeLabel} interview. {varietyInstructions} Rules: - Return ONLY the text of the greeting and the question. - DO NOT use JSON, markdown, or any other formatting. - Be natural and professional.",
+  "@aiPromptOpening": {
+    "placeholders": {
+      "jobRole": { "type": "String" },
+      "typeLabel": { "type": "String" },
+      "varietyInstructions": { "type": "String" }
+    }
+  },
+  "aiPromptConversationalNext": "Interviewer for \"{jobRole}\" ({typeLabel}). Last Q: \"{lastQuestion}\" Candidate A: \"{lastAnswer}\" Goal: Ask the next question. 1. Briefly acknowledge or react to the candidate's last answer. 2. Ask a follow-up or a new relevant question. {varietyInstructions} 3. Keep it natural and professional. 4. Return ONLY the text of the reaction and the question. No JSON. History context: {history}",
+  "@aiPromptConversationalNext": {
+    "placeholders": {
+      "jobRole": { "type": "String" },
+      "typeLabel": { "type": "String" },
+      "lastQuestion": { "type": "String" },
+      "lastAnswer": { "type": "String" },
+      "varietyInstructions": { "type": "String" },
+      "history": { "type": "String" }
+    }
+  },
+  "aiPromptAlternative": "Act as an expert interviewer for the \"{jobRole}\" role. Interview type: {typeLabel}. Current question: \"{currentQuestion}\" Real history: {history} Generate a new question in English to replace the current one. {varietyInstructions} Rules: - It must be different from the current question. - It must keep continuity with the history. - It must sound natural, concise, and direct. - No numbering. - No markdown. Return ONLY the question text.",
+  "@aiPromptAlternative": {
+    "placeholders": {
+      "jobRole": { "type": "String" },
+      "typeLabel": { "type": "String" },
+      "currentQuestion": { "type": "String" },
+      "history": { "type": "String" },
+      "varietyInstructions": { "type": "String" }
+    }
+  },
+  "statsLabelQuestionPrefix": "Q",
+  "statsLabelChartStart": "Start",
+  "errorGeminiMissingKey": "Missing GEMINI_API_KEY. Configure it in the .env file.",
+  "errorGeminiContact": "Could not contact Gemini.",
+  "errorGeminiNoInternet": "No internet connection or could not contact Gemini.",
+  "errorGeminiParse": "Error parsing Gemini response.",
+  "errorGeminiApiGeneric": "Error calling Gemini.",
+  "errorGeminiInvalidResponse": "Invalid response from Gemini.",
+  "errorGeminiNoCandidates": "Gemini returned no candidates.",
+  "errorGeminiEmptyResponse": "Gemini returned an empty response.",
+  "errorGeminiFallbackFeedback": "Review complete. Check your score breakdown for details.",
+  "aiPromptRewriteQuestion": "Rewrite this interview question so it is more complete, specific, and natural. Weak question: \"{weakQuestion}\" Previous question: \"{lastQuestion}\" Last candidate answer: \"{lastAnswer}\" Return ONLY one question in English. Rules: - Exactly one question. - It must ask for concrete context, example, decision, impact, or result. - It must not repeat the previous question. - It should not be vague or too short. - No markdown.",
+  "@aiPromptRewriteQuestion": {
+    "placeholders": {
+      "weakQuestion": { "type": "String" },
+      "lastQuestion": { "type": "String" },
+      "lastAnswer": { "type": "String" }
+    }
+  },
+  "aiPromptSystemInterviewerSpoken": "You are a human interviewer. Create clear and specific spoken questions."
 }

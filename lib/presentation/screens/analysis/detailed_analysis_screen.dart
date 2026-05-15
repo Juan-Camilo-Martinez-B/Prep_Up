@@ -41,6 +41,7 @@ class DetailedAnalysisScreen extends StatelessWidget {
     }
     final analytics = buildInterviewAnalytics(
       theme: Theme.of(context),
+      l10n: l10n,
       results: results,
       session: session,
     );
@@ -178,8 +179,6 @@ class DetailedAnalysisScreen extends StatelessWidget {
     );
   }
 }
-
-
 
 class _TipRow extends StatelessWidget {
   const _TipRow({required this.text});

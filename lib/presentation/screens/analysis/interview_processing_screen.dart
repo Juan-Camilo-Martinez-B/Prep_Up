@@ -77,12 +77,12 @@ class _InterviewProcessingScreenState extends State<InterviewProcessingScreen> {
       final processedSession = await geminiService.analyzeInterviewSession(
         config: config,
         session: session,
-        language: languageCode,
+        l10n: l10n,
       );
       final results = await geminiService.generateInterviewResults(
         config: config,
         session: processedSession,
-        language: languageCode,
+        l10n: l10n,
       );
 
       // --- PERSISTENCIA ---

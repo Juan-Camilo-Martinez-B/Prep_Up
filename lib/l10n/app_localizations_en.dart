@@ -703,36 +703,61 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dashboardNavHistory => 'History';
 
   @override
-  String get dashboardDailyStats => 'Daily statistics';
+  String get dashboardSettingsTooltip => 'Settings';
 
   @override
-  String get dashboardStatTechnicalAccuracyTitle => 'Technical Accuracy';
+  String dashboardWelcomeGreeting(String firstName) {
+    return 'Hello, $firstName';
+  }
 
   @override
-  String get dashboardStatTechnicalAccuracySubtitle =>
-      'Your accuracy answering coding questions has increased by 15% statistically.';
+  String get dashboardSubtitleReady => 'Let\'s keep improving your level.';
 
   @override
-  String get dashboardStatVerbalFluencyTitle => 'Verbal Fluency';
+  String get dashboardSubtitleEmpty => 'Ready for your first simulation?';
 
   @override
-  String get dashboardStatVerbalFluencySubtitle =>
-      'You show great cadence. Keep reducing filler words during the interview.';
+  String get dashboardEmptyStateTitle => 'Start Training';
 
   @override
-  String get dashboardPracticeModes => 'Practice modes';
+  String get dashboardEmptyStateSubtitle => 'No history yet';
 
   @override
-  String get dashboardActionTrain => 'Train';
+  String get dashboardEmptyStateBody =>
+      'Complete your first interview to unlock metrics and performance charts.';
 
   @override
-  String get dashboardActionMetrics => 'Metrics';
+  String get dashboardChartTitle => 'Performance Evolution';
 
   @override
-  String get dashboardActionTips => 'Tips';
+  String dashboardChartSubtitle(int count) {
+    return 'Progress across your last $count interviews';
+  }
 
   @override
-  String get dashboardActionSettings => 'Settings';
+  String get dashboardStatAvgScoreTitle => 'Average Score';
+
+  @override
+  String dashboardStatAvgScoreSubtitle(int count) {
+    return 'Based on $count interviews';
+  }
+
+  @override
+  String get dashboardStatTotalTitle => 'Completed Interviews';
+
+  @override
+  String get dashboardStatTotalSubtitle => 'Total simulations completed';
+
+  @override
+  String get dashboardLastInterviewLabel => 'LAST INTERVIEW';
+
+  @override
+  String dashboardScoreDetail(int score) {
+    return 'Score: $score / 100';
+  }
+
+  @override
+  String get dashboardJobRoleFallback => 'General';
 
   @override
   String get statsScreenTitle => 'Statistics';
@@ -806,6 +831,39 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get statsQuickReadFast =>
       'Your pace was agile; make sure you keep enough depth in each example.';
+
+  @override
+  String get statsLabelNoData => 'No data';
+
+  @override
+  String get statsLabelAverage => 'average';
+
+  @override
+  String get statsLabelNotEnoughData => 'Not enough data to display chart.';
+
+  @override
+  String get statsGridScoreGeneral => 'Overall score';
+
+  @override
+  String get statsGridAvgQuality => 'Avg. quality';
+
+  @override
+  String get statsGridValidAnswers => 'Valid answers';
+
+  @override
+  String get statsGridAvgTime => 'Avg. time';
+
+  @override
+  String get statsGridTotalTime => 'Total time';
+
+  @override
+  String get statsBreakdownCommunication => 'Communication';
+
+  @override
+  String get statsBreakdownMastery => 'Mastery';
+
+  @override
+  String get statsBreakdownConfidence => 'Confidence';
 
   @override
   String get backToDashboard => 'Back to Dashboard';
@@ -984,23 +1042,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get repeatInterviewTitle => 'Repeat interview';
-
-  @override
-  String get repeatInterviewCardTitle => 'Remix mode';
-
-  @override
-  String get repeatInterviewCardSubtitle =>
-      'Repeat with tweaks and improve your score';
-
-  @override
-  String get repeatInterviewQuickSuggestionTitle => 'Quick suggestion';
-
-  @override
-  String get repeatInterviewQuickSuggestionBody =>
-      'Change the interview type or role to practice different scenarios.';
-
-  @override
-  String get repeatInterviewStartNewSimulation => 'Start new simulation';
 
   @override
   String get historyTitle => 'History';
@@ -1248,4 +1289,274 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get profileLevelRookie => 'Rookie';
+
+  @override
+  String get aiFocusArea_edgeCases => 'edge cases or unusual scenarios';
+
+  @override
+  String get aiFocusArea_performance =>
+      'low-level optimization and performance';
+
+  @override
+  String get aiFocusArea_security =>
+      'security, vulnerabilities, and prevention';
+
+  @override
+  String get aiFocusArea_dbDesign => 'database scalability and design';
+
+  @override
+  String get aiFocusArea_designPatterns => 'uncommon design patterns';
+
+  @override
+  String get aiFocusArea_errorHandling =>
+      'error handling, concurrency, and resilience';
+
+  @override
+  String get aiFocusArea_legacyCode => 'refactoring and legacy code';
+
+  @override
+  String get aiFocusArea_eventDriven =>
+      'asynchronous communication and event-driven architecture';
+
+  @override
+  String get aiFocusArea_testing => 'testing, code quality, and TDD';
+
+  @override
+  String get aiFocusArea_troubleshooting =>
+      'production incident resolution (troubleshooting)';
+
+  @override
+  String get aiFocusArea_apiDesign =>
+      'API design and integration best practices';
+
+  @override
+  String get aiFocusArea_stateManagement => 'complex state management';
+
+  @override
+  String get aiFocusArea_iac => 'Infrastructure as Code and CI/CD';
+
+  @override
+  String get aiFocusArea_observability =>
+      'observability, metrics, and traceability';
+
+  @override
+  String get aiFocusArea_dataPrivacy => 'data governance and privacy';
+
+  @override
+  String get aiFocusArea_network => 'network performance and latency';
+
+  @override
+  String get aiFocusArea_algorithms =>
+      'advanced algorithms and data structures';
+
+  @override
+  String get aiFocusArea_memory => 'memory management and garbage collection';
+
+  @override
+  String get aiFocusArea_caching => 'caching strategies (Redis, Memcached)';
+
+  @override
+  String get aiFocusArea_messaging => 'message queues (RabbitMQ, Kafka)';
+
+  @override
+  String get aiFocusArea_auth =>
+      'authentication and authorization (OAuth2, JWT, RBAC)';
+
+  @override
+  String get aiFocusArea_sqlOpt => 'SQL query optimization and indexing';
+
+  @override
+  String get aiFocusArea_consistency => 'eventual vs. strong consistency';
+
+  @override
+  String get aiFocusArea_serverless => 'serverless architectures and FaaS';
+
+  @override
+  String get aiFocusArea_containers =>
+      'containers and orchestration (Docker, Kubernetes)';
+
+  @override
+  String get aiFocusArea_websockets =>
+      'WebSockets and bi-directional communication';
+
+  @override
+  String get aiFocusArea_apiComparison => 'GraphQL vs. gRPC vs. REST';
+
+  @override
+  String get aiFocusArea_idempotency => 'idempotency in APIs';
+
+  @override
+  String get aiFocusArea_zeroDowntime => 'zero-downtime database migrations';
+
+  @override
+  String get aiFocusArea_bigData =>
+      'large-scale data handling (Sharding, Partitioning)';
+
+  @override
+  String get aiFocusArea_tls => 'data transport security (TLS/SSL)';
+
+  @override
+  String get aiFocusArea_distributed => 'distributed systems design';
+
+  @override
+  String get aiFocusArea_cleanArch => 'SOLID principles and Clean Architecture';
+
+  @override
+  String get aiFocusArea_packaging => 'dependency management and packaging';
+
+  @override
+  String get aiFocusArea_maintenance =>
+      'task automation and maintenance scripts';
+
+  @override
+  String aiPromptSystemInterviewer(String language) {
+    return 'You are an expert interviewer. Reply in $language. When asked for JSON, return JSON only with no extra text.';
+  }
+
+  @override
+  String aiPromptSystemCoach(String language) {
+    return 'You are an interview coach. Reply in $language. When asked for JSON, return JSON only with no extra text.';
+  }
+
+  @override
+  String aiPromptVarietyInstructions(String focusText) {
+    return 'IMPORTANT: Specifically focus the questions around these themes: $focusText. DO NOT ask about \'microservicios vs monoliths\', \'SQL vs NoSQL\', or other extremely common entry-level topics unless they are the only way to address the specific themes selected. We want deep, specific, and varied questions that test real-world experience across the ENTIRE spectrum of the role.';
+  }
+
+  @override
+  String aiPromptQuestionGen(
+    int count,
+    String type,
+    String jobRole,
+    String varietyInstructions,
+    int seed,
+    String jsonSchema,
+  ) {
+    return 'Generate $count $type interview questions for the role: \"$jobRole\". Make sure the questions are highly varied, creative, and cover different angles. Avoid generic or cliché questions (e.g., \"What are your strengths?\", \"Tell me about yourself\"). $varietyInstructions (Random Seed: $seed) Return ONLY JSON with this exact schema: $jsonSchema Requirements: - Questions must be clear and specific - No numbering in the question text - No markdown';
+  }
+
+  @override
+  String aiPromptEvaluation(
+    String type,
+    String jobRole,
+    String question,
+    String answer,
+    int seed,
+    String jsonSchema,
+  ) {
+    return 'Evaluate the user\'s answer for a $type interview for the \"$jobRole\" role. Question: \"$question\" User answer: \"$answer\" (Random Seed: $seed) Return ONLY JSON with this exact schema: $jsonSchema Rules: - overallScore must be an integer 0..100 - strengths/improvements: 2 to 5 items each - suggestedAnswer: concise, improved, and results-oriented - followUpQuestions: 0 to 3 highly contextual, creative, and non-cliché follow-up questions based on the user\'s specific answer. - No markdown';
+  }
+
+  @override
+  String aiPromptFeedback(
+    String question,
+    String answer,
+    String evaluationJson,
+    String jsonSchema,
+  ) {
+    return 'Based on the question, the user\'s answer, and the evaluation, generate actionable feedback. Question: \"$question\" User answer: \"$answer\" Evaluation (JSON): $evaluationJson Return ONLY JSON with this exact schema: $jsonSchema Rules: - summary: max 3 sentences - actionItems: 3 to 6 actionable items - keyPhrasesToUse: 3 to 8 short phrases the user can use - No markdown';
+  }
+
+  @override
+  String aiPromptResultsAnalysis(
+    String jobRole,
+    String typeLabel,
+    int overallScore,
+    String outcome,
+    String history,
+    String jsonSchema,
+  ) {
+    return 'Analyze the interview results for the \"$jobRole\" role ($typeLabel interview). Overall score (already calculated): $overallScore Outcome: $outcome Interview history (Q&A with per-answer scores): $history Return ONLY a valid JSON object — no markdown, no extra text, no explanation: $jsonSchema';
+  }
+
+  @override
+  String aiPromptNextQuestion(
+    String jobRole,
+    String typeLabel,
+    String history,
+    String varietyInstructions,
+  ) {
+    return 'Act as an expert interviewer for the \"$jobRole\" role. Interview type: $typeLabel. History (question, answer, evaluation): $history Generate the next question in English: - It must be a single question. - It must adapt to the last answer. - If score was low, ask for clarification or a concrete example. - If score was high, increase difficulty or go deeper. $varietyInstructions - AVOID generic or overused topics (e.g., \'microservicios vs monoliths\', \'SQL vs NoSQL\') unless directly related to the previous answer. - Ensure the topic is different from previous questions in the history to maintain variety. - No numbering. - No markdown. Return ONLY the question text.';
+  }
+
+  @override
+  String aiPromptOpening(
+    String jobRole,
+    String typeLabel,
+    String varietyInstructions,
+  ) {
+    return 'You are a professional and friendly interviewer for the role: \"$jobRole\". Introduce yourself briefly and ask the first question for a $typeLabel interview. $varietyInstructions Rules: - Return ONLY the text of the greeting and the question. - DO NOT use JSON, markdown, or any other formatting. - Be natural and professional.';
+  }
+
+  @override
+  String aiPromptConversationalNext(
+    String jobRole,
+    String typeLabel,
+    String lastQuestion,
+    String lastAnswer,
+    String varietyInstructions,
+    String history,
+  ) {
+    return 'Interviewer for \"$jobRole\" ($typeLabel). Last Q: \"$lastQuestion\" Candidate A: \"$lastAnswer\" Goal: Ask the next question. 1. Briefly acknowledge or react to the candidate\'s last answer. 2. Ask a follow-up or a new relevant question. $varietyInstructions 3. Keep it natural and professional. 4. Return ONLY the text of the reaction and the question. No JSON. History context: $history';
+  }
+
+  @override
+  String aiPromptAlternative(
+    String jobRole,
+    String typeLabel,
+    String currentQuestion,
+    String history,
+    String varietyInstructions,
+  ) {
+    return 'Act as an expert interviewer for the \"$jobRole\" role. Interview type: $typeLabel. Current question: \"$currentQuestion\" Real history: $history Generate a new question in English to replace the current one. $varietyInstructions Rules: - It must be different from the current question. - It must keep continuity with the history. - It must sound natural, concise, and direct. - No numbering. - No markdown. Return ONLY the question text.';
+  }
+
+  @override
+  String get statsLabelQuestionPrefix => 'Q';
+
+  @override
+  String get statsLabelChartStart => 'Start';
+
+  @override
+  String get errorGeminiMissingKey =>
+      'Missing GEMINI_API_KEY. Configure it in the .env file.';
+
+  @override
+  String get errorGeminiContact => 'Could not contact Gemini.';
+
+  @override
+  String get errorGeminiNoInternet =>
+      'No internet connection or could not contact Gemini.';
+
+  @override
+  String get errorGeminiParse => 'Error parsing Gemini response.';
+
+  @override
+  String get errorGeminiApiGeneric => 'Error calling Gemini.';
+
+  @override
+  String get errorGeminiInvalidResponse => 'Invalid response from Gemini.';
+
+  @override
+  String get errorGeminiNoCandidates => 'Gemini returned no candidates.';
+
+  @override
+  String get errorGeminiEmptyResponse => 'Gemini returned an empty response.';
+
+  @override
+  String get errorGeminiFallbackFeedback =>
+      'Review complete. Check your score breakdown for details.';
+
+  @override
+  String aiPromptRewriteQuestion(
+    String weakQuestion,
+    String lastQuestion,
+    String lastAnswer,
+  ) {
+    return 'Rewrite this interview question so it is more complete, specific, and natural. Weak question: \"$weakQuestion\" Previous question: \"$lastQuestion\" Last candidate answer: \"$lastAnswer\" Return ONLY one question in English. Rules: - Exactly one question. - It must ask for concrete context, example, decision, impact, or result. - It must not repeat the previous question. - It should not be vague or too short. - No markdown.';
+  }
+
+  @override
+  String get aiPromptSystemInterviewerSpoken =>
+      'You are a human interviewer. Create clear and specific spoken questions.';
 }

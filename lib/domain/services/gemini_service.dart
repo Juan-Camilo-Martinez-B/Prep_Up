@@ -40,66 +40,54 @@ class GeminiService {
 
   static final Map<String, String> _resolvedModelByApiKey = {};
 
-  /// Lista de enfoques para forzar variedad en las preguntas.
-  static const List<String> _focusAreas = [
-    'casos extremos o inusuales (edge cases)',
-    'optimización y rendimiento a bajo nivel',
-    'seguridad, vulnerabilidades y prevención',
-    'escalabilidad y diseño de bases de datos',
-    'patrones de diseño poco comunes',
-    'manejo de errores, concurrencia y resiliencia',
-    'refactorización y código heredado (legacy)',
-    'comunicación asíncrona y arquitectura dirigida por eventos',
-    'testing, calidad de código y TDD',
-    'resolución de incidentes en producción (troubleshooting)',
-    'diseño de APIs y buenas prácticas de integración',
-    'gestión de estado compleja',
-    'infraestructura como código y despliegue continuo',
-    'observabilidad, métricas y trazabilidad',
-    'gobierno de datos y privacidad',
-    'rendimiento en redes y latencia',
-    'algoritmos y estructuras de datos avanzadas',
-    'gestión de memoria y recolección de basura',
-    'estrategias de caché (Redis, Memcached)',
-    'colas de mensajería (RabbitMQ, Kafka)',
-    'autenticación y autorización (OAuth2, JWT, RBAC)',
-    'optimización de consultas SQL y uso de índices',
-    'consistencia eventual vs fuerte',
-    'arquitecturas serverless y funciones como servicio',
-    'contenedores y orquestación (Docker, Kubernetes)',
-    'WebSockets y comunicación bidireccional',
-    'GraphQL vs gRPC vs REST',
-    'idempotencia en APIs',
-    'migraciones de bases de datos sin tiempo de inactividad',
-    'manejo de grandes volúmenes de datos (Sharding, Partitioning)',
-    'seguridad en el transporte de datos (TLS/SSL)',
-    'diseño de sistemas distribuidos',
-    'principios SOLID y Clean Architecture',
-    'gestión de dependencias y empaquetado',
-    'automatización de tareas y scripts de mantenimiento',
-  ];
-
-  /// Obtiene una lista aleatoria de temas de enfoque.
-  List<String> getRandomFocusAreas([int count = 5]) {
+  /// Obtiene una lista aleatoria de temas de enfoque localizados.
+  List<String> getRandomFocusAreas(AppLocalizations l10n, [int count = 5]) {
+    final focusAreas = [
+      l10n.aiFocusArea_edgeCases,
+      l10n.aiFocusArea_performance,
+      l10n.aiFocusArea_security,
+      l10n.aiFocusArea_dbDesign,
+      l10n.aiFocusArea_designPatterns,
+      l10n.aiFocusArea_errorHandling,
+      l10n.aiFocusArea_legacyCode,
+      l10n.aiFocusArea_eventDriven,
+      l10n.aiFocusArea_testing,
+      l10n.aiFocusArea_troubleshooting,
+      l10n.aiFocusArea_apiDesign,
+      l10n.aiFocusArea_stateManagement,
+      l10n.aiFocusArea_iac,
+      l10n.aiFocusArea_observability,
+      l10n.aiFocusArea_dataPrivacy,
+      l10n.aiFocusArea_network,
+      l10n.aiFocusArea_algorithms,
+      l10n.aiFocusArea_memory,
+      l10n.aiFocusArea_caching,
+      l10n.aiFocusArea_messaging,
+      l10n.aiFocusArea_auth,
+      l10n.aiFocusArea_sqlOpt,
+      l10n.aiFocusArea_consistency,
+      l10n.aiFocusArea_serverless,
+      l10n.aiFocusArea_containers,
+      l10n.aiFocusArea_websockets,
+      l10n.aiFocusArea_apiComparison,
+      l10n.aiFocusArea_idempotency,
+      l10n.aiFocusArea_zeroDowntime,
+      l10n.aiFocusArea_bigData,
+      l10n.aiFocusArea_tls,
+      l10n.aiFocusArea_distributed,
+      l10n.aiFocusArea_cleanArch,
+      l10n.aiFocusArea_packaging,
+      l10n.aiFocusArea_maintenance,
+    ];
     final random = math.Random();
-    final list = List<String>.from(_focusAreas)..shuffle(random);
+    final list = List<String>.from(focusAreas)..shuffle(random);
     return list.take(count).toList();
   }
 
   /// Genera las instrucciones de variedad para el prompt basándose en los temas seleccionados.
-  String getVarietyInstructions(List<String> selectedFocus, bool isEnglish) {
+  String getVarietyInstructions(AppLocalizations l10n, List<String> selectedFocus) {
     final focusText = selectedFocus.join(', ');
-    return isEnglish
-        ? '''
-IMPORTANT: Specifically focus the questions around these themes: $focusText. 
-DO NOT ask about 'microservices vs monoliths', 'SQL vs NoSQL', or other extremely common entry-level topics unless they are the only way to address the specific themes selected. 
-We want deep, specific, and varied questions that test real-world experience across the ENTIRE spectrum of the role.
-'''
-        : '''
-IMPORTANTE: Enfoca las preguntas específicamente en estos temas: $focusText. 
-NO preguntes sobre "microservicios vs monolitos", "SQL vs NoSQL", ni otros temas extremadamente comunes de nivel inicial a menos que sea la única forma de abordar los temas específicos seleccionados.
-Queremos preguntas profundas, específicas y variadas que pongan a prueba la experiencia real en TODO el espectro del rol.
-''';
+    return l10n.aiPromptVarietyInstructions(focusText);
   }
 
   Future<String> sendPrompt({
@@ -326,54 +314,27 @@ Queremos preguntas profundas, específicas y variadas que pongan a prueba la exp
     required InterviewType type,
     required String jobRole,
     required int count,
-    String language = 'es',
+    required AppLocalizations l10n,
     List<String>? selectedFocus,
   }) async {
-    final isEnglish = language.toLowerCase().startsWith('en');
     final safeCount = count <= 0 ? 5 : count;
-    final typeLabel = switch (type) {
-      InterviewType.behavioral => isEnglish ? 'behavioral' : 'conductual',
-      InterviewType.technical => isEnglish ? 'technical' : 'técnica',
-      InterviewType.mixed => isEnglish ? 'mixed' : 'mixta',
-    };
+    final typeLabel = type.label(l10n);
 
-    final systemInstruction = isEnglish
-        ? 'You are an expert interviewer. Reply in English. '
-              'When asked for JSON, return JSON only with no extra text.'
-        : 'Eres un entrevistador experto. Respondes en $language. '
-              'Cuando te pidan JSON, devuélvelo sin texto adicional.';
+    final systemInstruction = l10n.aiPromptSystemInterviewer(l10n.localeName);
 
     final seed = DateTime.now().millisecondsSinceEpoch;
-    final focus = selectedFocus ?? getRandomFocusAreas(5);
-    final varietyInstructions = getVarietyInstructions(focus, isEnglish);
+    final focus = selectedFocus ?? getRandomFocusAreas(l10n, 5);
+    final varietyInstructions = getVarietyInstructions(l10n, focus);
 
-    final prompt = isEnglish
-        ? '''
-Generate $safeCount $typeLabel interview questions for the role: "$jobRole".
-Make sure the questions are highly varied, creative, and cover different angles. Avoid generic or cliché questions (e.g., "What are your strengths?", "Tell me about yourself").
-$varietyInstructions
-(Random Seed: $seed)
-
-Return ONLY JSON with this exact schema:
-{"questions":["...","..."]}
-Requirements:
-- Questions must be clear and specific
-- No numbering in the question text
-- No markdown
-'''
-        : '''
-Genera $safeCount preguntas de entrevista de tipo $typeLabel para el rol: "$jobRole".
-Asegúrate de que las preguntas sean muy variadas, creativas y abarquen diferentes ángulos o escenarios. Evita por completo las preguntas cliché o genéricas (por ejemplo, "Cuáles son tus fortalezas", "Háblame de ti").
-$varietyInstructions
-(Semilla aleatoria: $seed)
-
-Devuelve SOLO JSON con este esquema exacto:
-{"questions":["...","..."]}
-Requisitos:
-- Preguntas claras y específicas
-- Sin numeración en el texto
-- Sin markdown
-''';
+    const jsonSchema = '{"questions":["...","..."]}';
+    final prompt = l10n.aiPromptQuestionGen(
+      safeCount,
+      typeLabel,
+      jobRole,
+      varietyInstructions,
+      seed,
+      jsonSchema,
+    );
 
     final raw = await sendPrompt(
       prompt: prompt,
@@ -401,70 +362,22 @@ Requisitos:
     required String question,
     required String userAnswer,
     required String jobRole,
+    required AppLocalizations l10n,
     InterviewType type = InterviewType.mixed,
-    String language = 'es',
   }) async {
-    final isEnglish = language.toLowerCase().startsWith('en');
-    final typeLabel = switch (type) {
-      InterviewType.behavioral => isEnglish ? 'behavioral' : 'conductual',
-      InterviewType.technical => isEnglish ? 'technical' : 'técnica',
-      InterviewType.mixed => isEnglish ? 'mixed' : 'mixta',
-    };
-
-    final systemInstruction = isEnglish
-        ? 'You are an expert interviewer. Reply in English. '
-              'When asked for JSON, return JSON only with no extra text.'
-        : 'Eres un entrevistador experto. Respondes en $language. '
-              'Cuando te pidan JSON, devuélvelo sin texto adicional.';
+    final typeLabel = type.label(l10n);
+    final systemInstruction = l10n.aiPromptSystemInterviewer(l10n.localeName);
 
     final seed = DateTime.now().millisecondsSinceEpoch;
-    final prompt = isEnglish
-        ? '''
-Evaluate the user's answer for a $typeLabel interview for the "$jobRole" role.
-Question: "$question"
-User answer: "$userAnswer"
-(Random Seed: $seed)
-
-Return ONLY JSON with this exact schema:
-{
-  "overallScore": 0,
-  "subjectMastery": 0,
-  "strengths": ["..."],
-  "improvements": ["..."],
-  "suggestedAnswer": "...",
-  "followUpQuestions": ["..."]
-}
-
-Rules:
-- overallScore must be an integer 0..100
-- strengths/improvements: 2 to 5 items each
-- suggestedAnswer: concise, improved, and results-oriented
-- followUpQuestions: 0 to 3 highly contextual, creative, and non-cliché follow-up questions based on the user's specific answer.
-- No markdown
-'''
-        : '''
-Evalúa la respuesta del usuario para una entrevista $typeLabel del rol "$jobRole".
-Pregunta: "$question"
-Respuesta del usuario: "$userAnswer"
-(Semilla aleatoria: $seed)
-
-Devuelve SOLO JSON con este esquema exacto:
-{
-  "overallScore": 0,
-  "subjectMastery": 0,
-  "strengths": ["..."],
-  "improvements": ["..."],
-  "suggestedAnswer": "...",
-  "followUpQuestions": ["..."]
-}
-
-Reglas:
-- overallScore es entero 0..100
-- strengths/improvements: 2 a 5 elementos cada uno
-- suggestedAnswer: una versión mejorada, concisa, orientada a resultados
-- followUpQuestions: 0 a 3 preguntas de seguimiento que sean sumamente contextuales, creativas y poco comunes, basadas estrictamente en la respuesta que dio el usuario.
-- Sin markdown
-''';
+    const jsonSchema = '{"overallScore": 0, "subjectMastery": 0, "strengths": ["..."], "improvements": ["..."], "suggestedAnswer": "...", "followUpQuestions": ["..."]}';
+    final prompt = l10n.aiPromptEvaluation(
+      typeLabel,
+      jobRole,
+      question,
+      userAnswer,
+      seed,
+      jsonSchema,
+    );
 
     final raw = await sendPrompt(
       prompt: prompt,
@@ -490,54 +403,17 @@ Reglas:
     required String question,
     required String userAnswer,
     required AnswerEvaluationModel evaluation,
-    String language = 'es',
+    required AppLocalizations l10n,
   }) async {
-    final isEnglish = language.toLowerCase().startsWith('en');
-    final systemInstruction = isEnglish
-        ? 'You are an interview coach. Reply in English. '
-              'When asked for JSON, return JSON only with no extra text.'
-        : 'Eres un coach de entrevistas. Respondes en $language. '
-              'Cuando te pidan JSON, devuélvelo sin texto adicional.';
+    final systemInstruction = l10n.aiPromptSystemCoach(l10n.localeName);
 
-    final prompt = isEnglish
-        ? '''
-Based on the question, the user's answer, and the evaluation, generate actionable feedback.
-Question: "$question"
-User answer: "$userAnswer"
-Evaluation (JSON): ${jsonEncode(evaluation.toJson())}
-
-Return ONLY JSON with this exact schema:
-{
-  "summary": "...",
-  "actionItems": ["..."],
-  "keyPhrasesToUse": ["..."]
-}
-
-Rules:
-- summary: max 3 sentences
-- actionItems: 3 to 6 actionable items
-- keyPhrasesToUse: 3 to 8 short phrases the user can use
-- No markdown
-'''
-        : '''
-Con base en la pregunta, la respuesta del usuario y la evaluación, genera retroalimentación accionable.
-Pregunta: "$question"
-Respuesta del usuario: "$userAnswer"
-Evaluación (JSON): ${jsonEncode(evaluation.toJson())}
-
-Devuelve SOLO JSON con este esquema exacto:
-{
-  "summary": "...",
-  "actionItems": ["..."],
-  "keyPhrasesToUse": ["..."]
-}
-
-Reglas:
-- summary: máximo 3 frases
-- actionItems: 3 a 6 puntos accionables
-- keyPhrasesToUse: 3 a 8 frases cortas que el usuario podría usar
-- Sin markdown
-''';
+    const jsonSchema = '{"summary": "...", "actionItems": ["..."], "keyPhrasesToUse": ["..."]}';
+    final prompt = l10n.aiPromptFeedback(
+      question,
+      userAnswer,
+      jsonEncode(evaluation.toJson()),
+      jsonSchema,
+    );
 
     final raw = await sendPrompt(
       prompt: prompt,
@@ -559,10 +435,8 @@ Reglas:
   Future<InterviewSession> analyzeInterviewSession({
     required InterviewConfig config,
     required InterviewSession session,
-    String language = 'es',
+    required AppLocalizations l10n,
   }) async {
-    final isEnglish = language.toLowerCase().startsWith('en');
-    final l10n = lookupAppLocalizations(Locale(isEnglish ? 'en' : 'es'));
     if (session.turns.isEmpty) {
       throw GeminiException(l10n.processingNotEnoughData);
     }
@@ -577,14 +451,14 @@ Reglas:
           userAnswer: turn.answer,
           jobRole: jobRole,
           type: type,
-          language: language,
+          l10n: l10n,
         );
 
         final feedback = await generateFeedback(
           question: turn.question,
           userAnswer: turn.answer,
           evaluation: evaluation,
-          language: language,
+          l10n: l10n,
         );
 
         return turn.copyWith(evaluation: evaluation, feedback: feedback);
@@ -594,13 +468,143 @@ Reglas:
     return session.copyWith(turns: analyzedTurns);
   }
 
+  Future<String> generateNextQuestion({
+    required String jobRole,
+    required InterviewType type,
+    required List<InterviewTurn> turns,
+    required List<String> selectedFocus,
+    required AppLocalizations l10n,
+  }) async {
+    final typeLabel = type.label(l10n);
+    final history = formatTurnsForHistory(turns, l10n);
+    final varietyInstructions = getVarietyInstructions(l10n, selectedFocus);
+
+    final prompt = l10n.aiPromptNextQuestion(
+      jobRole,
+      typeLabel,
+      history,
+      varietyInstructions,
+    );
+
+    final next = await sendPrompt(
+      prompt: prompt,
+      systemInstruction: l10n.aiPromptSystemInterviewer(l10n.localeName),
+      temperature: 0.8,
+      maxOutputTokens: 256,
+    );
+
+    return next.trim();
+  }
+
+  Future<String> generateOpeningQuestion({
+    required String jobRole,
+    required InterviewType type,
+    required List<String> selectedFocus,
+    required AppLocalizations l10n,
+  }) async {
+    final typeLabel = type.label(l10n);
+    final varietyInstructions = getVarietyInstructions(l10n, selectedFocus);
+
+    final prompt = l10n.aiPromptOpening(
+      jobRole,
+      typeLabel,
+      varietyInstructions,
+    );
+
+    final response = await sendPrompt(
+      prompt: prompt,
+      systemInstruction: l10n.aiPromptSystemInterviewer(l10n.localeName),
+      temperature: 0.7,
+      maxOutputTokens: 1024,
+    );
+
+    return response.trim();
+  }
+
+  Future<String> generateConversationalNextQuestion({
+    required String jobRole,
+    required InterviewType type,
+    required String lastQuestion,
+    required String lastAnswer,
+    required List<InterviewTurn> turns,
+    required List<String> selectedFocus,
+    required AppLocalizations l10n,
+  }) async {
+    final typeLabel = type.label(l10n);
+    final history = formatTurnsForHistory(turns, l10n);
+    final varietyInstructions = getVarietyInstructions(l10n, selectedFocus);
+
+    final prompt = l10n.aiPromptConversationalNext(
+      jobRole,
+      typeLabel,
+      lastQuestion,
+      lastAnswer,
+      varietyInstructions,
+      history,
+    );
+
+    final next = await sendPrompt(
+      prompt: prompt,
+      systemInstruction: l10n.aiPromptSystemInterviewer(l10n.localeName),
+      temperature: 0.65,
+      maxOutputTokens: 1024,
+    );
+
+    return next.trim();
+  }
+
+  Future<String> generateAlternativeQuestion({
+    required String jobRole,
+    required InterviewType type,
+    required String currentQuestion,
+    required List<InterviewTurn> turns,
+    required List<String> selectedFocus,
+    required AppLocalizations l10n,
+  }) async {
+    final typeLabel = type.label(l10n);
+    final history = formatTurnsForHistory(turns, l10n);
+    final varietyInstructions = getVarietyInstructions(l10n, selectedFocus);
+
+    final prompt = l10n.aiPromptAlternative(
+      jobRole,
+      typeLabel,
+      currentQuestion,
+      history,
+      varietyInstructions,
+    );
+
+    final next = await sendPrompt(
+      prompt: prompt,
+      systemInstruction: l10n.aiPromptSystemInterviewer(l10n.localeName),
+      temperature: 0.85,
+      maxOutputTokens: 256,
+    );
+
+    return next.trim();
+  }
+
+  String formatTurnsForHistory(List<InterviewTurn> turns, AppLocalizations l10n) {
+    if (turns.isEmpty) return '- (no history)';
+    final buffer = StringBuffer();
+    for (var i = 0; i < turns.length; i++) {
+      final t = turns[i];
+      buffer.writeln('${l10n.statsBarScoreTitle} ${i + 1}:');
+      buffer.writeln('Q: ${t.question}');
+      buffer.writeln('A: ${t.answer}');
+      buffer.writeln('Score: ${t.evaluation.overallScore}');
+      if (t.evaluation.improvements.isNotEmpty) {
+        buffer.writeln('Improvements: ${t.evaluation.improvements.join(' | ')}');
+      }
+      buffer.writeln('');
+    }
+    return buffer.toString().trim();
+  }
+
   Future<InterviewResultsModel> generateInterviewResults({
     required InterviewConfig config,
     required InterviewSession session,
-    String language = 'es',
+    required AppLocalizations l10n,
   }) async {
-    final isEnglish = language.toLowerCase().startsWith('en');
-    final l10n = lookupAppLocalizations(Locale(isEnglish ? 'en' : 'es'));
     if (session.turns.isEmpty) {
       throw GeminiException(l10n.processingNotEnoughData);
     }
@@ -614,57 +618,24 @@ Reglas:
         ? InterviewOutcome.approved
         : InterviewOutcome.improve;
 
-    final history = _formatTurnsForResults(session.turns);
+    final history = formatTurnsForHistory(session.turns, l10n);
 
     final jobRole = config.jobRole == null ? '' : config.jobRole!.label(l10n);
-    final type = config.type == null
+    final typeLabel = config.type == null
         ? l10n.interviewTypeMixed
         : config.type!.label(l10n);
-    final systemInstruction = isEnglish
-        ? 'You are a senior interviewer. Reply in English. '
-              'Return valid JSON only with no extra text.'
-        : 'Eres un entrevistador senior. Respondes en $language. '
-              'Devuelve JSON válido sin texto adicional.';
 
-    final prompt = isEnglish
-        ? '''
-Analyze the interview results for the "$jobRole" role ($type interview).
-Overall score (already calculated): $overallScore
-Outcome: ${outcome == InterviewOutcome.approved ? 'approved' : 'improve'}
+    final systemInstruction = l10n.aiPromptSystemInterviewer(l10n.localeName);
 
-Interview history (Q&A with per-answer scores):
-$history
-
-Return ONLY a valid JSON object — no markdown, no extra text, no explanation:
-{
-  "overallScore": $overallScore,
-  "outcome": "${outcome == InterviewOutcome.approved ? 'approved' : 'improve'}",
-  "breakdown": {"communication": 75, "technicalKnowledge": 70, "confidence": 72},
-  "highlights": ["specific strength 1", "specific strength 2", "specific strength 3"],
-  "personalizedFeedback": "Provide a comprehensive general feedback (approx 6-10 sentences). Evaluate vocabulary usage, coherence, subject mastery, and overall communication style. Be direct but encouraging.",
-  "recommendations": ["actionable step 1", "actionable step 2", "actionable step 3"],
-  "improvementTips": ["measurable tip 1", "measurable tip 2", "measurable tip 3"]
-}
-'''
-        : '''
-Analiza los resultados de la entrevista para el rol "$jobRole" (tipo: $type).
-Score general (ya calculado): $overallScore
-Resultado: ${outcome == InterviewOutcome.approved ? 'approved' : 'improve'}
-
-Historial de la entrevista (preguntas, respuestas y puntaje por turno):
-$history
-
-Devuelve ÚNICAMENTE un objeto JSON válido — sin markdown, sin texto extra, sin explicaciones:
-{
-  "overallScore": $overallScore,
-  "outcome": "${outcome == InterviewOutcome.approved ? 'approved' : 'improve'}",
-  "breakdown": {"communication": 75, "technicalKnowledge": 70, "confidence": 72},
-  "highlights": ["fortaleza específica 1", "fortaleza específica 2", "fortaleza específica 3"],
-  "personalizedFeedback": "Proporciona un feedback general completo (aprox 6-10 oraciones). Evalúa el uso de palabras/vocabulario, la coherencia de las respuestas y la apropiación de los temas tratados. Sé directo pero alentador.",
-  "recommendations": ["paso accionable 1", "paso accionable 2", "paso accionable 3"],
-  "improvementTips": ["tip medible 1", "tip medible 2", "tip medible 3"]
-}
-''';
+    const jsonSchema = '{"overallScore": 0, "outcome": "...", "breakdown": {"communication": 75, "technicalKnowledge": 70, "confidence": 72}, "highlights": ["..."], "personalizedFeedback": "...", "recommendations": ["..."], "improvementTips": ["..."]}';
+    final prompt = l10n.aiPromptResultsAnalysis(
+      jobRole,
+      typeLabel,
+      overallScore,
+      outcome == InterviewOutcome.approved ? 'approved' : 'improve',
+      history,
+      jsonSchema,
+    );
 
     final raw = await sendPrompt(
       prompt: prompt,
@@ -702,9 +673,7 @@ Devuelve ÚNICAMENTE un objeto JSON válido — sin markdown, sin texto extra, s
         highlights: const [],
         personalizedFeedback: raw.trim().isNotEmpty
             ? raw.trim()
-            : (isEnglish
-                  ? 'Review complete. Check your score breakdown for details.'
-                  : 'Análisis completado. Revisa tu desglose de puntuación.'),
+            : l10n.errorGeminiFallbackFeedback,
         recommendations: const [],
         improvementTips: const [],
         averageResponseSeconds: 0,
@@ -862,15 +831,4 @@ List<String> _fallbackQuestionsFromText(String raw) {
     if (value.isNotEmpty) cleaned.add(value);
   }
   return cleaned;
-}
-
-String _formatTurnsForResults(List<InterviewTurn> turns) {
-  final buffer = StringBuffer();
-  for (var i = 0; i < turns.length; i++) {
-    final t = turns[i];
-    buffer.writeln('Q${i + 1}: ${t.question}');
-    buffer.writeln('A${i + 1}: ${t.answer}');
-    buffer.writeln('Score: ${t.evaluation.overallScore}');
-  }
-  return buffer.toString().trim();
 }

@@ -17,7 +17,10 @@ class InterviewSessionController extends ChangeNotifier {
   }) : _geminiService = geminiService,
        _config = config,
        _speech = SpeechToText(),
-       _selectedFocusAreas = geminiService.getRandomFocusAreas(5),
+       _selectedFocusAreas = geminiService.getRandomFocusAreas(
+         lookupAppLocalizations(AppLocaleRuntime.locale),
+         5,
+       ),
        _session = InterviewSession(
          startedAt: DateTime.now().toUtc(),
          turns: const [],
@@ -68,26 +71,26 @@ class InterviewSessionController extends ChangeNotifier {
     final l10n = lookupAppLocalizations(AppLocaleRuntime.locale);
     try {
       if (_config.jobRole == null) {
-        throw const GeminiException(
-          'Falta el cargo para iniciar la entrevista.',
+        throw GeminiException(
+          l10n.interviewMissingJobRole,
         );
       }
       final jobRole = _config.jobRole!.label(l10n);
       if (_config.type == null) {
-        throw const GeminiException('Falta el tipo de entrevista.');
+        throw GeminiException(l10n.interviewMissingType);
       }
 
       final questions = await _geminiService.generateInterviewQuestions(
         type: _config.type!,
         jobRole: jobRole,
         count: 1,
-        language: _isEnglish ? 'en' : 'es',
+        l10n: l10n,
         selectedFocus: _selectedFocusAreas,
       );
 
       _currentQuestion = questions.isNotEmpty ? questions.first : '';
       if (_currentQuestion.trim().isEmpty) {
-        throw const GeminiException('No se pudo generar la primera pregunta.');
+        throw GeminiException(l10n.interviewCouldNotGenerateFirstQuestion);
       }
       _currentQuestionAskedAt = DateTime.now().toUtc();
     } catch (e) {
@@ -115,14 +118,14 @@ class InterviewSessionController extends ChangeNotifier {
         userAnswer: safeAnswer,
         jobRole: _config.jobRole == null ? '' : _config.jobRole!.label(l10n),
         type: _config.type ?? InterviewType.mixed,
-        language: _isEnglish ? 'en' : 'es',
+        l10n: l10n,
       );
 
       final feedback = await _geminiService.generateFeedback(
         question: question,
         userAnswer: safeAnswer,
         evaluation: evaluation,
-        language: _isEnglish ? 'en' : 'es',
+        l10n: l10n,
       );
 
       final turn = InterviewTurn(
@@ -167,65 +170,19 @@ class InterviewSessionController extends ChangeNotifier {
           ? ''
           : _config.jobRole!.label(l10n);
       final type = _config.type ?? InterviewType.mixed;
-      final history = _formatHistoryForPrompt(_session.turns);
-      final varietyInstructions = _geminiService.getVarietyInstructions(
-        _selectedFocusAreas,
-        _isEnglish,
-      );
 
-      final prompt = _isEnglish
-          ? '''
-Act as an expert interviewer for the "$jobRole" role.
-Interview type: ${type.label(l10n)}.
-
-History (question, answer, evaluation):
-$history
-
-Generate the next question in English:
-- It must be a single question.
-- It must adapt to the last answer.
-- If score was low, ask for clarification or a concrete example.
-- If score was high, increase difficulty or go deeper.
-$varietyInstructions
-- AVOID generic or overused topics (e.g., "microservices vs monoliths", "SQL vs NoSQL") unless directly related to the previous answer.
-- Ensure the topic is different from previous questions in the history to maintain variety.
-- No numbering.
-- No markdown.
-Return ONLY the question text.
-'''
-          : '''
-Actúa como entrevistador experto para el rol "$jobRole".
-Tipo de entrevista: ${type.label(l10n)}.
-
-Historial (pregunta, respuesta, evaluación):
-$history
-
-Genera la siguiente pregunta en español:
-- Debe ser una sola pregunta.
-- Debe adaptarse a la última respuesta.
-- Si el score fue bajo, pide aclaración o un ejemplo concreto.
-- Si el score fue alto, incrementa dificultad o profundiza.
-$varietyInstructions
-- EVITA temas trillados o genéricos (ej. "microservicios vs monolitos", "SQL vs NoSQL") a menos que estén directamente relacionados con la respuesta anterior.
-- Asegúrate de variar el tema respecto a las preguntas anteriores en el historial.
-- Sin numeración.
-- Sin markdown.
-Devuelve SOLO el texto de la pregunta.
-''';
-
-      final next = await _geminiService.sendPrompt(
-        prompt: prompt,
-        systemInstruction: _isEnglish
-            ? 'You are a human interviewer. Be natural and direct.'
-            : 'Eres un entrevistador humano. Sé natural y directo.',
-        temperature: 0.8,
-        maxOutputTokens: 256,
+      final next = await _geminiService.generateNextQuestion(
+        jobRole: jobRole,
+        type: type,
+        turns: _session.turns,
+        selectedFocus: _selectedFocusAreas,
+        l10n: l10n,
       );
 
       final cleaned = next.trim();
       if (cleaned.isEmpty) {
-        throw const GeminiException(
-          'No se pudo generar la siguiente pregunta.',
+        throw GeminiException(
+          l10n.interviewCouldNotGenerateQualityQuestion,
         );
       }
       _currentQuestion = cleaned;
@@ -318,21 +275,4 @@ int _estimateQuestionCount(int durationMinutes) {
   final safeMinutes = durationMinutes <= 0 ? 3 : durationMinutes;
   final estimated = (safeMinutes * 60 / 95).round();
   return estimated.clamp(1, 12).toInt();
-}
-
-String _formatHistoryForPrompt(List<InterviewTurn> turns) {
-  if (turns.isEmpty) return '- (sin historial)';
-  final buffer = StringBuffer();
-  for (var i = 0; i < turns.length; i++) {
-    final t = turns[i];
-    buffer.writeln('Turno ${i + 1}:');
-    buffer.writeln('P: ${t.question}');
-    buffer.writeln('R: ${t.answer}');
-    buffer.writeln('Score: ${t.evaluation.overallScore}');
-    if (t.evaluation.improvements.isNotEmpty) {
-      buffer.writeln('Mejoras: ${t.evaluation.improvements.join(' | ')}');
-    }
-    buffer.writeln('');
-  }
-  return buffer.toString().trim();
 }
