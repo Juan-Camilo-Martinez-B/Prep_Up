@@ -15,6 +15,18 @@ class InterviewFeedbackModel {
   final List<String> actionItems;
   final List<String> keyPhrasesToUse;
 
+  InterviewFeedbackModel copyWith({
+    String? summary,
+    List<String>? actionItems,
+    List<String>? keyPhrasesToUse,
+  }) {
+    return InterviewFeedbackModel(
+      summary: summary ?? this.summary,
+      actionItems: actionItems ?? this.actionItems,
+      keyPhrasesToUse: keyPhrasesToUse ?? this.keyPhrasesToUse,
+    );
+  }
+
   factory InterviewFeedbackModel.fromJson(Map<String, dynamic> json) {
     final actionItems =
         (json['actionItems'] as List?)?.whereType<String>().toList() ??

@@ -344,7 +344,7 @@ class GeminiService {
       prompt: prompt,
       systemInstruction: systemInstruction,
       temperature: 0.8,
-      maxOutputTokens: 1024,
+      maxOutputTokens: 1536,
     );
 
     final jsonText = _extractJsonText(raw);
@@ -388,17 +388,32 @@ class GeminiService {
       prompt: prompt,
       systemInstruction: systemInstruction,
       temperature: 0.6,
-      maxOutputTokens: 1200,
+      maxOutputTokens: 1536,
     );
 
     final decoded = _tryDecodeJsonMap(_extractJsonText(raw));
-    if (decoded != null) return AnswerEvaluationModel.fromJson(decoded);
+    if (decoded != null) {
+      final model = AnswerEvaluationModel.fromJson(decoded);
+      // Asegurar que las listas no estén vacías si el score es bajo
+      return model.copyWith(
+        strengths: model.strengths.isEmpty
+            ? const ['Respuesta procesada correctamente.']
+            : model.strengths,
+        improvements: model.improvements.isEmpty && model.overallScore < 80
+            ? const [
+                'Intenta profundizar un poco más en tus respuestas técnicas.',
+              ]
+            : model.improvements,
+      );
+    }
 
     return AnswerEvaluationModel(
       overallScore: 0,
       subjectMastery: 0,
-      strengths: const [],
-      improvements: const [],
+      strengths: const ['Respuesta recibida.'],
+      improvements: const [
+        'No se pudo realizar un análisis detallado. Intenta ser más específico.',
+      ],
       suggestedAnswer: raw.trim(),
       followUpQuestions: const [],
     );
@@ -425,16 +440,41 @@ class GeminiService {
       prompt: prompt,
       systemInstruction: systemInstruction,
       temperature: 0.5,
-      maxOutputTokens: 1200,
+      maxOutputTokens: 1536,
     );
 
     final decoded = _tryDecodeJsonMap(_extractJsonText(raw));
-    if (decoded != null) return InterviewFeedbackModel.fromJson(decoded);
+    if (decoded != null) {
+      final model = InterviewFeedbackModel.fromJson(decoded);
+      return model.copyWith(
+        actionItems: model.actionItems.isEmpty
+            ? const [
+                'Repasa los puntos clave de esta pregunta.',
+                'Practica tu explicación en voz alta.',
+              ]
+            : model.actionItems,
+        keyPhrasesToUse: model.keyPhrasesToUse.isEmpty
+            ? const [
+                'En mi experiencia...',
+                'Un ejemplo concreto es...',
+                'Lo más importante en este caso es...',
+              ]
+            : model.keyPhrasesToUse,
+      );
+    }
 
     return InterviewFeedbackModel(
       summary: AiUtils.sanitizeAIText(raw, l10n),
-      actionItems: const [],
-      keyPhrasesToUse: const [],
+      actionItems: const [
+        'Repasa los fundamentos técnicos de esta área.',
+        'Intenta estructurar mejor tu respuesta la próxima vez.',
+        'Usa ejemplos de tus proyectos anteriores.',
+      ],
+      keyPhrasesToUse: const [
+        'He trabajado con...',
+        'Una de las mejores prácticas es...',
+        'En un escenario similar...',
+      ],
     );
   }
 
@@ -496,7 +536,7 @@ class GeminiService {
       prompt: prompt,
       systemInstruction: l10n.aiPromptSystemInterviewer(l10n.localeName),
       temperature: 0.8,
-      maxOutputTokens: 1025,
+      maxOutputTokens: 1536,
     );
 
     return next.trim();
@@ -538,7 +578,7 @@ class GeminiService {
       prompt: prompt,
       systemInstruction: l10n.aiPromptSystemInterviewer(l10n.localeName),
       temperature: 0.7,
-      maxOutputTokens: 1024,
+      maxOutputTokens: 1536,
     );
 
     return response.trim();
@@ -570,7 +610,7 @@ class GeminiService {
       prompt: prompt,
       systemInstruction: l10n.aiPromptSystemInterviewer(l10n.localeName),
       temperature: 0.65,
-      maxOutputTokens: 1024,
+      maxOutputTokens: 1536,
     );
 
     return next.trim();
@@ -670,7 +710,7 @@ class GeminiService {
       prompt: prompt,
       systemInstruction: systemInstruction,
       temperature: 0.2,
-      maxOutputTokens: 1200,
+      maxOutputTokens: 2048,
     );
 
     final decoded = _tryDecodeJsonMap(_extractJsonText(raw));
@@ -686,6 +726,20 @@ class GeminiService {
                     ) /
                     session.turns.length)
                 .round();
+
+      // Fallback dinámico para recomendaciones basado en el score
+      final fallbackRecs = overallScore < 70
+          ? [
+              'Revisa los conceptos técnicos donde obtuviste menor puntaje.',
+              'Practica la claridad y estructura de tus respuestas.',
+              'Intenta proporcionar ejemplos más concretos en tus respuestas.',
+            ]
+          : [
+              'Sigue practicando para mantener este nivel de confianza.',
+              'Explora escenarios más avanzados y casos de borde.',
+              'Refina tu capacidad de síntesis en temas complejos.',
+            ];
+
       return InterviewResultsModel(
         id: '',
         sessionId: '',
@@ -701,8 +755,12 @@ class GeminiService {
         ),
         highlights: const [],
         personalizedFeedback: AiUtils.sanitizeAIText(raw, l10n),
-        recommendations: const [],
-        improvementTips: const [],
+        recommendations: fallbackRecs,
+        improvementTips: const [
+          'Utiliza el método STAR para estructurar tus respuestas.',
+          'Mantén contacto visual (si es por video) y cuida tu lenguaje corporal.',
+          'No dudes en pedir aclaraciones si una pregunta no es clara.',
+        ],
         averageResponseSeconds: 0,
         totalResponseSeconds: 0,
         validAnswersCount: session.turns.length,
@@ -735,6 +793,30 @@ class GeminiService {
         : (totalSubjectMastery / session.turns.length).round();
 
     final parsed = InterviewResultsModel.fromJson(decoded);
+
+    // Fallback dinámico para recomendaciones si vienen vacías
+    final recommendations = parsed.recommendations.isNotEmpty
+        ? parsed.recommendations
+        : (overallScore < 70
+              ? [
+                  'Revisa los conceptos técnicos clave para este rol.',
+                  'Practica respuestas estructuradas usando el método STAR.',
+                  'Enfócate en mejorar la claridad de tus explicaciones.',
+                ]
+              : [
+                  'Continúa profundizando en temas avanzados de tu especialidad.',
+                  'Practica escenarios de resolución de problemas complejos.',
+                  'Mantén tu nivel de comunicación y confianza.',
+                ]);
+
+    final improvementTips = parsed.improvementTips.isNotEmpty
+        ? parsed.improvementTips
+        : [
+            'Investiga más sobre las tendencias actuales en ${jobRole.isNotEmpty ? jobRole : "tu área"}.',
+            'Prepara ejemplos reales de desafíos que hayas superado.',
+            'Practica frente al espejo para mejorar tu lenguaje corporal.',
+          ];
+
     return InterviewResultsModel(
       id: '',
       sessionId: '',
@@ -751,8 +833,8 @@ class GeminiService {
         (decoded['personalizedFeedback'] as String?) ?? raw,
         l10n,
       ),
-      recommendations: parsed.recommendations,
-      improvementTips: parsed.improvementTips,
+      recommendations: recommendations,
+      improvementTips: improvementTips,
       averageResponseSeconds: averageResponseSeconds,
       totalResponseSeconds: totalResponseSeconds,
       validAnswersCount: validAnswersCount,
@@ -774,10 +856,19 @@ String? _tryExtractApiErrorMessage(String body) {
 }
 
 Map<String, dynamic>? _tryDecodeJsonMap(String text) {
+  if (text.isEmpty) return null;
   try {
     return jsonDecode(text) as Map<String, dynamic>;
   } catch (_) {
-    return null;
+    try {
+      // Intentar una reparación simple: eliminar comas finales antes de cerrar llaves o corchetes
+      var repaired = text
+          .replaceAll(RegExp(r',\s*\}'), '}')
+          .replaceAll(RegExp(r',\s*\]'), ']');
+      return jsonDecode(repaired) as Map<String, dynamic>;
+    } catch (_) {
+      return null;
+    }
   }
 }
 

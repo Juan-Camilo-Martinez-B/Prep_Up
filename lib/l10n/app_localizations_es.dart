@@ -1490,7 +1490,7 @@ class AppLocalizationsEs extends AppLocalizations {
     String history,
     String varietyInstructions,
   ) {
-    return 'Actúa como entrevistador experto para el rol \"$jobRole\". Tipo de entrevista: $typeLabel. Historial (pregunta, respuesta, evaluación): $history Genera la siguiente pregunta en español: - Debe ser una sola pregunta. - Debe adaptarse a la última respuesta. - Si el score fue bajo, pide aclaración o un ejemplo concreto. - Si el score fue alto, incrementa dificultad o profundiza. $varietyInstructions - EVITA temas trillados o genéricos (ej. \'microservicios vs monolitos\', \'SQL vs NoSQL\') a menos que estén directamente relacionados con la respuesta anterior. - Asegúrate de variar el tema respecto a las preguntas anteriores en el historial. - Sin numeración. - Sin markdown. Devuelve SOLO el texto de la pregunta.';
+    return 'Actúa como entrevistador experto para el rol \"$jobRole\". Tipo de entrevista: $typeLabel. Historial (pregunta, respuesta, evaluación): $history Genera la siguiente pregunta en español: - Debe ser una sola pregunta clara y directa. - Debe adaptarse a la última respuesta. - Si el score fue bajo, pide aclaración o un ejemplo concreto. - Si el score fue alto, incrementa dificultad o profundiza. $varietyInstructions - EVITA temas trillados o genéricos (ej. \'microservicios vs monolitos\', \'SQL vs NoSQL\') a menos que estén directamente relacionados con la respuesta anterior. - Asegúrate de variar el tema respecto a las preguntas anteriores en el historial. - Sin numeración. - Sin markdown. - NO incluyas introducciones, comentarios ni explicaciones adicionales, devuelve SOLO la pregunta.';
   }
 
   @override
@@ -1499,7 +1499,7 @@ class AppLocalizationsEs extends AppLocalizations {
     String typeLabel,
     String varietyInstructions,
   ) {
-    return 'Eres un entrevistador profesional y amable para el rol: \"$jobRole\". Preséntate brevemente y haz la primera pregunta para una entrevista de tipo $typeLabel. $varietyInstructions Reglas: - Devuelve SOLO el texto del saludo y la pregunta. - NO uses JSON, markdown o cualquier otro formato. - Sé natural y profesional.';
+    return 'Eres un entrevistador profesional y amable para el rol: \"$jobRole\". Preséntate brevemente y haz la primera pregunta para una entrevista de tipo $typeLabel. $varietyInstructions Reglas: - Devuelve SOLO el texto del saludo y la pregunta. - NO uses JSON, markdown o cualquier otro formato. - Sé natural, profesional y directo. No te extiendas demasiado.';
   }
 
   @override
@@ -1511,7 +1511,7 @@ class AppLocalizationsEs extends AppLocalizations {
     String varietyInstructions,
     String history,
   ) {
-    return 'Entrevistador para \"$jobRole\" ($typeLabel). Ultima Q: \"$lastQuestion\" Respuesta: \"$lastAnswer\" Objetivo: Haz la siguiente pregunta. 1. Reconoce brevemente o reacciona a la última respuesta del candidato. 2. Haz una pregunta de seguimiento o una nueva pregunta relevante. $varietyInstructions 3. Sé natural y profesional. 4. Devuelve SOLO el texto de la reacción y la pregunta. Sin JSON. Contexto historial: $history';
+    return 'Entrevistador para \"$jobRole\" ($typeLabel). Ultima Q: \"$lastQuestion\" Respuesta: \"$lastAnswer\" Objetivo: Haz la siguiente pregunta. 1. Reconoce muy brevemente la última respuesta del candidato. 2. Haz una pregunta de seguimiento o una nueva pregunta relevante. $varietyInstructions 3. Sé natural, profesional y conciso. 4. Devuelve SOLO el texto de la reacción y la pregunta. Sin JSON ni comentarios extra. Contexto historial: $history';
   }
 
   @override

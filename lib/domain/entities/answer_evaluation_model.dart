@@ -24,6 +24,24 @@ class AnswerEvaluationModel {
   final String suggestedAnswer;
   final List<String> followUpQuestions;
 
+  AnswerEvaluationModel copyWith({
+    int? overallScore,
+    int? subjectMastery,
+    List<String>? strengths,
+    List<String>? improvements,
+    String? suggestedAnswer,
+    List<String>? followUpQuestions,
+  }) {
+    return AnswerEvaluationModel(
+      overallScore: overallScore ?? this.overallScore,
+      subjectMastery: subjectMastery ?? this.subjectMastery,
+      strengths: strengths ?? this.strengths,
+      improvements: improvements ?? this.improvements,
+      suggestedAnswer: suggestedAnswer ?? this.suggestedAnswer,
+      followUpQuestions: followUpQuestions ?? this.followUpQuestions,
+    );
+  }
+
   factory AnswerEvaluationModel.fromJson(Map<String, dynamic> json) {
     final strengths =
         (json['strengths'] as List?)?.whereType<String>().toList() ??
