@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:prep_up/core/errors/user_friendly_error.dart';
 import 'package:prep_up/core/localization/app_locale.dart';
 import 'package:prep_up/core/localization/interview_l10n.dart';
 import 'package:prep_up/domain/entities/interview_config.dart';
@@ -64,8 +65,8 @@ class InterviewSessionController extends ChangeNotifier {
     _error = null;
     notifyListeners();
 
+    final l10n = lookupAppLocalizations(AppLocaleRuntime.locale);
     try {
-      final l10n = lookupAppLocalizations(AppLocaleRuntime.locale);
       if (_config.jobRole == null) {
         throw const GeminiException(
           'Falta el cargo para iniciar la entrevista.',
@@ -90,7 +91,7 @@ class InterviewSessionController extends ChangeNotifier {
       }
       _currentQuestionAskedAt = DateTime.now().toUtc();
     } catch (e) {
-      _error = e.toString();
+      _error = userFriendlyErrorMessage(e, l10n);
     } finally {
       _isStarting = false;
       notifyListeners();
@@ -107,8 +108,8 @@ class InterviewSessionController extends ChangeNotifier {
     _error = null;
     notifyListeners();
 
+    final l10n = lookupAppLocalizations(AppLocaleRuntime.locale);
     try {
-      final l10n = lookupAppLocalizations(AppLocaleRuntime.locale);
       final evaluation = await _geminiService.evaluateUserAnswer(
         question: question,
         userAnswer: safeAnswer,
@@ -138,7 +139,7 @@ class InterviewSessionController extends ChangeNotifier {
       _session = _session.copyWith(turns: [..._session.turns, turn]);
       notifyListeners();
     } catch (e) {
-      _error = e.toString();
+      _error = userFriendlyErrorMessage(e, l10n);
     } finally {
       _isSubmitting = false;
       notifyListeners();
@@ -160,8 +161,8 @@ class InterviewSessionController extends ChangeNotifier {
     _error = null;
     notifyListeners();
 
+    final l10n = lookupAppLocalizations(AppLocaleRuntime.locale);
     try {
-      final l10n = lookupAppLocalizations(AppLocaleRuntime.locale);
       final jobRole = _config.jobRole == null
           ? ''
           : _config.jobRole!.label(l10n);
@@ -230,7 +231,7 @@ Devuelve SOLO el texto de la pregunta.
       _currentQuestion = cleaned;
       _currentQuestionAskedAt = DateTime.now().toUtc();
     } catch (e) {
-      _error = e.toString();
+      _error = userFriendlyErrorMessage(e, l10n);
     } finally {
       _isGeneratingNext = false;
       notifyListeners();
@@ -238,14 +239,16 @@ Devuelve SOLO el texto de la pregunta.
   }
 
   Future<void> initVoice() async {
+    final l10n = lookupAppLocalizations(AppLocaleRuntime.locale);
     final available = await _speech.initialize();
     if (!available) {
-      _error = 'El reconocimiento de voz no está disponible.';
+      _error = l10n.interviewSpeechRecognitionUnavailable;
       notifyListeners();
     }
   }
 
   Future<void> toggleListening() async {
+    final l10n = lookupAppLocalizations(AppLocaleRuntime.locale);
     if (_isListening) {
       await _speech.stop();
       _isListening = false;
@@ -258,7 +261,7 @@ Devuelve SOLO el texto de la pregunta.
 
     final available = await _speech.initialize();
     if (!available) {
-      _error = 'El reconocimiento de voz no está disponible.';
+      _error = l10n.interviewSpeechRecognitionUnavailable;
       notifyListeners();
       return;
     }

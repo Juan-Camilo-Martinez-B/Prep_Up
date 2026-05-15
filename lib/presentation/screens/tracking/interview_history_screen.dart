@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:prep_up/core/errors/user_friendly_error.dart';
 import 'package:prep_up/core/localization/interview_l10n.dart';
 import 'package:prep_up/core/localization/l10n_extensions.dart';
 import 'package:prep_up/core/navigation/app_routes.dart';
@@ -33,11 +34,17 @@ class _InterviewHistoryScreenState extends State<InterviewHistoryScreen> {
   }
 
   Future<void> _loadHistory() async {
+    final l10n = context.l10n;
     final authService = context.read<AuthService>();
     final dbService = context.read<RelationalDatabaseService>();
 
     final user = authService.currentUser;
-    if (user != null) {
+    if (user == null) {
+      if (mounted) setState(() => _isLoading = false);
+      return;
+    }
+
+    try {
       final history = await dbService.getInterviewHistoryForUser(user.id);
       final Map<String, int> scores = {};
 
@@ -48,13 +55,22 @@ class _InterviewHistoryScreenState extends State<InterviewHistoryScreen> {
         }
       }
 
-      if (mounted) {
-        setState(() {
-          _history = history;
-          _scores = scores;
-          _isLoading = false;
-        });
-      }
+      if (!mounted) return;
+      setState(() {
+        _history = history;
+        _scores = scores;
+        _isLoading = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _isLoading = false);
+      final message = userFriendlyErrorMessage(e, l10n);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(message),
+          backgroundColor: Theme.of(context).colorScheme.error,
+        ),
+      );
     }
   }
 
@@ -93,17 +109,30 @@ class _InterviewHistoryScreenState extends State<InterviewHistoryScreen> {
                     title: session.jobRole.label(l10n),
                     subtitle: '${session.type.label(l10n)} • $date',
                     onTap: () async {
-                      final dbService = context
-                          .read<RelationalDatabaseService>();
-                      final result = await dbService
-                          .getInterviewResultForSession(session.id);
-                      if (result != null && context.mounted) {
-                        Navigator.of(context).pushNamed(
-                          AppRoutes.generalResults,
-                          arguments: {
-                            'results': result,
-                            'session': session.toDomain(),
-                          },
+                      try {
+                        final dbService =
+                            context.read<RelationalDatabaseService>();
+                        final result = await dbService.getInterviewResultForSession(
+                          session.id,
+                        );
+                        if (result != null && context.mounted) {
+                          Navigator.of(context).pushNamed(
+                            AppRoutes.generalResults,
+                            arguments: {
+                              'results': result,
+                              'session': session.toDomain(),
+                            },
+                          );
+                        }
+                      } catch (e) {
+                        if (!context.mounted) return;
+                        final message = userFriendlyErrorMessage(e, l10n);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(message),
+                            backgroundColor:
+                                Theme.of(context).colorScheme.error,
+                          ),
                         );
                       }
                     },

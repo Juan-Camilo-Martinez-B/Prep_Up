@@ -33,6 +33,7 @@ class _DeviceCheckScreenState extends State<DeviceCheckScreen> {
     final l10n = context.l10n;
     final interviewController = context.watch<InterviewConfigController>();
     final media = context.watch<MediaDeviceController>();
+    final mediaErrorMessage = media.lastErrorMessage(l10n);
 
     return AppScreenScaffold(
       title: l10n.deviceCheckTitle,
@@ -115,7 +116,7 @@ class _DeviceCheckScreenState extends State<DeviceCheckScreen> {
                           ),
                         ),
                       ),
-                    if (media.lastError != null)
+                    if (mediaErrorMessage != null)
                       Align(
                         alignment: Alignment.bottomCenter,
                         child: Container(
@@ -136,7 +137,7 @@ class _DeviceCheckScreenState extends State<DeviceCheckScreen> {
                             ),
                           ),
                           child: Text(
-                            media.lastError!,
+                            mediaErrorMessage,
                             style: Theme.of(context).textTheme.bodySmall,
                             textAlign: TextAlign.center,
                           ),

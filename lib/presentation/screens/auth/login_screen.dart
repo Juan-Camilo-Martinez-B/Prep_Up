@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:prep_up/core/errors/user_friendly_error.dart';
 import 'package:prep_up/core/localization/l10n_extensions.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:prep_up/core/navigation/app_routes.dart';
@@ -105,15 +106,11 @@ class _LoginScreenState extends State<LoginScreen> {
       }
     } on AuthException catch (e) {
       if (mounted) {
-        var message = l10n.loginErrorGeneric;
-        if (e.message.contains('Email not confirmed')) {
-          message = l10n.loginErrorEmailNotConfirmed;
-        } else if (e.message.contains('Invalid login credentials')) {
-          message = l10n.loginErrorInvalidCredentials;
-        } else {
-          message = e.message;
-        }
-
+        final message = userFriendlyErrorMessage(
+          e,
+          l10n,
+          authAction: AuthAction.login,
+        );
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(message),
@@ -123,8 +120,12 @@ class _LoginScreenState extends State<LoginScreen> {
       }
     } catch (e) {
       if (mounted) {
+        final message = userFriendlyErrorMessage(e, l10n);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${l10n.unexpectedError}: ${e.toString()}')),
+          SnackBar(
+            content: Text(message),
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
         );
       }
     } finally {

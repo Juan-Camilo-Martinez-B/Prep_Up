@@ -4,6 +4,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/widgets.dart';
 import 'package:flutter_tts/flutter_tts.dart';
+import 'package:prep_up/core/errors/user_friendly_error.dart';
 import 'package:prep_up/core/localization/interview_l10n.dart';
 import 'package:prep_up/domain/entities/answer_evaluation_model.dart';
 import 'package:prep_up/domain/entities/interview_config.dart';
@@ -138,7 +139,7 @@ class InterviewVoiceController extends ChangeNotifier {
     } catch (e) {
       if (!_isSessionCancelled) {
         _setIdle();
-        _error = e.toString();
+        _error = userFriendlyErrorMessage(e, _l10n);
         _statusMessage = _l10n.interviewCouldNotStart;
         _notifySafely();
       }
@@ -208,7 +209,7 @@ class InterviewVoiceController extends ChangeNotifier {
     } catch (e) {
       if (!_isSessionCancelled) {
         _setIdle();
-        _error = e.toString();
+        _error = userFriendlyErrorMessage(e, _l10n);
         _statusMessage = _l10n.interviewCouldNotProcess;
         _notifySafely();
       }
@@ -240,7 +241,7 @@ class InterviewVoiceController extends ChangeNotifier {
     } catch (e) {
       if (!_isSessionCancelled) {
         _setIdle();
-        _error = e.toString();
+        _error = userFriendlyErrorMessage(e, _l10n);
         _statusMessage = _l10n.interviewCouldNotSkipCurrentQuestion;
         _notifySafely();
       }
@@ -599,7 +600,7 @@ Devuelve SOLO el texto de la pregunta.
         await _tts.speak(speechText);
       } catch (e) {
         _isTtsAvailable = false;
-        _error = '${_l10n.interviewCouldNotPlayQuestionTextMode} ($e)';
+        _error = _l10n.interviewCouldNotPlayQuestionTextMode;
         _statusMessage = _l10n.interviewCouldNotPlayQuestionTextMode;
         _setIdle();
         _notifySafely();
@@ -661,7 +662,7 @@ Devuelve SOLO el texto de la pregunta.
       );
     } catch (e) {
       _setIdle();
-      _error = '${_l10n.interviewCouldNotActivateMic} ($e)';
+      _error = _l10n.interviewCouldNotActivateMic;
       _statusMessage = _l10n.interviewContinueTypingFallback;
       _notifySafely();
     }
@@ -689,7 +690,7 @@ Devuelve SOLO el texto de la pregunta.
   void _onSpeechError(SpeechRecognitionError error) {
     if (!isListening) return;
     _setIdle();
-    _error = '${_l10n.interviewCouldNotTranscribe} (${error.errorMsg})';
+    _error = _l10n.interviewCouldNotTranscribe;
     _statusMessage = _l10n.interviewCouldNotTranscribe;
     _notifySafely();
   }

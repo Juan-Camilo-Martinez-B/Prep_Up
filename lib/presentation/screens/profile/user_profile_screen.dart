@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:prep_up/core/errors/user_friendly_error.dart';
 import 'package:prep_up/core/localization/l10n_extensions.dart';
 import 'package:prep_up/core/navigation/app_routes.dart';
 import 'package:prep_up/domain/entities/user_model.dart';
@@ -8,6 +9,7 @@ import 'package:prep_up/domain/services/supabase_database_service.dart';
 import 'package:prep_up/presentation/widgets/app_card.dart';
 import 'package:prep_up/presentation/widgets/app_primary_button.dart';
 import 'package:prep_up/presentation/widgets/app_screen_scaffold.dart';
+import 'package:provider/provider.dart';
 
 class UserProfileScreen extends StatefulWidget {
   const UserProfileScreen({super.key});
@@ -17,8 +19,6 @@ class UserProfileScreen extends StatefulWidget {
 }
 
 class _UserProfileScreenState extends State<UserProfileScreen> {
-  final RelationalDatabaseService _dbService = SupabaseDatabaseService();
-  final AuthService _authService = AuthService();
   UserModel? _user;
   int _interviewCount = 0;
   double _avgScore = 0.0;
@@ -27,50 +27,71 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   @override
   void initState() {
     super.initState();
-    _loadUserData();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadUserData();
+    });
   }
 
   Future<void> _loadUserData() async {
-    final currentUser = _authService.currentUser;
-    if (currentUser != null) {
-      final user = await _dbService.getUserById(currentUser.id);
-      
-      final history = await _dbService.getInterviewHistoryForUser(currentUser.id);
-      int count = 0;
-      double totalScore = 0;
-      
-      for (final session in history) {
-        final result = await _dbService.getInterviewResultForSession(session.id);
+    final authService = context.read<AuthService>();
+    final dbService = context.read<RelationalDatabaseService>();
+    final l10n = context.l10n;
+
+    final currentUser = authService.currentUser;
+    if (currentUser == null) {
+      if (mounted) setState(() => _isLoading = false);
+      return;
+    }
+
+    try {
+      final user = await dbService.getUserById(currentUser.id);
+      final history = await dbService.getInterviewHistoryForUser(
+        currentUser.id,
+      );
+
+      final results = await Future.wait(
+        history.map((s) => dbService.getInterviewResultForSession(s.id)),
+      );
+
+      var count = 0;
+      var totalScore = 0.0;
+
+      for (final result in results) {
         if (result != null) {
           totalScore += result.overallScore;
           count++;
         }
       }
-      
-      if (mounted) {
-        setState(() {
-          _user = user;
-          _interviewCount = count;
-          _avgScore = count > 0 ? totalScore / count : 0;
-          _isLoading = false;
-        });
-      }
-    } else {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
+
+      if (!mounted) return;
+      setState(() {
+        _user = user;
+        _interviewCount = count;
+        _avgScore = count > 0 ? totalScore / count : 0;
+        _isLoading = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _isLoading = false);
+      final message = userFriendlyErrorMessage(e, l10n);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(message),
+          backgroundColor: Theme.of(context).colorScheme.error,
+        ),
+      );
     }
   }
 
   void _showEditProfileModal() {
     if (_user == null) return;
-    
+
     final nameController = TextEditingController(text: _user!.displayName);
-    final occupationController = TextEditingController(text: _user!.occupation ?? '');
+    final occupationController = TextEditingController(
+      text: _user!.occupation ?? '',
+    );
     final phoneController = TextEditingController(text: _user!.phone ?? '');
-    
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -80,7 +101,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
       ),
       builder: (context) {
         final l10n = context.l10n;
-        
+
         return Padding(
           padding: EdgeInsets.only(
             bottom: MediaQuery.of(context).viewInsets.bottom,
@@ -94,16 +115,18 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
             children: [
               Text(
                 l10n.profileEditTitle,
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 20),
               TextField(
                 controller: nameController,
                 decoration: InputDecoration(
                   labelText: l10n.profileEditName,
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                   prefixIcon: const Icon(Icons.person_outline_rounded),
                 ),
               ),
@@ -112,7 +135,9 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                 controller: occupationController,
                 decoration: InputDecoration(
                   labelText: l10n.profileEditOccupation,
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                   prefixIcon: const Icon(Icons.work_outline_rounded),
                 ),
               ),
@@ -122,7 +147,9 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                 keyboardType: TextInputType.phone,
                 decoration: InputDecoration(
                   labelText: l10n.profileEditPhone,
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                   prefixIcon: const Icon(Icons.phone_outlined),
                 ),
               ),
@@ -136,23 +163,34 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                     phone: phoneController.text.trim(),
                     updatedAt: DateTime.now(),
                   );
-                  
+
                   // Show loading dialog
                   showDialog(
                     context: context,
                     barrierDismissible: false,
-                    builder: (c) => const Center(child: CircularProgressIndicator()),
+                    builder: (c) =>
+                        const Center(child: CircularProgressIndicator()),
                   );
-                  
-                  await _dbService.upsertUser(updatedUser);
-                  
-                  // Dismiss loading and bottom sheet
-                  if (context.mounted) {
-                    Navigator.pop(context); // close dialog
-                    Navigator.pop(context); // close sheet
+
+                  try {
+                    final dbService = context.read<RelationalDatabaseService>();
+                    await dbService.upsertUser(updatedUser);
+                    if (!context.mounted) return;
+                    Navigator.pop(context);
+                    Navigator.pop(context);
                     setState(() {
                       _user = updatedUser;
                     });
+                  } catch (e) {
+                    if (!context.mounted) return;
+                    Navigator.pop(context);
+                    final message = userFriendlyErrorMessage(e, l10n);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(message),
+                        backgroundColor: Theme.of(context).colorScheme.error,
+                      ),
+                    );
                   }
                 },
               ),

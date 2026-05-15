@@ -1,7 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:prep_up/domain/services/auth_service.dart';
-import 'package:prep_up/domain/services/relational_database_service.dart';
-import 'package:prep_up/domain/services/supabase_database_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AppLocaleRuntime {
@@ -17,8 +14,6 @@ class AppLocaleRuntime {
 
 class AppLocaleController extends ChangeNotifier {
   static const _localeKey = 'app_locale';
-  final RelationalDatabaseService _dbService = SupabaseDatabaseService();
-  final AuthService _authService = AuthService();
 
   Locale _locale = const Locale('es');
 
@@ -26,19 +21,6 @@ class AppLocaleController extends ChangeNotifier {
   String get languageCode => _locale.languageCode;
 
   Future<void> load() async {
-    // 1. Intentar cargar desde Supabase si hay usuario
-    final user = _authService.currentUser;
-    if (user != null) {
-      // Nota: configuraciones en la BD tiene language_code pero AppSettingsModel no lo tiene explícito,
-      // se asume que se guarda como parte de los ajustes del usuario.
-      // Por simplicidad, usamos SharedPreferences como fallback y sincronizamos.
-      final settings = await _dbService.getSettingsForUser(user.id);
-      if (settings != null) {
-        // Aquí podríamos cargar el locale si estuviera en AppSettingsModel.
-        // Por ahora mantenemos la lógica de SharedPreferences pero preparada para DB.
-      }
-    }
-
     final prefs = await SharedPreferences.getInstance();
     final stored = prefs.getString(_localeKey);
     if (stored != null && stored.isNotEmpty) {
@@ -57,12 +39,6 @@ class AppLocaleController extends ChangeNotifier {
     // Guardar localmente
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_localeKey, locale.languageCode);
-
-    // Sincronizar con Supabase si hay usuario
-    final user = _authService.currentUser;
-    if (user != null) {
-      // Podríamos extender AppSettingsModel para incluir languageCode si fuera necesario
-    }
   }
 }
 

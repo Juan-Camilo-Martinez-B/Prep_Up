@@ -1,7 +1,15 @@
 import 'package:camera/camera.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
+import 'package:prep_up/l10n/app_localizations.dart';
 import 'package:permission_handler/permission_handler.dart';
+
+enum MediaDeviceErrorType {
+  noCameraDetected,
+  cameraInitFailed,
+  microphoneInitFailed,
+  videoStreamFailed,
+}
 
 class MediaDeviceController extends ChangeNotifier with WidgetsBindingObserver {
   MediaDeviceController() {
@@ -18,7 +26,7 @@ class MediaDeviceController extends ChangeNotifier with WidgetsBindingObserver {
 
   bool _isInitializingCamera = false;
   bool _isStartingMicrophone = false;
-  String? _lastError;
+  MediaDeviceErrorType? _lastErrorType;
   bool _wasCameraInitializedBeforePause = false;
   bool _isVideoFrameStreamActive = false;
 
@@ -40,7 +48,19 @@ class MediaDeviceController extends ChangeNotifier with WidgetsBindingObserver {
   bool get isStartingMicrophone => _isStartingMicrophone;
   bool get isVideoFrameStreamActive => _isVideoFrameStreamActive;
 
-  String? get lastError => _lastError;
+  MediaDeviceErrorType? get lastErrorType => _lastErrorType;
+
+  String? lastErrorMessage(AppLocalizations l10n) {
+    final error = _lastErrorType;
+    if (error == null) return null;
+    return switch (error) {
+      MediaDeviceErrorType.noCameraDetected => l10n.deviceErrorNoCameraDetected,
+      MediaDeviceErrorType.cameraInitFailed => l10n.deviceErrorCameraInitFailed,
+      MediaDeviceErrorType.microphoneInitFailed =>
+        l10n.deviceErrorMicrophoneInitFailed,
+      MediaDeviceErrorType.videoStreamFailed => l10n.deviceErrorVideoStreamFailed,
+    };
+  }
 
   bool get canOpenSettings =>
       _cameraPermission.isPermanentlyDenied ||
@@ -71,7 +91,7 @@ class MediaDeviceController extends ChangeNotifier with WidgetsBindingObserver {
   }
 
   Future<void> start() async {
-    _lastError = null;
+    _lastErrorType = null;
     await refreshPermissions();
     if (!isCameraPermissionGranted || !isMicrophonePermissionGranted) {
       await requestPermissions();
@@ -85,7 +105,7 @@ class MediaDeviceController extends ChangeNotifier with WidgetsBindingObserver {
   Future<void> initCamera() async {
     if (_isInitializingCamera) return;
     _isInitializingCamera = true;
-    _lastError = null;
+    _lastErrorType = null;
     notifyListeners();
 
     try {
@@ -98,7 +118,7 @@ class MediaDeviceController extends ChangeNotifier with WidgetsBindingObserver {
       _cameras = await availableCameras();
       if (_cameras.isEmpty) {
         _disposeCamera();
-        _lastError = 'No se detectó cámara en el dispositivo.';
+        _lastErrorType = MediaDeviceErrorType.noCameraDetected;
         return;
       }
 
@@ -127,12 +147,12 @@ class MediaDeviceController extends ChangeNotifier with WidgetsBindingObserver {
         // toda la inicializacion de la camara.
       }
       notifyListeners();
-    } on CameraException catch (e) {
+    } on CameraException catch (_) {
       _disposeCamera();
-      _lastError = '${e.code}: ${e.description ?? 'Error de cámara'}';
+      _lastErrorType = MediaDeviceErrorType.cameraInitFailed;
     } catch (e) {
       _disposeCamera();
-      _lastError = 'Error inicializando cámara: $e';
+      _lastErrorType = MediaDeviceErrorType.cameraInitFailed;
     } finally {
       _isInitializingCamera = false;
       notifyListeners();
@@ -144,7 +164,7 @@ class MediaDeviceController extends ChangeNotifier with WidgetsBindingObserver {
     if (isMicrophoneReady) return;
 
     _isStartingMicrophone = true;
-    _lastError = null;
+    _lastErrorType = null;
     notifyListeners();
 
     try {
@@ -160,7 +180,7 @@ class MediaDeviceController extends ChangeNotifier with WidgetsBindingObserver {
       });
     } catch (e) {
       await stopMicrophone();
-      _lastError = 'Error activando micrófono: $e';
+      _lastErrorType = MediaDeviceErrorType.microphoneInitFailed;
     } finally {
       _isStartingMicrophone = false;
       notifyListeners();
@@ -178,11 +198,11 @@ class MediaDeviceController extends ChangeNotifier with WidgetsBindingObserver {
       await controller.startImageStream(onFrame);
       _isVideoFrameStreamActive = true;
       notifyListeners();
-    } on CameraException catch (e) {
-      _lastError = '${e.code}: ${e.description ?? 'Error de cámara'}';
+    } on CameraException catch (_) {
+      _lastErrorType = MediaDeviceErrorType.videoStreamFailed;
       notifyListeners();
     } catch (e) {
-      _lastError = 'Error iniciando stream de video: $e';
+      _lastErrorType = MediaDeviceErrorType.videoStreamFailed;
       notifyListeners();
     }
   }
@@ -212,7 +232,7 @@ class MediaDeviceController extends ChangeNotifier with WidgetsBindingObserver {
   }
 
   Future<void> stop() async {
-    _lastError = null;
+    _lastErrorType = null;
     await stopVideoFrameStream();
     _disposeCamera();
     await stopMicrophone();

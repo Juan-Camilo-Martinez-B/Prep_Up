@@ -121,6 +121,51 @@ class AppLocalizationsEs extends AppLocalizations {
   String get unexpectedError => 'Error inesperado';
 
   @override
+  String get authErrorGeneric => 'Error de autenticación. Inténtalo de nuevo.';
+
+  @override
+  String get forgotPasswordErrorGeneric =>
+      'No pudimos enviar el enlace de recuperación. Verifica el correo e inténtalo de nuevo.';
+
+  @override
+  String get errorNoInternet =>
+      'No hay conexión a internet. Revisa tu conexión e inténtalo de nuevo.';
+
+  @override
+  String get errorTimeout => 'La conexión tardó demasiado. Inténtalo de nuevo.';
+
+  @override
+  String get errorServerUnavailable =>
+      'El servicio no está disponible en este momento. Inténtalo más tarde.';
+
+  @override
+  String get errorCouldNotLoadData =>
+      'No pudimos cargar la información. Inténtalo de nuevo.';
+
+  @override
+  String get errorCouldNotSaveChanges =>
+      'No pudimos guardar los cambios. Inténtalo de nuevo.';
+
+  @override
+  String get deviceErrorNoCameraDetected =>
+      'No se detectó una cámara en este dispositivo.';
+
+  @override
+  String get deviceErrorCameraInitFailed =>
+      'No pudimos activar la cámara. Revisa permisos e inténtalo de nuevo.';
+
+  @override
+  String get deviceErrorMicrophoneInitFailed =>
+      'No pudimos activar el micrófono. Revisa permisos e inténtalo de nuevo.';
+
+  @override
+  String get deviceErrorVideoStreamFailed =>
+      'No pudimos iniciar el stream de cámara. Inténtalo de nuevo.';
+
+  @override
+  String get loginWelcomeBack => 'Bienvenido de vuelta';
+
+  @override
   String get loginTitle => 'Iniciar Sesión';
 
   @override
