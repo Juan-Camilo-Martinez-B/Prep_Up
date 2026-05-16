@@ -123,7 +123,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         );
         Navigator.of(
           context,
-        ).pushNamedAndRemoveUntil(AppRoutes.dashboard, (route) => false);
+        ).pushNamed(AppRoutes.verifyOtp, arguments: email);
       }
     } catch (e) {
       if (mounted) {

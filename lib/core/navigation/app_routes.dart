@@ -7,6 +7,8 @@ class AppRoutes {
   static const loginCallback = '/login-callback';
   static const register = '/auth/register';
   static const forgotPassword = '/auth/forgot-password';
+  static const verifyOtp = '/auth/verify-otp';
+  static const resetPassword = '/auth/reset-password';
 
   static const dashboard = '/dashboard';
   static const profile = '/profile';
@@ -31,6 +33,8 @@ class AppRoutes {
     loginCallback,
     register,
     forgotPassword,
+    verifyOtp,
+    resetPassword,
     dashboard,
     profile,
     settings,

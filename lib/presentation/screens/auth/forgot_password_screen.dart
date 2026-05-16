@@ -6,6 +6,7 @@ import 'package:prep_up/domain/services/auth_service.dart';
 import 'package:prep_up/presentation/widgets/app_card.dart';
 import 'package:prep_up/presentation/widgets/app_primary_button.dart';
 import 'package:prep_up/presentation/widgets/app_screen_scaffold.dart';
+import 'package:prep_up/presentation/screens/auth/verify_otp_screen.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
   const ForgotPasswordScreen({super.key});
@@ -43,6 +44,14 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(l10n.forgotPasswordSent)),
+        );
+        // Navegar a la verificación con OTP
+        Navigator.of(context).pushNamed(
+          AppRoutes.verifyOtp,
+          arguments: {
+            'email': _emailController.text.trim(),
+            'type': VerifyOtpType.recovery,
+          },
         );
       }
     } catch (e) {

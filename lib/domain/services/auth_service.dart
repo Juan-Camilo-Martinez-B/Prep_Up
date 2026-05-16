@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:prep_up/domain/entities/user_model.dart';
 import 'package:prep_up/domain/services/relational_database_service.dart';
@@ -23,14 +24,20 @@ class AuthService {
       );
 
       if (response.user != null) {
-        final newUser = UserModel(
-          id: response.user!.id,
-          email: email,
-          displayName: metadata['full_name'] ?? '',
-          createdAt: DateTime.now(),
-          updatedAt: DateTime.now(),
-        );
-        await _dbService.upsertUser(newUser);
+        try {
+          final newUser = UserModel(
+            id: response.user!.id,
+            email: email,
+            displayName: metadata['full_name'] ?? '',
+            createdAt: DateTime.now(),
+            updatedAt: DateTime.now(),
+          );
+          // Intentar crear el perfil, pero no fallar si no hay permisos aún
+          await _dbService.upsertUser(newUser);
+        } catch (e) {
+          // Loggear el error pero no interrumpir el flujo de registro
+          debugPrint('Info: No se pudo crear el perfil inicial (esperado si requiere verificación): $e');
+        }
       }
 
       return response;
@@ -103,6 +110,86 @@ class AuthService {
     } catch (e) {
       // Si hay error (ej. tabla no accesible), asumimos que no existe
       return false;
+    }
+  }
+
+  /// Verificar código OTP enviado al correo
+  Future<AuthResponse> verifyEmailOTP({
+    required String email,
+    required String token,
+  }) async {
+    final cleanEmail = email.trim().toLowerCase();
+    final cleanToken = token.trim();
+
+    try {
+      // Intentar primero con tipo signup
+      final response = await _supabase.auth.verifyOTP(
+        email: cleanEmail,
+        token: cleanToken,
+        type: OtpType.signup,
+      );
+
+      if (response.user != null) {
+        final existing = await _dbService.getUserById(response.user!.id);
+        if (existing == null) {
+          final newUser = UserModel(
+            id: response.user!.id,
+            email: cleanEmail,
+            displayName: response.user!.userMetadata?['full_name'] ?? '',
+            createdAt: DateTime.now(),
+            updatedAt: DateTime.now(),
+          );
+          await _dbService.upsertUser(newUser);
+        }
+      }
+
+      return response;
+    } on AuthException {
+      // Si falla como signup, intentamos como email por robustez
+      try {
+        final retryResponse = await _supabase.auth.verifyOTP(
+          email: cleanEmail,
+          token: cleanToken,
+          type: OtpType.email,
+        );
+        return retryResponse;
+      } catch (_) {
+        rethrow; 
+      }
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  /// Verificar código OTP para recuperación de contraseña
+  Future<AuthResponse> verifyRecoveryOTP({
+    required String email,
+    required String token,
+  }) async {
+    final cleanEmail = email.trim().toLowerCase();
+    final cleanToken = token.trim();
+
+    try {
+      final response = await _supabase.auth.verifyOTP(
+        email: cleanEmail,
+        token: cleanToken,
+        type: OtpType.recovery,
+      );
+      return response;
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  /// Actualizar contraseña del usuario actual
+  Future<UserResponse> updatePassword(String newPassword) async {
+    try {
+      final response = await _supabase.auth.updateUser(
+        UserAttributes(password: newPassword),
+      );
+      return response;
+    } catch (e) {
+      rethrow;
     }
   }
 }

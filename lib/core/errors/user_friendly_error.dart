@@ -68,6 +68,14 @@ String userFriendlyAuthErrorMessage(
     return l10n.registerEmailAlreadyExists;
   }
 
+  if (message.contains('rate limit') || message.contains('too many requests')) {
+    return 'Límite de intentos excedido. Por favor, inténtalo de nuevo en unos minutos.';
+  }
+
+  if (message.contains('signup is disabled')) {
+    return 'El registro de nuevos usuarios está temporalmente deshabilitado.';
+  }
+
   if (message.contains('password') &&
       (message.contains('weak') ||
           message.contains('at least') ||

@@ -10,6 +10,8 @@ import 'package:prep_up/presentation/screens/analysis/recommendations_screen.dar
 import 'package:prep_up/presentation/screens/auth/forgot_password_screen.dart';
 import 'package:prep_up/presentation/screens/auth/login_screen.dart';
 import 'package:prep_up/presentation/screens/auth/register_screen.dart';
+import 'package:prep_up/presentation/screens/auth/verify_otp_screen.dart';
+import 'package:prep_up/presentation/screens/auth/reset_password_screen.dart';
 import 'package:prep_up/presentation/screens/auth/splash_screen.dart';
 import 'package:prep_up/presentation/screens/dashboard/dashboard_screen.dart';
 import 'package:prep_up/presentation/screens/interview/device_check_screen.dart';
@@ -78,6 +80,15 @@ class AppRouter {
       AppRoutes.login => const LoginScreen(),
       AppRoutes.register => const RegisterScreen(),
       AppRoutes.forgotPassword => const ForgotPasswordScreen(),
+      AppRoutes.verifyOtp => VerifyOtpScreen(
+        email: arguments is String
+            ? arguments
+            : (arguments as Map<String, dynamic>)['email'],
+        type: arguments is Map<String, dynamic>
+            ? (arguments['type'] as VerifyOtpType)
+            : VerifyOtpType.signup,
+      ),
+      AppRoutes.resetPassword => const ResetPasswordScreen(),
       AppRoutes.dashboard => const DashboardScreen(),
       AppRoutes.profile => const UserProfileScreen(),
       AppRoutes.settings => const SettingsScreen(),
