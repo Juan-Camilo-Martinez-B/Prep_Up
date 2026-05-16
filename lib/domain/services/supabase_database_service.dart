@@ -21,7 +21,7 @@ class SupabaseDatabaseService implements RelationalDatabaseService {
   @override
   Future<UserModel?> getUserById(String userId) async {
     final response = await _supabase
-        .from('usuarios')
+        .from('users')
         .select()
         .eq('id', userId)
         .maybeSingle();
@@ -33,7 +33,7 @@ class SupabaseDatabaseService implements RelationalDatabaseService {
   @override
   Future<UserModel?> getUserByEmail(String email) async {
     final response = await _supabase
-        .from('usuarios')
+        .from('users')
         .select()
         .eq('email', email.toLowerCase())
         .maybeSingle();
@@ -44,13 +44,13 @@ class SupabaseDatabaseService implements RelationalDatabaseService {
 
   @override
   Future<void> upsertUser(UserModel user) async {
-    await _supabase.from('usuarios').upsert(user.toJson());
+    await _supabase.from('users').upsert(user.toJson());
   }
 
   @override
   Future<AppSettingsModel?> getSettingsForUser(String userId) async {
     final response = await _supabase
-        .from('configuraciones')
+        .from('settings')
         .select()
         .eq('user_id', userId)
         .maybeSingle();
@@ -71,7 +71,7 @@ class SupabaseDatabaseService implements RelationalDatabaseService {
     String userId,
     AppSettingsModel settings,
   ) async {
-    await _supabase.from('configuraciones').upsert({
+    await _supabase.from('settings').upsert({
       'user_id': userId,
       'theme_mode': settings.themeMode.name,
       'updated_at': DateTime.now().toUtc().toIso8601String(),
@@ -95,7 +95,7 @@ class SupabaseDatabaseService implements RelationalDatabaseService {
       'created_at': data['createdAt'],
       'updated_at': data['updatedAt'],
     };
-    await _supabase.from('sesiones_entrevista').upsert(dbData);
+    await _supabase.from('interview_sessions').upsert(dbData);
   }
 
   @override
@@ -103,7 +103,7 @@ class SupabaseDatabaseService implements RelationalDatabaseService {
     String sessionId,
   ) async {
     final response = await _supabase
-        .from('sesiones_entrevista')
+        .from('interview_sessions')
         .select()
         .eq('id', sessionId)
         .maybeSingle();
@@ -132,7 +132,7 @@ class SupabaseDatabaseService implements RelationalDatabaseService {
     String userId,
   ) async {
     final response = await _supabase
-        .from('sesiones_entrevista')
+        .from('interview_sessions')
         .select()
         .eq('user_id', userId)
         .order('created_at', ascending: false);
@@ -174,7 +174,7 @@ class SupabaseDatabaseService implements RelationalDatabaseService {
       'valid_answers_count': data['validAnswersCount'],
       'analyzed_at': data['analyzedAt'],
     };
-    await _supabase.from('resultados_entrevista').upsert(dbData);
+    await _supabase.from('interview_results').upsert(dbData);
   }
 
   @override
@@ -182,7 +182,7 @@ class SupabaseDatabaseService implements RelationalDatabaseService {
     String sessionId,
   ) async {
     final response = await _supabase
-        .from('resultados_entrevista')
+        .from('interview_results')
         .select()
         .eq('session_id', sessionId)
         .maybeSingle();
@@ -213,7 +213,7 @@ class SupabaseDatabaseService implements RelationalDatabaseService {
     String userId,
   ) async {
     final response = await _supabase
-        .from('resultados_entrevista')
+        .from('interview_results')
         .select()
         .eq('user_id', userId)
         .order('analyzed_at', ascending: false);

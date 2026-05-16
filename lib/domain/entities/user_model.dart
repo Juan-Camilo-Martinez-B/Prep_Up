@@ -1,3 +1,12 @@
+enum UserOccupation {
+  student,
+  professional,
+  teacher,
+  recruiter,
+  entrepreneur,
+  freelancer,
+}
+
 class UserModel {
   const UserModel({
     required this.id,
@@ -13,7 +22,7 @@ class UserModel {
   final String email;
   final String displayName;
   final String? phone;
-  final String? occupation;
+  final UserOccupation? occupation;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -22,7 +31,7 @@ class UserModel {
     String? email,
     String? displayName,
     String? phone,
-    String? occupation,
+    UserOccupation? occupation,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -38,12 +47,35 @@ class UserModel {
   }
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
+    UserOccupation? parsedOccupation;
+    final occString = json['occupation'] as String?;
+    if (occString != null && occString.trim().isNotEmpty) {
+      try {
+        final normalized = occString.trim().toLowerCase();
+        parsedOccupation = UserOccupation.values.firstWhere(
+          (e) => e.name.toLowerCase() == normalized,
+          orElse: () {
+            // Migración de datos antiguos (texto libre)
+            if (normalized.contains('estud') || normalized.contains('student')) return UserOccupation.student;
+            if (normalized.contains('docen') || normalized.contains('profesor') || normalized.contains('teacher')) return UserOccupation.teacher;
+            if (normalized.contains('reclut') || normalized.contains('recruit') || normalized.contains('rrhh') || normalized.contains('hr')) return UserOccupation.recruiter;
+            if (normalized.contains('emprende') || normalized.contains('entrepre') || normalized.contains('founder')) return UserOccupation.entrepreneur;
+            if (normalized.contains('freelanc') || normalized.contains('independiente')) return UserOccupation.freelancer;
+            // Cualquier otro cargo libre antiguo (ej. Desarrollador, Ingeniero) pasa a Profesional
+            return UserOccupation.professional;
+          },
+        );
+      } catch (_) {
+        parsedOccupation = null;
+      }
+    }
+
     return UserModel(
       id: (json['id'] as String?) ?? '',
       email: (json['email'] as String?) ?? '',
       displayName: (json['full_name'] as String?) ?? (json['displayName'] as String?) ?? '',
       phone: json['phone'] as String?,
-      occupation: json['occupation'] as String?,
+      occupation: parsedOccupation,
       createdAt:
           DateTime.tryParse((json['created_at'] as String?) ?? (json['createdAt'] as String?) ?? '') ??
           DateTime.fromMillisecondsSinceEpoch(0, isUtc: true),
@@ -59,7 +91,7 @@ class UserModel {
       'email': email,
       'full_name': displayName,
       'phone': phone,
-      'occupation': occupation,
+      'occupation': occupation?.name,
       'created_at': createdAt.toUtc().toIso8601String(),
       'updated_at': updatedAt.toUtc().toIso8601String(),
     };
@@ -67,7 +99,7 @@ class UserModel {
 
   @override
   String toString() {
-    return 'UserModel(id: $id, email: $email, displayName: $displayName, phone: $phone, occupation: $occupation)';
+    return 'UserModel(id: $id, email: $email, displayName: $displayName, phone: $phone, occupation: ${occupation?.name})';
   }
 
   @override

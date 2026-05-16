@@ -2870,6 +2870,42 @@ abstract class AppLocalizations {
   /// **'Recommended Key Phrases'**
   String get feedbackKeyPhrasesTitle;
 
+  /// No description provided for @occupationStudent.
+  ///
+  /// In en, this message translates to:
+  /// **'Student'**
+  String get occupationStudent;
+
+  /// No description provided for @occupationProfessional.
+  ///
+  /// In en, this message translates to:
+  /// **'Professional'**
+  String get occupationProfessional;
+
+  /// No description provided for @occupationTeacher.
+  ///
+  /// In en, this message translates to:
+  /// **'Teacher'**
+  String get occupationTeacher;
+
+  /// No description provided for @occupationRecruiter.
+  ///
+  /// In en, this message translates to:
+  /// **'Recruiter'**
+  String get occupationRecruiter;
+
+  /// No description provided for @occupationEntrepreneur.
+  ///
+  /// In en, this message translates to:
+  /// **'Entrepreneur'**
+  String get occupationEntrepreneur;
+
+  /// No description provided for @occupationFreelancer.
+  ///
+  /// In en, this message translates to:
+  /// **'Freelancer'**
+  String get occupationFreelancer;
+
   /// No description provided for @errorAIFailureFriendly.
   ///
   /// In en, this message translates to:

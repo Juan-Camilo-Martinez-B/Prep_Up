@@ -769,5 +769,11 @@
   "feedbackSummaryTitle": "Performance Analysis",
   "feedbackActionItemsTitle": "Next Steps",
   "feedbackKeyPhrasesTitle": "Recommended Key Phrases",
+  "occupationStudent": "Student",
+  "occupationProfessional": "Professional",
+  "occupationTeacher": "Teacher",
+  "occupationRecruiter": "Recruiter",
+  "occupationEntrepreneur": "Entrepreneur",
+  "occupationFreelancer": "Freelancer",
   "errorAIFailureFriendly": "We couldn't process the detailed feedback at this moment. Please check your scores below."
 }

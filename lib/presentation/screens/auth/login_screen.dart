@@ -105,6 +105,7 @@ class _LoginScreenState extends State<LoginScreen> {
         ).pushNamedAndRemoveUntil(AppRoutes.dashboard, (route) => false);
       }
     } on AuthException catch (e) {
+      debugPrint('AuthException during login: $e');
       if (mounted) {
         final message = userFriendlyErrorMessage(
           e,
@@ -119,6 +120,7 @@ class _LoginScreenState extends State<LoginScreen> {
         );
       }
     } catch (e) {
+      debugPrint('Unexpected error during login: $e');
       if (mounted) {
         final message = userFriendlyErrorMessage(e, l10n);
         ScaffoldMessenger.of(context).showSnackBar(

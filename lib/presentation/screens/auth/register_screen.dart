@@ -4,6 +4,8 @@ import 'package:prep_up/core/errors/user_friendly_error.dart';
 import 'package:prep_up/core/localization/l10n_extensions.dart';
 import 'package:prep_up/core/navigation/app_routes.dart';
 import 'package:prep_up/domain/services/auth_service.dart';
+import 'package:prep_up/domain/entities/user_model.dart';
+import 'package:prep_up/core/localization/interview_l10n.dart';
 import 'package:prep_up/presentation/widgets/app_card.dart';
 import 'package:prep_up/presentation/widgets/app_primary_button.dart';
 import 'package:prep_up/presentation/widgets/app_screen_scaffold.dart';
@@ -19,7 +21,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _phoneController = TextEditingController();
-  final _occupationController = TextEditingController();
+  UserOccupation? _selectedOccupation;
   final _passwordController = TextEditingController();
   final _authService = AuthService();
   var _obscure = true;
@@ -30,7 +32,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
     _nameController.dispose();
     _emailController.dispose();
     _phoneController.dispose();
-    _occupationController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
@@ -53,13 +54,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
     final name = _nameController.text.trim();
     final email = _emailController.text.trim();
     final phone = _phoneController.text.trim();
-    final occupation = _occupationController.text.trim();
+    final occupation = _selectedOccupation;
     final password = _passwordController.text.trim();
 
     if (name.isEmpty ||
         email.isEmpty ||
         phone.isEmpty ||
-        occupation.isEmpty ||
+        occupation == null ||
         password.isEmpty) {
       ScaffoldMessenger.of(
         context,
@@ -109,7 +110,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       await _authService.signUp(
         email: email,
         password: password,
-        metadata: {'full_name': name, 'phone': phone, 'occupation': occupation},
+        metadata: {'full_name': name, 'phone': phone, 'occupation': occupation.name},
         emailRedirectTo: 'io.supabase.prepup://login-callback',
       );
 
@@ -273,11 +274,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             ),
                           ),
                           const SizedBox(height: 16),
-                          TextField(
-                            controller: _occupationController,
-                            inputFormatters: [
-                              FilteringTextInputFormatter.deny(RegExp(r'^\s+')),
-                            ],
+                          DropdownButtonFormField<UserOccupation>(
+                            value: _selectedOccupation,
+                            onChanged: (val) {
+                              setState(() {
+                                _selectedOccupation = val;
+                              });
+                            },
+                            items: UserOccupation.values.map((occ) {
+                              return DropdownMenuItem(
+                                value: occ,
+                                child: Text(occ.label(l10n)),
+                              );
+                            }).toList(),
                             decoration: inputDecoration.copyWith(
                               labelText: l10n.occupationLabel,
                               prefixIcon: const Icon(

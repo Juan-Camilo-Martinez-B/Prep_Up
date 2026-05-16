@@ -1592,6 +1592,24 @@ class AppLocalizationsEn extends AppLocalizations {
   String get feedbackKeyPhrasesTitle => 'Recommended Key Phrases';
 
   @override
+  String get occupationStudent => 'Student';
+
+  @override
+  String get occupationProfessional => 'Professional';
+
+  @override
+  String get occupationTeacher => 'Teacher';
+
+  @override
+  String get occupationRecruiter => 'Recruiter';
+
+  @override
+  String get occupationEntrepreneur => 'Entrepreneur';
+
+  @override
+  String get occupationFreelancer => 'Freelancer';
+
+  @override
   String get errorAIFailureFriendly =>
       'We couldn\'t process the detailed feedback at this moment. Please check your scores below.';
 }

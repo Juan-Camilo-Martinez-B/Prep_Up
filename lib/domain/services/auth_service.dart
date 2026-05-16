@@ -51,7 +51,7 @@ class AuthService {
       );
 
       if (response.user != null) {
-        // Asegurar que el perfil existe en la tabla usuarios al iniciar sesión
+        // Asegurar que el perfil existe en la tabla users al iniciar sesión
         final existing = await _dbService.getUserById(response.user!.id);
         if (existing == null) {
           final newUser = UserModel(
@@ -95,7 +95,7 @@ class AuthService {
   Future<bool> isEmailRegistered(String email) async {
     try {
       final response = await _supabase
-          .from('usuarios')
+          .from('users')
           .select('id')
           .eq('email', email)
           .maybeSingle();

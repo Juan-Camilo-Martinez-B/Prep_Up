@@ -8,6 +8,7 @@ import 'package:prep_up/domain/services/relational_database_service.dart';
 import 'package:prep_up/presentation/widgets/app_card.dart';
 import 'package:prep_up/presentation/widgets/app_primary_button.dart';
 import 'package:prep_up/presentation/widgets/app_screen_scaffold.dart';
+import 'package:prep_up/core/localization/interview_l10n.dart';
 import 'package:provider/provider.dart';
 
 class UserProfileScreen extends StatefulWidget {
@@ -86,10 +87,8 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     if (_user == null) return;
 
     final nameController = TextEditingController(text: _user!.displayName);
-    final occupationController = TextEditingController(
-      text: _user!.occupation ?? '',
-    );
     final phoneController = TextEditingController(text: _user!.phone ?? '');
+    UserOccupation? selectedOccupation = _user!.occupation;
 
     showModalBottomSheet(
       context: context,
@@ -101,7 +100,9 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
       builder: (context) {
         final l10n = context.l10n;
 
-        return Padding(
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setModalState) {
+            return Padding(
           padding: EdgeInsets.only(
             bottom: MediaQuery.of(context).viewInsets.bottom,
             left: 20,
@@ -130,8 +131,19 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                 ),
               ),
               const SizedBox(height: 16),
-              TextField(
-                controller: occupationController,
+              DropdownButtonFormField<UserOccupation>(
+                value: selectedOccupation,
+                onChanged: (val) {
+                  setModalState(() {
+                    selectedOccupation = val;
+                  });
+                },
+                items: UserOccupation.values.map((occ) {
+                  return DropdownMenuItem(
+                    value: occ,
+                    child: Text(occ.label(l10n)),
+                  );
+                }).toList(),
                 decoration: InputDecoration(
                   labelText: l10n.profileEditOccupation,
                   border: OutlineInputBorder(
@@ -158,7 +170,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                 onPressed: () async {
                   final updatedUser = _user!.copyWith(
                     displayName: nameController.text.trim(),
-                    occupation: occupationController.text.trim(),
+                    occupation: selectedOccupation,
                     phone: phoneController.text.trim(),
                     updatedAt: DateTime.now(),
                   );
@@ -197,6 +209,8 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
             ],
           ),
         );
+          },
+        );
       },
     );
   }
@@ -220,7 +234,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
         children: [
           AppCard(
             title: _user?.displayName ?? l10n.profileDemoName,
-            subtitle: _user?.occupation ?? l10n.profileDemoSubtitle,
+            subtitle: _user?.occupation?.label(l10n),
             leading: Container(
               width: 48,
               height: 48,

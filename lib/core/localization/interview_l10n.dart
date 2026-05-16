@@ -1,5 +1,6 @@
 import 'package:prep_up/domain/entities/interview_config.dart';
 import 'package:prep_up/domain/entities/interview_tags.dart';
+import 'package:prep_up/domain/entities/user_model.dart';
 import 'package:prep_up/l10n/app_localizations.dart';
 
 extension InterviewTypeL10n on InterviewType {
@@ -58,6 +59,19 @@ extension InterviewConfigMissingFieldL10n on InterviewConfigField {
       InterviewConfigField.jobRole => l10n.interviewMissingFieldJobRole,
       InterviewConfigField.duration => l10n.interviewMissingFieldDuration,
       InterviewConfigField.mode => l10n.interviewMissingFieldMode,
+    };
+  }
+}
+
+extension UserOccupationL10n on UserOccupation {
+  String label(AppLocalizations l10n) {
+    return switch (this) {
+      UserOccupation.student => l10n.occupationStudent,
+      UserOccupation.professional => l10n.occupationProfessional,
+      UserOccupation.teacher => l10n.occupationTeacher,
+      UserOccupation.recruiter => l10n.occupationRecruiter,
+      UserOccupation.entrepreneur => l10n.occupationEntrepreneur,
+      UserOccupation.freelancer => l10n.occupationFreelancer,
     };
   }
 }

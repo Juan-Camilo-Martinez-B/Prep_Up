@@ -768,5 +768,11 @@
   "feedbackSummaryTitle": "Análisis de Desempeño",
   "feedbackActionItemsTitle": "Pasos a Seguir",
   "feedbackKeyPhrasesTitle": "Frases Clave Recomendadas",
+  "occupationStudent": "Estudiante",
+  "occupationProfessional": "Profesional",
+  "occupationTeacher": "Docente",
+  "occupationRecruiter": "Reclutador",
+  "occupationEntrepreneur": "Emprendedor",
+  "occupationFreelancer": "Freelancer",
   "errorAIFailureFriendly": "No pudimos procesar el feedback detallado en este momento. Por favor, revisa tus puntajes abajo."
 }
