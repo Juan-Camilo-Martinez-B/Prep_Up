@@ -63,6 +63,7 @@ class InterviewVoiceController extends ChangeNotifier {
   bool _isDisposed = false;
   bool _hasStarted = false;
   bool _isTtsConfigured = false;
+  bool _isAiSpeaking = false;
   int _activeListeningCycle = 0;
   int _handledListeningCycle = 0;
   int _emptyVoiceRetries = 0;
@@ -189,6 +190,8 @@ class InterviewVoiceController extends ChangeNotifier {
     _notifySafely();
 
     try {
+      // Detener cualquier audio o escucha antes de procesar
+      await _tts.stop();
       await _speech.stop();
 
       final turn = InterviewTurn(
@@ -217,38 +220,6 @@ class InterviewVoiceController extends ChangeNotifier {
         _setIdle();
         _error = userFriendlyErrorMessage(e, _l10n);
         _statusMessage = _l10n.interviewCouldNotProcess;
-        _notifySafely();
-      }
-    }
-  }
-
-  Future<void> skipQuestion() async {
-    if (_currentQuestion.trim().isEmpty ||
-        isProcessing ||
-        _isInterviewComplete) {
-      return;
-    }
-
-    _error = null;
-    _state = InterviewConversationState.processing;
-    _statusMessage = _l10n.interviewAskDifferentQuestion;
-    _notifySafely();
-
-    try {
-      await _speech.stop();
-      await _tts.stop();
-      final nextQuestion = await _generateAlternativeQuestion();
-      if (_isSessionCancelled) return;
-
-      await _deliverQuestion(
-        nextQuestion,
-        introMessage: _l10n.interviewDifferentQuestionIntro,
-      );
-    } catch (e) {
-      if (!_isSessionCancelled) {
-        _setIdle();
-        _error = userFriendlyErrorMessage(e, _l10n);
-        _statusMessage = _l10n.interviewCouldNotSkipCurrentQuestion;
         _notifySafely();
       }
     }
@@ -343,12 +314,14 @@ class InterviewVoiceController extends ChangeNotifier {
 
   void _configureTtsCallbacks() {
     _tts.setStartHandler(() {
+      _isAiSpeaking = true;
       _state = InterviewConversationState.speaking;
       _statusMessage = _l10n.interviewAiSpeaking;
       _notifySafely();
     });
 
     _tts.setCompletionHandler(() {
+      _isAiSpeaking = false;
       if (_state == InterviewConversationState.speaking) {
         _statusMessage = _l10n.interviewWaitingAnswer;
         _notifySafely();
@@ -356,6 +329,7 @@ class InterviewVoiceController extends ChangeNotifier {
     });
 
     _tts.setCancelHandler(() {
+      _isAiSpeaking = false;
       if (_state == InterviewConversationState.speaking) {
         _setIdle();
         _notifySafely();
@@ -363,6 +337,7 @@ class InterviewVoiceController extends ChangeNotifier {
     });
 
     _tts.setErrorHandler((message) {
+      _isAiSpeaking = false;
       _isTtsAvailable = false;
       _error = '${_l10n.interviewCouldNotPlayAudio} ($message)';
       if (_state == InterviewConversationState.speaking) {
@@ -462,28 +437,6 @@ class InterviewVoiceController extends ChangeNotifier {
     throw GeminiException(_l10n.interviewCouldNotGenerateQualityQuestion);
   }
 
-  Future<String> _generateAlternativeQuestion() async {
-    final jobRole = _config.jobRole == null
-        ? ''
-        : _config.jobRole!.label(_l10n);
-    final type = _config.type ?? InterviewType.mixed;
-
-    final next = await _geminiService.generateAlternativeQuestion(
-      jobRole: jobRole,
-      type: type,
-      currentQuestion: _currentQuestion,
-      turns: _session.turns,
-      selectedFocus: _selectedFocusAreas,
-      l10n: _l10n,
-    );
-
-    final cleaned = _sanitizeQuestion(next);
-    if (cleaned.isEmpty) {
-      throw GeminiException(_l10n.interviewCouldNotGenerateAlternativeQuestion);
-    }
-    return cleaned;
-  }
-
   Future<void> _deliverQuestion(String question, {String? introMessage}) async {
     if (_isInterviewComplete || _isSessionCancelled) return;
     _currentQuestion = question.trim();
@@ -513,8 +466,19 @@ class InterviewVoiceController extends ChangeNotifier {
         // Esperar a que el TTS termine realmente antes de seguir
         await _tts.speak(speechText);
 
-        // Pequeño delay de seguridad para evitar cortes abruptos en el audio
-        await Future.delayed(const Duration(milliseconds: 500));
+        // Loop de espera activa hasta que el TTS termine de hablar o se cancele la sesión
+        // Esto previene que comience el STT mientras el TTS sigue activo
+        while (_isAiSpeaking &&
+            !_isSessionCancelled &&
+            _state == InterviewConversationState.speaking) {
+          await Future.delayed(const Duration(milliseconds: 100));
+        }
+
+        // Pequeño delay de seguridad adicional para el post-procesamiento de audio del sistema
+        if (!_isSessionCancelled &&
+            _state == InterviewConversationState.speaking) {
+          await Future.delayed(const Duration(milliseconds: 400));
+        }
       } catch (e) {
         _isTtsAvailable = false;
         _error = _l10n.interviewCouldNotPlayQuestionTextMode;

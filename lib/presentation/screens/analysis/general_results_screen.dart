@@ -51,160 +51,170 @@ class GeneralResultsScreen extends StatelessWidget {
       session: session,
     );
 
-    return AppScreenScaffold(
-      title: l10n.generalResultsTitle,
-      background: const TechBackground(),
-      body: ListView(
-        children: [
-          AppCard(
-            title: l10n.generalResultsCardTitle,
-            subtitle: l10n.generalResultsSummarySubtitle,
-            leading: Icon(Icons.insights_rounded, color: scheme.primary),
-            child: Row(
-              children: [
-                SizedBox(
-                  width: 92,
-                  height: 92,
-                  child: Stack(
-                    children: [
-                      Positioned.fill(
-                        child: CircularProgressIndicator(
-                          value: score / 100,
-                          strokeWidth: 10,
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        // Al volver atrás desde los resultados generales, vamos al Dashboard
+        // limpiando cualquier rastro del flujo de la entrevista.
+        Navigator.of(
+          context,
+        ).pushNamedAndRemoveUntil(AppRoutes.dashboard, (route) => false);
+      },
+      child: AppScreenScaffold(
+        title: l10n.generalResultsTitle,
+        showBackButton:
+            false, // Ocultar botón de atrás para forzar flujo controlado
+        background: const TechBackground(),
+        body: ListView(
+          children: [
+            AppCard(
+              title: l10n.generalResultsCardTitle,
+              subtitle: l10n.generalResultsSummarySubtitle,
+              leading: Icon(Icons.insights_rounded, color: scheme.primary),
+              child: Row(
+                children: [
+                  SizedBox(
+                    width: 92,
+                    height: 92,
+                    child: Stack(
+                      children: [
+                        Positioned.fill(
+                          child: CircularProgressIndicator(
+                            value: score / 100,
+                            strokeWidth: 10,
+                          ),
                         ),
-                      ),
-                      Center(
-                        child: Text(
-                          '$score',
-                          style: Theme.of(context).textTheme.headlineSmall,
+                        Center(
+                          child: Text(
+                            '$score',
+                            style: Theme.of(context).textTheme.headlineSmall,
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        l10n.generalResultsScoreLabel,
-                        style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                          color: scheme.onSurfaceVariant,
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        outcomeLabel,
-                        style: Theme.of(context).textTheme.titleMedium,
-                      ),
-                      const SizedBox(height: 10),
-                      Text(
-                        l10n.generalResultsStatusLabel,
-                        style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                          color: scheme.onSurfaceVariant,
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        outcomeLabel,
-                        style: Theme.of(
-                          context,
-                        ).textTheme.titleLarge?.copyWith(color: outcomeColor),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 14),
-          AppCard(
-            title: l10n.generalResultsStatsTitle,
-            subtitle: l10n.generalResultsStatsSubtitle,
-            leading: Icon(Icons.query_stats_rounded, color: scheme.primary),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                StatsSummaryChips(analytics: analytics),
-                const SizedBox(height: 14),
-                InterviewPieChartCard(
-                  title: l10n.generalResultsDistributionTitle,
-                  subtitle: l10n.generalResultsDistributionSubtitle,
-                  slices: analytics.breakdownSlices,
-                ),
-                const SizedBox(height: 14),
-                InterviewBarChartCard(
-                  title: l10n.generalResultsAnswerQualityTitle,
-                  subtitle: l10n.generalResultsAnswerQualitySubtitle,
-                  bars: analytics.turns,
-                  maxValue: 100,
-                  barColor: scheme.primary,
-                  valueSuffix: '/100',
-                ),
-                const SizedBox(height: 14),
-                InterviewBarChartCard(
-                  title: l10n.generalResultsTimePerAnswerTitle,
-                  subtitle: l10n.generalResultsTimePerAnswerSubtitle,
-                  bars: analytics.turns,
-                  maxValue: analytics.turns.isEmpty
-                      ? 1
-                      : analytics.turns
-                            .map((turn) => turn.responseSeconds)
-                            .reduce((a, b) => a > b ? a : b),
-                  barColor: scheme.secondary,
-                  valueSuffix: 's',
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 14),
-          AppCard(
-            title: l10n.generalResultsHighlightsTitle,
-            subtitle: l10n.generalResultsHighlightsSubtitle,
-            leading: Icon(Icons.star_rounded, color: scheme.secondary),
-            child: Column(
-              children: results.highlights.isEmpty
-                  ? [
-                      Text(
-                        l10n.generalResultsNoHighlights,
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: scheme.onSurfaceVariant,
-                        ),
-                      ),
-                    ]
-                  : [
-                      for (final h in results.highlights) ...[
-                        _Highlight(text: h),
-                        const SizedBox(height: 8),
                       ],
-                    ],
-            ),
-          ),
-          const SizedBox(height: 18),
-
-          AppPrimaryButton(
-            label: l10n.generalResultsViewDetailedAnalysis,
-            icon: Icons.analytics_rounded,
-            onPressed: () => Navigator.of(context).pushNamed(
-              AppRoutes.detailedAnalysis,
-              arguments: {'results': results, 'session': session},
-            ),
-          ),
-          const SizedBox(height: 10),
-          OutlinedButton(
-            onPressed: () => Navigator.of(
-              context,
-            ).pushNamedAndRemoveUntil(AppRoutes.dashboard, (r) => false),
-            style: OutlinedButton.styleFrom(
-              minimumSize: const Size(double.infinity, 48),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(14),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          l10n.generalResultsScoreLabel,
+                          style: Theme.of(context).textTheme.labelLarge
+                              ?.copyWith(color: scheme.onSurfaceVariant),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          outcomeLabel,
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
+                        const SizedBox(height: 10),
+                        Text(
+                          l10n.generalResultsStatusLabel,
+                          style: Theme.of(context).textTheme.labelLarge
+                              ?.copyWith(color: scheme.onSurfaceVariant),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          outcomeLabel,
+                          style: Theme.of(
+                            context,
+                          ).textTheme.titleLarge?.copyWith(color: outcomeColor),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
             ),
-            child: Text(l10n.backToDashboard),
-          ),
-        ],
+            const SizedBox(height: 14),
+            AppCard(
+              title: l10n.generalResultsStatsTitle,
+              subtitle: l10n.generalResultsStatsSubtitle,
+              leading: Icon(Icons.query_stats_rounded, color: scheme.primary),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  StatsSummaryChips(analytics: analytics),
+                  const SizedBox(height: 14),
+                  InterviewPieChartCard(
+                    title: l10n.generalResultsDistributionTitle,
+                    subtitle: l10n.generalResultsDistributionSubtitle,
+                    slices: analytics.breakdownSlices,
+                  ),
+                  const SizedBox(height: 14),
+                  InterviewBarChartCard(
+                    title: l10n.generalResultsAnswerQualityTitle,
+                    subtitle: l10n.generalResultsAnswerQualitySubtitle,
+                    bars: analytics.turns,
+                    maxValue: 100,
+                    barColor: scheme.primary,
+                    valueSuffix: '/100',
+                  ),
+                  const SizedBox(height: 14),
+                  InterviewBarChartCard(
+                    title: l10n.generalResultsTimePerAnswerTitle,
+                    subtitle: l10n.generalResultsTimePerAnswerSubtitle,
+                    bars: analytics.turns,
+                    maxValue: analytics.turns.isEmpty
+                        ? 1
+                        : analytics.turns
+                              .map((turn) => turn.responseSeconds)
+                              .reduce((a, b) => a > b ? a : b),
+                    barColor: scheme.secondary,
+                    valueSuffix: 's',
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 14),
+            AppCard(
+              title: l10n.generalResultsHighlightsTitle,
+              subtitle: l10n.generalResultsHighlightsSubtitle,
+              leading: Icon(Icons.star_rounded, color: scheme.secondary),
+              child: Column(
+                children: results.highlights.isEmpty
+                    ? [
+                        Text(
+                          l10n.generalResultsNoHighlights,
+                          style: Theme.of(context).textTheme.bodyMedium
+                              ?.copyWith(color: scheme.onSurfaceVariant),
+                        ),
+                      ]
+                    : [
+                        for (final h in results.highlights) ...[
+                          _Highlight(text: h),
+                          const SizedBox(height: 8),
+                        ],
+                      ],
+              ),
+            ),
+            const SizedBox(height: 18),
+
+            AppPrimaryButton(
+              label: l10n.generalResultsViewDetailedAnalysis,
+              icon: Icons.analytics_rounded,
+              onPressed: () => Navigator.of(context).pushNamed(
+                AppRoutes.detailedAnalysis,
+                arguments: {'results': results, 'session': session},
+              ),
+            ),
+            const SizedBox(height: 10),
+            OutlinedButton(
+              onPressed: () => Navigator.of(
+                context,
+              ).pushNamedAndRemoveUntil(AppRoutes.dashboard, (r) => false),
+              style: OutlinedButton.styleFrom(
+                minimumSize: const Size(double.infinity, 48),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
+              ),
+              child: Text(l10n.backToDashboard),
+            ),
+          ],
+        ),
       ),
     );
   }

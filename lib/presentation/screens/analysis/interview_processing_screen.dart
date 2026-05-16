@@ -144,125 +144,137 @@ class _InterviewProcessingScreenState extends State<InterviewProcessingScreen> {
     final session = _processedSession ?? widget.session;
     final results = _results;
 
-    return AppScreenScaffold(
-      title: l10n.processingTitle,
-      background: const TechBackground(),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            l10n.processingHeadline,
-            style: Theme.of(context).textTheme.titleLarge,
-          ),
-          const SizedBox(height: 10),
-          Text(
-            l10n.processingSubtitle,
-            style: Theme.of(
-              context,
-            ).textTheme.bodyMedium?.copyWith(color: scheme.onSurfaceVariant),
-          ),
-          if (session != null) ...[
-            const SizedBox(height: 8),
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        // Si el usuario intenta volver atrás durante el procesamiento,
+        // lo llevamos al Dashboard limpiando todo el flujo.
+        Navigator.of(
+          context,
+        ).pushNamedAndRemoveUntil(AppRoutes.dashboard, (route) => false);
+      },
+      child: AppScreenScaffold(
+        title: l10n.processingTitle,
+        showBackButton: false, // Ocultar botón de atrás interno
+        background: const TechBackground(),
+        body: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
             Text(
-              l10n.processingAnswersCaptured(session.turns.length),
+              l10n.processingHeadline,
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
+            const SizedBox(height: 10),
+            Text(
+              l10n.processingSubtitle,
               style: Theme.of(
                 context,
-              ).textTheme.bodySmall?.copyWith(color: scheme.onSurfaceVariant),
+              ).textTheme.bodyMedium?.copyWith(color: scheme.onSurfaceVariant),
+            ),
+            if (session != null) ...[
+              const SizedBox(height: 8),
+              Text(
+                l10n.processingAnswersCaptured(session.turns.length),
+                style: Theme.of(
+                  context,
+                ).textTheme.bodySmall?.copyWith(color: scheme.onSurfaceVariant),
+              ),
+            ],
+            const SizedBox(height: 22),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(16),
+              child: LinearProgressIndicator(
+                value: _isLoading ? null : 1.0,
+                minHeight: 12,
+              ),
+            ),
+            const SizedBox(height: 18),
+            Row(
+              children: [
+                Icon(Icons.memory_rounded, color: scheme.primary),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    l10n.modelGemini,
+                    style: Theme.of(context).textTheme.labelLarge,
+                  ),
+                ),
+                if (_isLoading)
+                  Text(
+                    l10n.processingWorking,
+                    style: Theme.of(context).textTheme.labelLarge,
+                  )
+                else if (results != null)
+                  Text(
+                    '${results.overallScore}/100',
+                    style: Theme.of(context).textTheme.labelLarge,
+                  ),
+              ],
+            ),
+            const SizedBox(height: 14),
+            _ConfigSummary(config: config),
+            const SizedBox(height: 14),
+            if (_error != null)
+              Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(16),
+                  color: scheme.errorContainer.withValues(alpha: 0.5),
+                  border: Border.all(
+                    color: scheme.outlineVariant.withValues(alpha: 0.6),
+                  ),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      l10n.processingErrorTitle,
+                      style: Theme.of(context).textTheme.titleSmall,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(_error!, style: Theme.of(context).textTheme.bodySmall),
+                    const SizedBox(height: 10),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: TextButton(
+                        onPressed: _isLoading ? null : _generateResults,
+                        child: Text(l10n.genericRetry),
+                      ),
+                    ),
+                  ],
+                ),
+              )
+            else if (results != null)
+              _ResultsSummary(results: results),
+            const Spacer(),
+            AppPrimaryButton(
+              label: l10n.processingViewResults,
+              icon: Icons.insights_rounded,
+              onPressed: results == null
+                  ? null
+                  : () {
+                      Navigator.of(context).pushReplacementNamed(
+                        AppRoutes.generalResults,
+                        arguments: {'results': results, 'session': session},
+                      );
+                    },
+            ),
+            const SizedBox(height: 12),
+            OutlinedButton(
+              onPressed: () => Navigator.of(
+                context,
+              ).pushNamedAndRemoveUntil(AppRoutes.dashboard, (r) => false),
+              style: OutlinedButton.styleFrom(
+                minimumSize: const Size(double.infinity, 48),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
+              ),
+              child: Text(l10n.processingBackToDashboard),
             ),
           ],
-          const SizedBox(height: 22),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(16),
-            child: LinearProgressIndicator(
-              value: _isLoading ? null : 1.0,
-              minHeight: 12,
-            ),
-          ),
-          const SizedBox(height: 18),
-          Row(
-            children: [
-              Icon(Icons.memory_rounded, color: scheme.primary),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Text(
-                  l10n.modelGemini,
-                  style: Theme.of(context).textTheme.labelLarge,
-                ),
-              ),
-              if (_isLoading)
-                Text(
-                  l10n.processingWorking,
-                  style: Theme.of(context).textTheme.labelLarge,
-                )
-              else if (results != null)
-                Text(
-                  '${results.overallScore}/100',
-                  style: Theme.of(context).textTheme.labelLarge,
-                ),
-            ],
-          ),
-          const SizedBox(height: 14),
-          _ConfigSummary(config: config),
-          const SizedBox(height: 14),
-          if (_error != null)
-            Container(
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(16),
-                color: scheme.errorContainer.withValues(alpha: 0.5),
-                border: Border.all(
-                  color: scheme.outlineVariant.withValues(alpha: 0.6),
-                ),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    l10n.processingErrorTitle,
-                    style: Theme.of(context).textTheme.titleSmall,
-                  ),
-                  const SizedBox(height: 8),
-                  Text(_error!, style: Theme.of(context).textTheme.bodySmall),
-                  const SizedBox(height: 10),
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: TextButton(
-                      onPressed: _isLoading ? null : _generateResults,
-                      child: Text(l10n.genericRetry),
-                    ),
-                  ),
-                ],
-              ),
-            )
-          else if (results != null)
-            _ResultsSummary(results: results),
-          const Spacer(),
-          AppPrimaryButton(
-            label: l10n.processingViewResults,
-            icon: Icons.insights_rounded,
-            onPressed: results == null
-                ? null
-                : () {
-                    Navigator.of(context).pushNamed(
-                      AppRoutes.generalResults,
-                      arguments: {'results': results, 'session': session},
-                    );
-                  },
-          ),
-          const SizedBox(height: 12),
-          OutlinedButton(
-            onPressed: () => Navigator.of(
-              context,
-            ).pushNamedAndRemoveUntil(AppRoutes.dashboard, (r) => false),
-            style: OutlinedButton.styleFrom(
-              minimumSize: const Size(double.infinity, 48),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(14),
-              ),
-            ),
-            child: Text(l10n.processingBackToDashboard),
-          ),
-        ],
+        ),
       ),
     );
   }

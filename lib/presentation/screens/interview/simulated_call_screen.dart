@@ -122,8 +122,12 @@ class _SimulatedCallScreenState extends State<SimulatedCallScreen> {
     await _voiceController.stopConversation();
     await _releaseMediaDevices();
     if (!mounted) return;
-    Navigator.of(context).pushNamed(
+
+    // Navegar a procesamiento eliminando el flujo de configuración de la entrevista
+    // Solo mantenemos el Dashboard en el stack.
+    Navigator.of(context).pushNamedAndRemoveUntil(
       AppRoutes.interviewProcessing,
+      (route) => route.settings.name == AppRoutes.dashboard,
       arguments: {'config': _config, 'session': _voiceController.session},
     );
   }
@@ -624,33 +628,14 @@ class _SimulatedCallScreenState extends State<SimulatedCallScreen> {
             Row(
               children: [
                 Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: _voiceController.isInterviewComplete
-                        ? null
-                        : () async {
-                            await _voiceController.skipQuestion();
-                            _answerController.clear();
-                          },
-                    style: OutlinedButton.styleFrom(
-                      minimumSize: const Size(0, 48),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                    ),
-                    icon: const Icon(Icons.skip_next_rounded),
-                    label: Text(l10n.callSkip),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
                   child: FilledButton.icon(
                     onPressed: _finishInterview,
                     style: FilledButton.styleFrom(
-                      minimumSize: const Size(0, 48),
+                      minimumSize: const Size(0, 54),
                       backgroundColor: scheme.error,
                       foregroundColor: scheme.onError,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14),
+                        borderRadius: BorderRadius.circular(16),
                       ),
                     ),
                     icon: const Icon(Icons.call_end_rounded),

@@ -326,7 +326,6 @@
   "callRepeatQuestion": "Repetir pregunta",
   "callSendToGemini": "Enviar a Gemini",
   "callRetryVoice": "Reintentar voz",
-  "callSkip": "Omitir",
   "callHangUp": "Colgar",
   "callTip": "Tip: mantén respuestas claras; si falla el audio, usa el texto y la conversación seguirá con Gemini.",
   "callMicActive": "Activo",
@@ -543,9 +542,6 @@
   "interviewTimeCompleted": "Entrevista completada: el tiempo restante ya no alcanza para una nueva pregunta con buena calidad.",
   "interviewStoppedListeningTryAgain": "Escucha detenida. Puedes volver a intentarlo.",
   "interviewReviewTranscriptOrSubmit": "Puedes revisar la transcripción o enviarla.",
-  "interviewAskDifferentQuestion": "Pidiendo una pregunta diferente...",
-  "interviewDifferentQuestionIntro": "Vamos con una pregunta distinta.",
-  "interviewCouldNotSkipCurrentQuestion": "No se pudo omitir la pregunta actual.",
   "interviewRepeatQuestionIntro": "Repito la pregunta.",
   "interviewCouldNotEnableAiVoice": "No se pudo activar la voz de la IA. La pregunta seguirá visible en pantalla.",
   "interviewCouldNotPlayAudio": "No se pudo reproducir el audio. La pregunta queda disponible en texto.",
@@ -555,7 +551,6 @@
   "interviewMissingType": "Falta el tipo de entrevista.",
   "interviewCouldNotGenerateFirstQuestion": "No se pudo generar la primera pregunta.",
   "interviewCouldNotGenerateQualityQuestion": "No se pudo generar una siguiente pregunta de calidad.",
-  "interviewCouldNotGenerateAlternativeQuestion": "No se pudo generar una nueva pregunta.",
   "interviewQuestionReady": "Nueva pregunta lista.",
   "interviewEmptyQuestion": "Gemini devolvió una pregunta vacía.",
   "interviewCouldNotPlayQuestionTextMode": "No se pudo reproducir la pregunta. Continuamos con la versión en texto.",
@@ -724,16 +719,6 @@
       "lastAnswer": { "type": "String" },
       "varietyInstructions": { "type": "String" },
       "history": { "type": "String" }
-    }
-  },
-  "aiPromptAlternative": "Actua como entrevistador experto para el rol \"{jobRole}\". Tipo de entrevista: {typeLabel}. Pregunta actual: \"{currentQuestion}\" Historial real: {history} Genera una nueva pregunta en espanol para reemplazar la actual. {varietyInstructions} Reglas: - Debe ser diferente a la pregunta actual. - Debe mantener continuidad con el historial. - Debe sonar natural, breve y directa. - Sin numeracion. - Sin markdown. Devuelve SOLO el texto de la pregunta.",
-  "@aiPromptAlternative": {
-    "placeholders": {
-      "jobRole": { "type": "String" },
-      "typeLabel": { "type": "String" },
-      "currentQuestion": { "type": "String" },
-      "history": { "type": "String" },
-      "varietyInstructions": { "type": "String" }
     }
   },
   "aiPromptClosing": "Actúa como un entrevistador profesional y humano. La entrevista para el rol \"{jobRole}\" ha terminado. Agradece al candidato por su tiempo, confirma que el proceso ha concluido con éxito y despídete de manera amigable y profesional, manteniendo el tono de la conversación. Reglas: - Devuelve SOLO el texto de la despedida. - No uses JSON ni markdown. - Sé breve pero cálido (máximo 2-3 frases). - No menciones resultados técnicos ni feedback en este mensaje.",

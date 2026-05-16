@@ -78,9 +78,14 @@ class RecommendationsScreen extends StatelessWidget {
                 SizedBox(
                   width: (MediaQuery.of(context).size.width - 80) / 2,
                   child: OutlinedButton.icon(
-                    onPressed: () => Navigator.of(
-                      context,
-                    ).pushNamed(AppRoutes.selectInterviewType),
+                    onPressed: () {
+                      // Para repetir, vamos a la selección de tipo limpiando el stack
+                      // pero manteniendo el dashboard como base.
+                      Navigator.of(context).pushNamedAndRemoveUntil(
+                        AppRoutes.selectInterviewType,
+                        (route) => route.settings.name == AppRoutes.dashboard,
+                      );
+                    },
                     style: OutlinedButton.styleFrom(
                       minimumSize: const Size(0, 54),
                       shape: RoundedRectangleBorder(

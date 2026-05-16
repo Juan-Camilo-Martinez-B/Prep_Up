@@ -663,9 +663,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get callRetryVoice => 'Retry voice';
 
   @override
-  String get callSkip => 'Skip';
-
-  @override
   String get callHangUp => 'Hang up';
 
   @override
@@ -1168,18 +1165,6 @@ class AppLocalizationsEn extends AppLocalizations {
       'You can review the transcript or submit it.';
 
   @override
-  String get interviewAskDifferentQuestion =>
-      'Asking for a different question...';
-
-  @override
-  String get interviewDifferentQuestionIntro =>
-      'Let\'s go with a different question.';
-
-  @override
-  String get interviewCouldNotSkipCurrentQuestion =>
-      'Could not skip the current question.';
-
-  @override
   String get interviewRepeatQuestionIntro => 'Repeating the question.';
 
   @override
@@ -1212,10 +1197,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get interviewCouldNotGenerateQualityQuestion =>
       'Could not generate a strong next question.';
-
-  @override
-  String get interviewCouldNotGenerateAlternativeQuestion =>
-      'Could not generate a different question.';
 
   @override
   String get interviewQuestionReady => 'New question ready.';
@@ -1501,17 +1482,6 @@ class AppLocalizationsEn extends AppLocalizations {
     String history,
   ) {
     return 'Interviewer for \"$jobRole\" ($typeLabel). Last Q: \"$lastQuestion\" Candidate A: \"$lastAnswer\" Goal: Ask the next question. 1. Briefly acknowledge or react to the candidate\'s last answer. 2. Ask a follow-up or a new relevant question. $varietyInstructions 3. Keep it natural and professional. 4. Return ONLY the text of the reaction and the question. No JSON. History context: $history';
-  }
-
-  @override
-  String aiPromptAlternative(
-    String jobRole,
-    String typeLabel,
-    String currentQuestion,
-    String history,
-    String varietyInstructions,
-  ) {
-    return 'Act as an expert interviewer for the \"$jobRole\" role. Interview type: $typeLabel. Current question: \"$currentQuestion\" Real history: $history Generate a new question in English to replace the current one. $varietyInstructions Rules: - It must be different from the current question. - It must keep continuity with the history. - It must sound natural, concise, and direct. - No numbering. - No markdown. Return ONLY the question text.';
   }
 
   @override

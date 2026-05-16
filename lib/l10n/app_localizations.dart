@@ -1292,12 +1292,6 @@ abstract class AppLocalizations {
   /// **'Retry voice'**
   String get callRetryVoice;
 
-  /// No description provided for @callSkip.
-  ///
-  /// In en, this message translates to:
-  /// **'Skip'**
-  String get callSkip;
-
   /// No description provided for @callHangUp.
   ///
   /// In en, this message translates to:
@@ -2216,24 +2210,6 @@ abstract class AppLocalizations {
   /// **'You can review the transcript or submit it.'**
   String get interviewReviewTranscriptOrSubmit;
 
-  /// No description provided for @interviewAskDifferentQuestion.
-  ///
-  /// In en, this message translates to:
-  /// **'Asking for a different question...'**
-  String get interviewAskDifferentQuestion;
-
-  /// No description provided for @interviewDifferentQuestionIntro.
-  ///
-  /// In en, this message translates to:
-  /// **'Let\'s go with a different question.'**
-  String get interviewDifferentQuestionIntro;
-
-  /// No description provided for @interviewCouldNotSkipCurrentQuestion.
-  ///
-  /// In en, this message translates to:
-  /// **'Could not skip the current question.'**
-  String get interviewCouldNotSkipCurrentQuestion;
-
   /// No description provided for @interviewRepeatQuestionIntro.
   ///
   /// In en, this message translates to:
@@ -2287,12 +2263,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Could not generate a strong next question.'**
   String get interviewCouldNotGenerateQualityQuestion;
-
-  /// No description provided for @interviewCouldNotGenerateAlternativeQuestion.
-  ///
-  /// In en, this message translates to:
-  /// **'Could not generate a different question.'**
-  String get interviewCouldNotGenerateAlternativeQuestion;
 
   /// No description provided for @interviewQuestionReady.
   ///
@@ -2730,18 +2700,6 @@ abstract class AppLocalizations {
     String lastAnswer,
     String varietyInstructions,
     String history,
-  );
-
-  /// No description provided for @aiPromptAlternative.
-  ///
-  /// In en, this message translates to:
-  /// **'Act as an expert interviewer for the \"{jobRole}\" role. Interview type: {typeLabel}. Current question: \"{currentQuestion}\" Real history: {history} Generate a new question in English to replace the current one. {varietyInstructions} Rules: - It must be different from the current question. - It must keep continuity with the history. - It must sound natural, concise, and direct. - No numbering. - No markdown. Return ONLY the question text.'**
-  String aiPromptAlternative(
-    String jobRole,
-    String typeLabel,
-    String currentQuestion,
-    String history,
-    String varietyInstructions,
   );
 
   /// No description provided for @aiPromptClosing.

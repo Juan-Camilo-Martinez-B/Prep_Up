@@ -671,9 +671,6 @@ class AppLocalizationsEs extends AppLocalizations {
   String get callRetryVoice => 'Reintentar voz';
 
   @override
-  String get callSkip => 'Omitir';
-
-  @override
   String get callHangUp => 'Colgar';
 
   @override
@@ -1176,18 +1173,6 @@ class AppLocalizationsEs extends AppLocalizations {
       'Puedes revisar la transcripción o enviarla.';
 
   @override
-  String get interviewAskDifferentQuestion =>
-      'Pidiendo una pregunta diferente...';
-
-  @override
-  String get interviewDifferentQuestionIntro =>
-      'Vamos con una pregunta distinta.';
-
-  @override
-  String get interviewCouldNotSkipCurrentQuestion =>
-      'No se pudo omitir la pregunta actual.';
-
-  @override
   String get interviewRepeatQuestionIntro => 'Repito la pregunta.';
 
   @override
@@ -1220,10 +1205,6 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get interviewCouldNotGenerateQualityQuestion =>
       'No se pudo generar una siguiente pregunta de calidad.';
-
-  @override
-  String get interviewCouldNotGenerateAlternativeQuestion =>
-      'No se pudo generar una nueva pregunta.';
 
   @override
   String get interviewQuestionReady => 'Nueva pregunta lista.';
@@ -1512,17 +1493,6 @@ class AppLocalizationsEs extends AppLocalizations {
     String history,
   ) {
     return 'Entrevistador para \"$jobRole\" ($typeLabel). Ultima Q: \"$lastQuestion\" Respuesta: \"$lastAnswer\" Objetivo: Haz la siguiente pregunta. 1. Reconoce muy brevemente la última respuesta del candidato. 2. Haz una pregunta de seguimiento o una nueva pregunta relevante. $varietyInstructions 3. Sé natural, profesional y conciso. 4. Devuelve SOLO el texto de la reacción y la pregunta. Sin JSON ni comentarios extra. Contexto historial: $history';
-  }
-
-  @override
-  String aiPromptAlternative(
-    String jobRole,
-    String typeLabel,
-    String currentQuestion,
-    String history,
-    String varietyInstructions,
-  ) {
-    return 'Actua como entrevistador experto para el rol \"$jobRole\". Tipo de entrevista: $typeLabel. Pregunta actual: \"$currentQuestion\" Historial real: $history Genera una nueva pregunta en espanol para reemplazar la actual. $varietyInstructions Reglas: - Debe ser diferente a la pregunta actual. - Debe mantener continuidad con el historial. - Debe sonar natural, breve y directa. - Sin numeracion. - Sin markdown. Devuelve SOLO el texto de la pregunta.';
   }
 
   @override

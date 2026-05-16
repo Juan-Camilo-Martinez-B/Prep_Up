@@ -616,36 +616,6 @@ class GeminiService {
     return next.trim();
   }
 
-  Future<String> generateAlternativeQuestion({
-    required String jobRole,
-    required InterviewType type,
-    required String currentQuestion,
-    required List<InterviewTurn> turns,
-    required List<String> selectedFocus,
-    required AppLocalizations l10n,
-  }) async {
-    final typeLabel = type.label(l10n);
-    final history = formatTurnsForHistory(turns, l10n);
-    final varietyInstructions = getVarietyInstructions(l10n, selectedFocus);
-
-    final prompt = l10n.aiPromptAlternative(
-      jobRole,
-      typeLabel,
-      currentQuestion,
-      history,
-      varietyInstructions,
-    );
-
-    final next = await sendPrompt(
-      prompt: prompt,
-      systemInstruction: l10n.aiPromptSystemInterviewer(l10n.localeName),
-      temperature: 0.85,
-      maxOutputTokens: 512,
-    );
-
-    return next.trim();
-  }
-
   String formatTurnsForHistory(
     List<InterviewTurn> turns,
     AppLocalizations l10n,

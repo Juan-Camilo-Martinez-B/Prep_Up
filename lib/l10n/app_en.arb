@@ -326,7 +326,6 @@
   "callRepeatQuestion": "Repeat question",
   "callSendToGemini": "Send to Gemini",
   "callRetryVoice": "Retry voice",
-  "callSkip": "Skip",
   "callHangUp": "Hang up",
   "callTip": "Tip: keep answers clear; if audio fails, use text and Gemini will continue the conversation.",
   "callMicActive": "Active",
@@ -543,9 +542,6 @@
   "interviewTimeCompleted": "Interview completed: there is not enough remaining time for a quality new question.",
   "interviewStoppedListeningTryAgain": "Listening stopped. You can try again.",
   "interviewReviewTranscriptOrSubmit": "You can review the transcript or submit it.",
-  "interviewAskDifferentQuestion": "Asking for a different question...",
-  "interviewDifferentQuestionIntro": "Let's go with a different question.",
-  "interviewCouldNotSkipCurrentQuestion": "Could not skip the current question.",
   "interviewRepeatQuestionIntro": "Repeating the question.",
   "interviewCouldNotEnableAiVoice": "Could not enable AI voice. The question remains visible on screen.",
   "interviewCouldNotPlayAudio": "Could not play audio. The question remains available in text.",
@@ -555,7 +551,6 @@
   "interviewMissingType": "Interview type is required.",
   "interviewCouldNotGenerateFirstQuestion": "Could not generate the first question.",
   "interviewCouldNotGenerateQualityQuestion": "Could not generate a strong next question.",
-  "interviewCouldNotGenerateAlternativeQuestion": "Could not generate a different question.",
   "interviewQuestionReady": "New question ready.",
   "interviewEmptyQuestion": "Gemini returned an empty question.",
   "interviewCouldNotPlayQuestionTextMode": "Could not play the question. Continuing in text mode.",
@@ -725,16 +720,6 @@
       "lastAnswer": { "type": "String" },
       "varietyInstructions": { "type": "String" },
       "history": { "type": "String" }
-    }
-  },
-  "aiPromptAlternative": "Act as an expert interviewer for the \"{jobRole}\" role. Interview type: {typeLabel}. Current question: \"{currentQuestion}\" Real history: {history} Generate a new question in English to replace the current one. {varietyInstructions} Rules: - It must be different from the current question. - It must keep continuity with the history. - It must sound natural, concise, and direct. - No numbering. - No markdown. Return ONLY the question text.",
-  "@aiPromptAlternative": {
-    "placeholders": {
-      "jobRole": { "type": "String" },
-      "typeLabel": { "type": "String" },
-      "currentQuestion": { "type": "String" },
-      "history": { "type": "String" },
-      "varietyInstructions": { "type": "String" }
     }
   },
   "aiPromptClosing": "Act as a professional and human interviewer. The interview for the \"{jobRole}\" role has ended. Thank the candidate for their time, confirm that the process has successfully concluded, and say goodbye in a friendly and professional manner, maintaining the tone of the conversation. Rules: - Return ONLY the farewell text. - Do not use JSON or markdown. - Be brief but warm (max 2-3 sentences). - Do not mention technical results or feedback in this message.",
