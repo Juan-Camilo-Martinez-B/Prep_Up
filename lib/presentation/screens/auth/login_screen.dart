@@ -240,6 +240,9 @@ class _LoginScreenState extends State<LoginScreen> {
                             TextField(
                               controller: _passwordController,
                               obscureText: _obscure,
+                              inputFormatters: [
+                                FilteringTextInputFormatter.deny(RegExp(r'^\s+')),
+                              ],
                               decoration: inputDecoration.copyWith(
                                 labelText: l10n.passwordLabel,
                                 prefixIcon: const Icon(

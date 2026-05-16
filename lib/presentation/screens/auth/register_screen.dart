@@ -23,8 +23,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _phoneController = TextEditingController();
   UserOccupation? _selectedOccupation;
   final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
   final _authService = AuthService();
   var _obscure = true;
+  var _obscureConfirm = true;
   var _isLoading = false;
 
   @override
@@ -33,6 +35,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     _emailController.dispose();
     _phoneController.dispose();
     _passwordController.dispose();
+    _confirmPasswordController.dispose();
     super.dispose();
   }
 
@@ -56,12 +59,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
     final phone = _phoneController.text.trim();
     final occupation = _selectedOccupation;
     final password = _passwordController.text.trim();
-
+    final confirmPassword = _confirmPasswordController.text.trim();
+ 
     if (name.isEmpty ||
         email.isEmpty ||
         phone.isEmpty ||
         occupation == null ||
-        password.isEmpty) {
+        password.isEmpty ||
+        confirmPassword.isEmpty) {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text(l10n.authFillAllFields)));
@@ -86,6 +91,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text(l10n.registerWeakPassword)));
+      return;
+    }
+
+    if (password != confirmPassword) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Las contraseñas no coinciden')));
       return;
     }
 
@@ -299,7 +311,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             controller: _passwordController,
                             obscureText: _obscure,
                             inputFormatters: [
-                              FilteringTextInputFormatter.deny(RegExp(r'\s')),
+                              FilteringTextInputFormatter.deny(RegExp(r'^\s+')),
                             ],
                             decoration: inputDecoration.copyWith(
                               labelText: l10n.passwordLabel,
@@ -309,6 +321,28 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                     setState(() => _obscure = !_obscure),
                                 icon: Icon(
                                   _obscure
+                                      ? Icons.visibility_off_outlined
+                                      : Icons.visibility_outlined,
+                                  color: scheme.onSurfaceVariant,
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          TextField(
+                            controller: _confirmPasswordController,
+                            obscureText: _obscureConfirm,
+                            inputFormatters: [
+                              FilteringTextInputFormatter.deny(RegExp(r'^\s+')),
+                            ],
+                            decoration: inputDecoration.copyWith(
+                              labelText: 'Confirmar Contraseña',
+                              prefixIcon: const Icon(Icons.lock_clock_outlined),
+                              suffixIcon: IconButton(
+                                onPressed: () =>
+                                    setState(() => _obscureConfirm = !_obscureConfirm),
+                                icon: Icon(
+                                  _obscureConfirm
                                       ? Icons.visibility_off_outlined
                                       : Icons.visibility_outlined,
                                   color: scheme.onSurfaceVariant,

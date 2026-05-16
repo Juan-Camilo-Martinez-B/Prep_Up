@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:prep_up/core/errors/user_friendly_error.dart';
 import 'package:prep_up/core/localization/l10n_extensions.dart';
 import 'package:prep_up/core/navigation/app_routes.dart';
@@ -181,6 +182,9 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                       TextField(
                         controller: _passwordController,
                         obscureText: _obscurePassword,
+                        inputFormatters: [
+                          FilteringTextInputFormatter.deny(RegExp(r'^\s+')),
+                        ],
                         decoration: inputDecoration.copyWith(
                           labelText: 'Nueva Contraseña',
                           prefixIcon: const Icon(Icons.lock_outline_rounded),
@@ -196,6 +200,9 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                       TextField(
                         controller: _confirmPasswordController,
                         obscureText: _obscureConfirmPassword,
+                        inputFormatters: [
+                          FilteringTextInputFormatter.deny(RegExp(r'^\s+')),
+                        ],
                         decoration: inputDecoration.copyWith(
                           labelText: 'Confirmar Contraseña',
                           prefixIcon: const Icon(Icons.lock_clock_outlined),
