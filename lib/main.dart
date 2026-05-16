@@ -9,7 +9,9 @@ import 'package:prep_up/domain/entities/app_settings_model.dart';
 import 'package:prep_up/domain/services/auth_preferences.dart';
 import 'package:prep_up/domain/services/auth_service.dart';
 import 'package:prep_up/domain/services/gemini_service.dart';
+import 'package:prep_up/domain/services/cached_database_service.dart';
 import 'package:prep_up/domain/services/relational_database_service.dart';
+import 'package:prep_up/domain/services/sqflite_database_service.dart';
 import 'package:prep_up/domain/services/supabase_database_service.dart';
 import 'package:prep_up/l10n/app_localizations.dart';
 import 'package:prep_up/presentation/controllers/interview_config_controller.dart';
@@ -34,11 +36,18 @@ Future<void> main() async {
         : const FlutterAuthClientOptions(localStorage: EmptyLocalStorage()),
   );
 
-  runApp(const AiInterviewTrainerApp());
+  // Inicializar Servicios de Base de Datos
+  final remoteDb = SupabaseDatabaseService();
+  final localDb = SqfliteDatabaseService();
+  final cachedDb = CachedDatabaseService(remote: remoteDb, local: localDb);
+  await cachedDb.initialize();
+
+  runApp(AiInterviewTrainerApp(databaseService: cachedDb));
 }
 
 class AiInterviewTrainerApp extends StatefulWidget {
-  const AiInterviewTrainerApp({super.key});
+  final RelationalDatabaseService databaseService;
+  const AiInterviewTrainerApp({super.key, required this.databaseService});
 
   @override
   State<AiInterviewTrainerApp> createState() => _AiInterviewTrainerAppState();
@@ -82,7 +91,7 @@ class _AiInterviewTrainerAppState extends State<AiInterviewTrainerApp> {
       providers: [
         Provider<AuthService>(create: (_) => AuthService()),
         Provider<RelationalDatabaseService>(
-          create: (_) => SupabaseDatabaseService(),
+          create: (_) => widget.databaseService,
         ),
         Provider<GeminiService>(create: (_) => GeminiService()),
         ChangeNotifierProvider(create: (_) => InterviewConfigController()),
