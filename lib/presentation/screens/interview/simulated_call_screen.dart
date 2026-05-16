@@ -119,12 +119,19 @@ class _SimulatedCallScreenState extends State<SimulatedCallScreen> {
   Future<void> _finishInterview() async {
     if (_isFinishingInterview) return;
     _isFinishingInterview = true;
+
+    // Detener timer local inmediatamente
+    _timer?.cancel();
+
+    // Detener todos los procesos del controlador de voz agresivamente
     await _voiceController.stopConversation();
+
+    // Liberar dispositivos de medios (cámara/micrófono)
     await _releaseMediaDevices();
+
     if (!mounted) return;
 
-    // Navegar a procesamiento eliminando el flujo de configuración de la entrevista
-    // Solo mantenemos el Dashboard en el stack.
+    // Navegar directamente a procesamiento eliminando el flujo de la entrevista
     Navigator.of(context).pushNamedAndRemoveUntil(
       AppRoutes.interviewProcessing,
       (route) => route.settings.name == AppRoutes.dashboard,
@@ -173,13 +180,7 @@ class _SimulatedCallScreenState extends State<SimulatedCallScreen> {
         );
 
         if (shouldPop == true && context.mounted) {
-          await _voiceController.stopConversation();
-          await _releaseMediaDevices();
-          if (context.mounted) {
-            Navigator.of(
-              context,
-            ).pushNamedAndRemoveUntil(AppRoutes.dashboard, (route) => false);
-          }
+          await _finishInterview();
         }
       },
       child: AppScreenScaffold(

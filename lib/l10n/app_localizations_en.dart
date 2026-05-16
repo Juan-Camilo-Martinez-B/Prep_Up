@@ -317,6 +317,42 @@ class AppLocalizationsEn extends AppLocalizations {
   String get jobRoleProductManager => 'Product Manager';
 
   @override
+  String get aiJobRoleContextFrontendDeveloper =>
+      'Focus on React/Flutter, state management (Redux/Bloc), accessibility, performance, and responsive layout.';
+
+  @override
+  String get aiJobRoleContextBackendDeveloper =>
+      'Focus on REST/GraphQL APIs, microservices, security (OAuth/JWT), SQL/NoSQL databases, and scalability.';
+
+  @override
+  String get aiJobRoleContextMobileDeveloper =>
+      'Focus on app lifecycle, local storage, native integration, notifications, and battery/memory optimization.';
+
+  @override
+  String get aiJobRoleContextUiUxDesigner =>
+      'Focus on user research, information architecture, design systems (Figma), usability, and prototyping.';
+
+  @override
+  String get aiJobRoleContextDataAnalyst =>
+      'Focus on advanced SQL, BI tools (PowerBI/Tableau), ETL processes, data cleaning, and reporting.';
+
+  @override
+  String get aiJobRoleContextDataScientist =>
+      'Focus on ML algorithms, predictive models, Python (Pandas/Scikit-learn), Big Data, and model deployment.';
+
+  @override
+  String get aiJobRoleContextQaTester =>
+      'Focus on test automation (Selenium/Cypress), load testing, regression, CI/CD pipelines, and manual QA.';
+
+  @override
+  String get aiJobRoleContextDevOps =>
+      'Focus on infrastructure as code (Terraform), Docker/Kubernetes, cloud (AWS/GCP/Azure), and observability.';
+
+  @override
+  String get aiJobRoleContextProductManager =>
+      'Focus on strategic roadmaps, prioritization (RICE/Kano), product metrics (KPIs), agile methodologies, and stakeholders.';
+
+  @override
   String get interviewMissingFieldType => 'interview type';
 
   @override
@@ -1412,81 +1448,89 @@ class AppLocalizationsEn extends AppLocalizations {
     int count,
     String type,
     String jobRole,
+    String roleContext,
     String varietyInstructions,
     int seed,
     String jsonSchema,
   ) {
-    return 'Generate $count $type interview questions for the role: \"$jobRole\". Make sure the questions are highly varied, creative, and cover different angles. Avoid generic or cliché questions (e.g., \"What are your strengths?\", \"Tell me about yourself\"). $varietyInstructions (Random Seed: $seed) Return ONLY JSON with this exact schema: $jsonSchema Requirements: - Questions must be clear and specific - No numbering in the question text - No markdown';
+    return 'Generate $count $type interview questions for the role: \"$jobRole\". Role context: $roleContext. Make sure the questions are highly varied, creative, and cover different angles. Avoid generic or cliché questions (e.g., \"What are your strengths?\", \"Tell me about yourself\"). $varietyInstructions (Random Seed: $seed) Return ONLY JSON with this exact schema: $jsonSchema Requirements: - Questions must be clear and specific - No numbering in the question text - No markdown';
   }
 
   @override
   String aiPromptEvaluation(
     String type,
     String jobRole,
+    String roleContext,
     String question,
     String answer,
     int seed,
     String jsonSchema,
   ) {
-    return 'Evaluate the user\'s answer for a $type interview for the \"$jobRole\" role. Question: \"$question\" User answer: \"$answer\" (Random Seed: $seed) Return ONLY JSON with this exact schema: $jsonSchema Rules: - overallScore must be an integer 0..100 - strengths/improvements: 2 to 5 items each - suggestedAnswer: concise, improved, and results-oriented - followUpQuestions: 0 to 3 highly contextual, creative, and non-cliché follow-up questions based on the user\'s specific answer. - No markdown';
+    return 'Evaluate the user\'s answer for a $type interview for the \"$jobRole\" role. Role context: $roleContext. Question: \"$question\" User answer: \"$answer\" (Random Seed: $seed) Return ONLY JSON with this exact schema: $jsonSchema Rules: - overallScore must be an integer 0..100 - strengths/improvements: 2 to 5 items each - suggestedAnswer: concise, improved, and results-oriented - followUpQuestions: 0 to 3 highly contextual, creative, and non-cliché follow-up questions based on the user\'s specific answer. - No markdown';
   }
 
   @override
   String aiPromptFeedback(
+    String jobRole,
+    String roleContext,
     String question,
     String answer,
     String evaluationJson,
     String jsonSchema,
   ) {
-    return 'Based on the question, the user\'s answer, and the evaluation, generate actionable feedback. Question: \"$question\" User answer: \"$answer\" Evaluation (JSON): $evaluationJson Return ONLY JSON with this exact schema: $jsonSchema Rules: - summary: max 3 sentences - actionItems: 3 to 6 actionable items - keyPhrasesToUse: 3 to 8 short phrases the user can use - No markdown';
+    return 'Based on the question, the user\'s response, the role \"$jobRole\" ($roleContext), and the evaluation, generate actionable feedback. Question: \"$question\" User response: \"$answer\" Evaluation (JSON): $evaluationJson Return ONLY JSON with this exact schema: $jsonSchema Rules: - summary: maximum 3 sentences - actionItems: 3 to 6 actionable points - keyPhrasesToUse: 3 to 8 short phrases the user could use - No markdown';
   }
 
   @override
   String aiPromptResultsAnalysis(
     String jobRole,
+    String roleContext,
     String typeLabel,
     int overallScore,
     String outcome,
     String history,
     String jsonSchema,
   ) {
-    return 'Analyze the interview results for the \"$jobRole\" role ($typeLabel interview). Overall score (already calculated): $overallScore Outcome: $outcome Interview history (Q&A with per-answer scores): $history Return ONLY a valid JSON object — no markdown, no extra text, no explanation: $jsonSchema';
+    return 'Analyze the interview results for the role \"$jobRole\" (type: $typeLabel). Role context: $roleContext. Overall score (already calculated): $overallScore Outcome: $outcome Interview history (questions, answers, and score per turn): $history Return ONLY a valid JSON object — no markdown, no extra text, no explanations: $jsonSchema';
   }
 
   @override
   String aiPromptNextQuestion(
     String jobRole,
+    String roleContext,
     String typeLabel,
     String history,
     String varietyInstructions,
   ) {
-    return 'Act as an expert interviewer for the \"$jobRole\" role. Interview type: $typeLabel. History (question, answer, evaluation): $history Generate the next question in English: - It must be a single question. - It must adapt to the last answer. - If score was low, ask for clarification or a concrete example. - If score was high, increase difficulty or go deeper. $varietyInstructions - AVOID generic or overused topics (e.g., \'microservicios vs monoliths\', \'SQL vs NoSQL\') unless directly related to the previous answer. - Ensure the topic is different from previous questions in the history to maintain variety. - No numbering. - No markdown. Return ONLY the question text.';
+    return 'Act as an expert interviewer for the \"$jobRole\" role. Role context: $roleContext. Interview type: $typeLabel. History (question, answer, evaluation): $history Generate the next question in English: - It must be a single question. - It must adapt to the last answer. - If score was low, ask for clarification or a concrete example. - If score was high, increase difficulty or go deeper. $varietyInstructions - AVOID generic or overused topics (e.g., \'microservicios vs monoliths\', \'SQL vs NoSQL\') unless directly related to the previous answer. - Ensure the topic is different from previous questions in the history to maintain variety. - No numbering. - No markdown. Return ONLY the question text.';
   }
 
   @override
   String aiPromptOpening(
     String jobRole,
+    String roleContext,
     String typeLabel,
     String varietyInstructions,
   ) {
-    return 'You are a professional and friendly interviewer for the role: \"$jobRole\". Introduce yourself briefly and ask the first question for a $typeLabel interview. $varietyInstructions Rules: - Return ONLY the text of the greeting and the question. - DO NOT use JSON, markdown, or any other formatting. - Be natural and professional.';
+    return 'You are a professional and friendly interviewer for the role: \"$jobRole\". Role context: $roleContext. Introduce yourself briefly and ask the first question for a $typeLabel interview. $varietyInstructions Rules: - Return ONLY the text of the greeting and the question. - DO NOT use JSON, markdown, or any other formatting. - Be natural and professional.';
   }
 
   @override
   String aiPromptConversationalNext(
     String jobRole,
+    String roleContext,
     String typeLabel,
     String lastQuestion,
     String lastAnswer,
     String varietyInstructions,
     String history,
   ) {
-    return 'Interviewer for \"$jobRole\" ($typeLabel). Last Q: \"$lastQuestion\" Candidate A: \"$lastAnswer\" Goal: Ask the next question. 1. Briefly acknowledge or react to the candidate\'s last answer. 2. Ask a follow-up or a new relevant question. $varietyInstructions 3. Keep it natural and professional. 4. Return ONLY the text of the reaction and the question. No JSON. History context: $history';
+    return 'Interviewer for \"$jobRole\" ($typeLabel). Role context: $roleContext. Last Q: \"$lastQuestion\" Candidate A: \"$lastAnswer\" Goal: Ask the next question. 1. Briefly acknowledge or react to the candidate\'s last answer. 2. Ask a follow-up or a new relevant question. $varietyInstructions 3. Keep it natural and professional. 4. Return ONLY the text of the reaction and the question. No JSON. History context: $history';
   }
 
   @override
-  String aiPromptClosing(String jobRole) {
-    return 'Act as a professional and human interviewer. The interview for the \"$jobRole\" role has ended. Thank the candidate for their time, confirm that the process has successfully concluded, and say goodbye in a friendly and professional manner, maintaining the tone of the conversation. Rules: - Return ONLY the farewell text. - Do not use JSON or markdown. - Be brief but warm (max 2-3 sentences). - Do not mention technical results or feedback in this message.';
+  String aiPromptClosing(String jobRole, String roleContext) {
+    return 'Act as a professional and human interviewer. The interview for the \"$jobRole\" role has ended. Role context: $roleContext. Thank the candidate for their time, confirm that the process has successfully concluded, and say goodbye in a friendly and professional manner, maintaining the tone of the conversation. Rules: - Return ONLY the farewell text. - Do not use JSON or markdown. - Be brief but warm (max 2-3 sentences). - Do not mention technical results or feedback in this message.';
   }
 
   @override
@@ -1531,7 +1575,7 @@ class AppLocalizationsEn extends AppLocalizations {
     String lastQuestion,
     String lastAnswer,
   ) {
-    return 'Rewrite this interview question so it is more complete, specific, and natural. Weak question: \"$weakQuestion\" Previous question: \"$lastQuestion\" Last candidate answer: \"$lastAnswer\" Return ONLY one question in English. Rules: - Exactly one question. - It must ask for concrete context, example, decision, impact, or result. - It must not repeat the previous question. - It should not be vague or too short. - No markdown.';
+    return 'Rewrite this interview question to be more complete, specific, and natural. Weak question: \"$weakQuestion\" Previous question: \"$lastQuestion\" Candidate\'s last response: \"$lastAnswer\" Return ONLY one question in English. Rules: - A single question. - Must ask for concrete context, example, decision, impact, or result. - Cannot repeat the previous question. - Must not be vague or too short. - No markdown.';
   }
 
   @override

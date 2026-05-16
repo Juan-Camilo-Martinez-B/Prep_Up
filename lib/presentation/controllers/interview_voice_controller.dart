@@ -6,9 +6,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:prep_up/core/errors/user_friendly_error.dart';
 import 'package:prep_up/core/localization/interview_l10n.dart';
-import 'package:prep_up/domain/entities/answer_evaluation_model.dart';
 import 'package:prep_up/domain/entities/interview_config.dart';
-import 'package:prep_up/domain/entities/interview_feedback_model.dart';
 import 'package:prep_up/domain/entities/interview_session.dart';
 import 'package:prep_up/domain/entities/interview_tags.dart';
 import 'package:prep_up/domain/services/gemini_service.dart';
@@ -194,11 +192,29 @@ class InterviewVoiceController extends ChangeNotifier {
       await _tts.stop();
       await _speech.stop();
 
+      final evaluation = await _geminiService.evaluateUserAnswer(
+        question: question,
+        userAnswer: safeAnswer,
+        role: _config.jobRole,
+        jobRoleLabel: _config.jobRole?.label(_l10n) ?? '',
+        l10n: _l10n,
+        type: _config.type ?? InterviewType.mixed,
+      );
+
+      final feedback = await _geminiService.generateFeedback(
+        question: question,
+        userAnswer: safeAnswer,
+        evaluation: evaluation,
+        role: _config.jobRole,
+        jobRoleLabel: _config.jobRole?.label(_l10n) ?? '',
+        l10n: _l10n,
+      );
+
       final turn = InterviewTurn(
         question: question,
         answer: safeAnswer,
-        evaluation: AnswerEvaluationModel.empty,
-        feedback: InterviewFeedbackModel.empty,
+        evaluation: evaluation,
+        feedback: feedback,
         createdAt: DateTime.now().toUtc(),
         responseDurationSeconds: _calculateCurrentResponseDurationSeconds(),
       );
@@ -256,13 +272,29 @@ class InterviewVoiceController extends ChangeNotifier {
     _isSessionCancelled = true;
     _hasStarted = false;
     _isInterviewComplete = false;
+    _isAiSpeaking = false;
     _setIdle();
     _statusMessage = '';
     _voiceDraft = '';
     _soundLevel = 0;
     _notifySafely();
-    await _speech.cancel();
-    await _tts.stop();
+
+    // Detener motores de audio inmediatamente
+    try {
+      // Primero cancelamos el reconocimiento de voz para liberar el micro lo antes posible
+      if (_speech.isListening || _speech.isAvailable) {
+        await _speech.stop();
+        await _speech.cancel();
+      }
+
+      // Detenemos el TTS
+      await _tts.stop();
+
+      // Pequeña pausa para asegurar que los drivers de audio se liberen
+      await Future.delayed(const Duration(milliseconds: 300));
+    } catch (e) {
+      debugPrint('Error stopping conversation: $e');
+    }
   }
 
   /// Pauses TTS and STT immediately when the user starts interacting manually (e.g. typing).
@@ -305,6 +337,8 @@ class InterviewVoiceController extends ChangeNotifier {
       if (preferredVoice != null) {
         await _tts.setVoice(preferredVoice);
       }
+
+      _configureTtsCallbacks();
     } catch (_) {
       _isTtsAvailable = false;
       _statusMessage = _l10n.interviewCouldNotEnableAiVoice;
@@ -367,10 +401,10 @@ class InterviewVoiceController extends ChangeNotifier {
   }
 
   Future<String> _generateOpeningQuestion() async {
-    final jobRole = _config.jobRole == null
+    final jobRoleLabel = _config.jobRole == null
         ? ''
         : _config.jobRole!.label(_l10n);
-    if (jobRole.isEmpty) {
+    if (jobRoleLabel.isEmpty) {
       throw GeminiException(_l10n.interviewMissingJobRole);
     }
     if (_config.type == null) {
@@ -378,7 +412,8 @@ class InterviewVoiceController extends ChangeNotifier {
     }
 
     final response = await _geminiService.generateOpeningQuestion(
-      jobRole: jobRole,
+      role: _config.jobRole,
+      jobRoleLabel: jobRoleLabel,
       type: _config.type!,
       selectedFocus: _selectedFocusAreas,
       l10n: _l10n,
@@ -393,7 +428,7 @@ class InterviewVoiceController extends ChangeNotifier {
   }
 
   Future<String> _generateAdaptiveNextQuestion(InterviewTurn lastTurn) async {
-    final jobRole = _config.jobRole == null
+    final jobRoleLabel = _config.jobRole == null
         ? ''
         : _config.jobRole!.label(_l10n);
     final type = _config.type ?? InterviewType.mixed;
@@ -403,7 +438,8 @@ class InterviewVoiceController extends ChangeNotifier {
         : _session.turns;
 
     final next = await _geminiService.generateConversationalNextQuestion(
-      jobRole: jobRole,
+      role: _config.jobRole,
+      jobRoleLabel: jobRoleLabel,
       type: type,
       lastQuestion: lastTurn.question,
       lastAnswer: lastTurn.answer,
@@ -556,6 +592,7 @@ class InterviewVoiceController extends ChangeNotifier {
   }
 
   void _onSpeechResult(SpeechRecognitionResult result) {
+    if (_isSessionCancelled) return;
     final transcript = result.recognizedWords.trim();
     if (transcript != _voiceDraft) {
       _voiceDraft = transcript;
@@ -568,14 +605,14 @@ class InterviewVoiceController extends ChangeNotifier {
   }
 
   void _onSpeechStatus(String status) {
-    if (!isListening) return;
+    if (!isListening || _isSessionCancelled) return;
     if (status == 'done' || status == 'notListening') {
       unawaited(_finalizeListeningCycle());
     }
   }
 
   void _onSpeechError(SpeechRecognitionError error) {
-    if (!isListening) return;
+    if (!isListening || _isSessionCancelled) return;
     _setIdle();
     _error = _l10n.interviewCouldNotTranscribe;
     _statusMessage = _l10n.interviewCouldNotTranscribe;
@@ -589,11 +626,13 @@ class InterviewVoiceController extends ChangeNotifier {
   }
 
   Future<void> _finalizeListeningCycle({String? transcript}) async {
+    if (_isSessionCancelled) return;
     final cycle = _activeListeningCycle;
     if (cycle == 0 || cycle == _handledListeningCycle) return;
     _handledListeningCycle = cycle;
 
     await _speech.stop();
+    if (_isSessionCancelled) return;
 
     final finalTranscript = (transcript ?? _voiceDraft).trim();
     if (finalTranscript.isEmpty) {
@@ -605,6 +644,7 @@ class InterviewVoiceController extends ChangeNotifier {
   }
 
   Future<void> _handleNoVoiceDetected() async {
+    if (_isSessionCancelled) return;
     _emptyVoiceRetries += 1;
     _setIdle();
 
@@ -742,11 +782,14 @@ class InterviewVoiceController extends ChangeNotifier {
 
     // Generar un cierre natural con IA si es posible
     try {
-      final jobRole = _config.jobRole?.label(_l10n) ?? '';
+      if (_isSessionCancelled) return;
+      final jobRoleLabel = _config.jobRole?.label(_l10n) ?? '';
       final closingMsg = await _geminiService.generateClosingMessage(
-        jobRole: jobRole,
+        role: _config.jobRole,
+        jobRoleLabel: jobRoleLabel,
         l10n: _l10n,
       );
+      if (_isSessionCancelled) return;
       if (closingMsg.isNotEmpty) {
         finalMessage = closingMsg;
       }
@@ -754,27 +797,34 @@ class InterviewVoiceController extends ChangeNotifier {
       debugPrint('Error generating closing message: $e');
     }
 
+    if (_isSessionCancelled) return;
     _currentQuestion = finalMessage;
     _currentQuestionAskedAt = null;
     _notifySafely();
 
     // Entregar el mensaje final por TTS si está disponible
-    if (_isTtsAvailable) {
+    if (_isTtsAvailable && !_isSessionCancelled) {
       try {
         _state = InterviewConversationState.speaking;
         _statusMessage = _l10n.interviewAiSpeaking;
+        _isAiSpeaking = true;
         _notifySafely();
+
         await _tts.speak(finalMessage);
-        // Esperamos un poco más para que el audio termine de sonar y la transición no sea instantánea
-        await Future.delayed(const Duration(seconds: 2));
+
+        // Esperamos a que termine de hablar o se cancele
+        while (_isAiSpeaking && !_isSessionCancelled) {
+          await Future.delayed(const Duration(milliseconds: 100));
+        }
       } catch (_) {
         _isTtsAvailable = false;
       }
-    } else {
+    } else if (!_isSessionCancelled) {
       // Si no hay voz, esperamos un tiempo razonable para que el usuario lea el mensaje
       await Future.delayed(const Duration(seconds: 3));
     }
 
+    if (_isSessionCancelled) return;
     _setIdle();
     _isInterviewComplete = true;
     _isFinishing = false;

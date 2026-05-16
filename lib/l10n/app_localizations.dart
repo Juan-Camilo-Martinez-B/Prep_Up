@@ -674,6 +674,60 @@ abstract class AppLocalizations {
   /// **'Product Manager'**
   String get jobRoleProductManager;
 
+  /// No description provided for @aiJobRoleContextFrontendDeveloper.
+  ///
+  /// In en, this message translates to:
+  /// **'Focus on React/Flutter, state management (Redux/Bloc), accessibility, performance, and responsive layout.'**
+  String get aiJobRoleContextFrontendDeveloper;
+
+  /// No description provided for @aiJobRoleContextBackendDeveloper.
+  ///
+  /// In en, this message translates to:
+  /// **'Focus on REST/GraphQL APIs, microservices, security (OAuth/JWT), SQL/NoSQL databases, and scalability.'**
+  String get aiJobRoleContextBackendDeveloper;
+
+  /// No description provided for @aiJobRoleContextMobileDeveloper.
+  ///
+  /// In en, this message translates to:
+  /// **'Focus on app lifecycle, local storage, native integration, notifications, and battery/memory optimization.'**
+  String get aiJobRoleContextMobileDeveloper;
+
+  /// No description provided for @aiJobRoleContextUiUxDesigner.
+  ///
+  /// In en, this message translates to:
+  /// **'Focus on user research, information architecture, design systems (Figma), usability, and prototyping.'**
+  String get aiJobRoleContextUiUxDesigner;
+
+  /// No description provided for @aiJobRoleContextDataAnalyst.
+  ///
+  /// In en, this message translates to:
+  /// **'Focus on advanced SQL, BI tools (PowerBI/Tableau), ETL processes, data cleaning, and reporting.'**
+  String get aiJobRoleContextDataAnalyst;
+
+  /// No description provided for @aiJobRoleContextDataScientist.
+  ///
+  /// In en, this message translates to:
+  /// **'Focus on ML algorithms, predictive models, Python (Pandas/Scikit-learn), Big Data, and model deployment.'**
+  String get aiJobRoleContextDataScientist;
+
+  /// No description provided for @aiJobRoleContextQaTester.
+  ///
+  /// In en, this message translates to:
+  /// **'Focus on test automation (Selenium/Cypress), load testing, regression, CI/CD pipelines, and manual QA.'**
+  String get aiJobRoleContextQaTester;
+
+  /// No description provided for @aiJobRoleContextDevOps.
+  ///
+  /// In en, this message translates to:
+  /// **'Focus on infrastructure as code (Terraform), Docker/Kubernetes, cloud (AWS/GCP/Azure), and observability.'**
+  String get aiJobRoleContextDevOps;
+
+  /// No description provided for @aiJobRoleContextProductManager.
+  ///
+  /// In en, this message translates to:
+  /// **'Focus on strategic roadmaps, prioritization (RICE/Kano), product metrics (KPIs), agile methodologies, and stakeholders.'**
+  String get aiJobRoleContextProductManager;
+
   /// No description provided for @interviewMissingFieldType.
   ///
   /// In en, this message translates to:
@@ -2621,11 +2675,12 @@ abstract class AppLocalizations {
   /// No description provided for @aiPromptQuestionGen.
   ///
   /// In en, this message translates to:
-  /// **'Generate {count} {type} interview questions for the role: \"{jobRole}\". Make sure the questions are highly varied, creative, and cover different angles. Avoid generic or cliché questions (e.g., \"What are your strengths?\", \"Tell me about yourself\"). {varietyInstructions} (Random Seed: {seed}) Return ONLY JSON with this exact schema: {jsonSchema} Requirements: - Questions must be clear and specific - No numbering in the question text - No markdown'**
+  /// **'Generate {count} {type} interview questions for the role: \"{jobRole}\". Role context: {roleContext}. Make sure the questions are highly varied, creative, and cover different angles. Avoid generic or cliché questions (e.g., \"What are your strengths?\", \"Tell me about yourself\"). {varietyInstructions} (Random Seed: {seed}) Return ONLY JSON with this exact schema: {jsonSchema} Requirements: - Questions must be clear and specific - No numbering in the question text - No markdown'**
   String aiPromptQuestionGen(
     int count,
     String type,
     String jobRole,
+    String roleContext,
     String varietyInstructions,
     int seed,
     String jsonSchema,
@@ -2634,10 +2689,11 @@ abstract class AppLocalizations {
   /// No description provided for @aiPromptEvaluation.
   ///
   /// In en, this message translates to:
-  /// **'Evaluate the user\'s answer for a {type} interview for the \"{jobRole}\" role. Question: \"{question}\" User answer: \"{answer}\" (Random Seed: {seed}) Return ONLY JSON with this exact schema: {jsonSchema} Rules: - overallScore must be an integer 0..100 - strengths/improvements: 2 to 5 items each - suggestedAnswer: concise, improved, and results-oriented - followUpQuestions: 0 to 3 highly contextual, creative, and non-cliché follow-up questions based on the user\'s specific answer. - No markdown'**
+  /// **'Evaluate the user\'s answer for a {type} interview for the \"{jobRole}\" role. Role context: {roleContext}. Question: \"{question}\" User answer: \"{answer}\" (Random Seed: {seed}) Return ONLY JSON with this exact schema: {jsonSchema} Rules: - overallScore must be an integer 0..100 - strengths/improvements: 2 to 5 items each - suggestedAnswer: concise, improved, and results-oriented - followUpQuestions: 0 to 3 highly contextual, creative, and non-cliché follow-up questions based on the user\'s specific answer. - No markdown'**
   String aiPromptEvaluation(
     String type,
     String jobRole,
+    String roleContext,
     String question,
     String answer,
     int seed,
@@ -2647,8 +2703,10 @@ abstract class AppLocalizations {
   /// No description provided for @aiPromptFeedback.
   ///
   /// In en, this message translates to:
-  /// **'Based on the question, the user\'s answer, and the evaluation, generate actionable feedback. Question: \"{question}\" User answer: \"{answer}\" Evaluation (JSON): {evaluationJson} Return ONLY JSON with this exact schema: {jsonSchema} Rules: - summary: max 3 sentences - actionItems: 3 to 6 actionable items - keyPhrasesToUse: 3 to 8 short phrases the user can use - No markdown'**
+  /// **'Based on the question, the user\'s response, the role \"{jobRole}\" ({roleContext}), and the evaluation, generate actionable feedback. Question: \"{question}\" User response: \"{answer}\" Evaluation (JSON): {evaluationJson} Return ONLY JSON with this exact schema: {jsonSchema} Rules: - summary: maximum 3 sentences - actionItems: 3 to 6 actionable points - keyPhrasesToUse: 3 to 8 short phrases the user could use - No markdown'**
   String aiPromptFeedback(
+    String jobRole,
+    String roleContext,
     String question,
     String answer,
     String evaluationJson,
@@ -2658,9 +2716,10 @@ abstract class AppLocalizations {
   /// No description provided for @aiPromptResultsAnalysis.
   ///
   /// In en, this message translates to:
-  /// **'Analyze the interview results for the \"{jobRole}\" role ({typeLabel} interview). Overall score (already calculated): {overallScore} Outcome: {outcome} Interview history (Q&A with per-answer scores): {history} Return ONLY a valid JSON object — no markdown, no extra text, no explanation: {jsonSchema}'**
+  /// **'Analyze the interview results for the role \"{jobRole}\" (type: {typeLabel}). Role context: {roleContext}. Overall score (already calculated): {overallScore} Outcome: {outcome} Interview history (questions, answers, and score per turn): {history} Return ONLY a valid JSON object — no markdown, no extra text, no explanations: {jsonSchema}'**
   String aiPromptResultsAnalysis(
     String jobRole,
+    String roleContext,
     String typeLabel,
     int overallScore,
     String outcome,
@@ -2671,9 +2730,10 @@ abstract class AppLocalizations {
   /// No description provided for @aiPromptNextQuestion.
   ///
   /// In en, this message translates to:
-  /// **'Act as an expert interviewer for the \"{jobRole}\" role. Interview type: {typeLabel}. History (question, answer, evaluation): {history} Generate the next question in English: - It must be a single question. - It must adapt to the last answer. - If score was low, ask for clarification or a concrete example. - If score was high, increase difficulty or go deeper. {varietyInstructions} - AVOID generic or overused topics (e.g., \'microservicios vs monoliths\', \'SQL vs NoSQL\') unless directly related to the previous answer. - Ensure the topic is different from previous questions in the history to maintain variety. - No numbering. - No markdown. Return ONLY the question text.'**
+  /// **'Act as an expert interviewer for the \"{jobRole}\" role. Role context: {roleContext}. Interview type: {typeLabel}. History (question, answer, evaluation): {history} Generate the next question in English: - It must be a single question. - It must adapt to the last answer. - If score was low, ask for clarification or a concrete example. - If score was high, increase difficulty or go deeper. {varietyInstructions} - AVOID generic or overused topics (e.g., \'microservicios vs monoliths\', \'SQL vs NoSQL\') unless directly related to the previous answer. - Ensure the topic is different from previous questions in the history to maintain variety. - No numbering. - No markdown. Return ONLY the question text.'**
   String aiPromptNextQuestion(
     String jobRole,
+    String roleContext,
     String typeLabel,
     String history,
     String varietyInstructions,
@@ -2682,9 +2742,10 @@ abstract class AppLocalizations {
   /// No description provided for @aiPromptOpening.
   ///
   /// In en, this message translates to:
-  /// **'You are a professional and friendly interviewer for the role: \"{jobRole}\". Introduce yourself briefly and ask the first question for a {typeLabel} interview. {varietyInstructions} Rules: - Return ONLY the text of the greeting and the question. - DO NOT use JSON, markdown, or any other formatting. - Be natural and professional.'**
+  /// **'You are a professional and friendly interviewer for the role: \"{jobRole}\". Role context: {roleContext}. Introduce yourself briefly and ask the first question for a {typeLabel} interview. {varietyInstructions} Rules: - Return ONLY the text of the greeting and the question. - DO NOT use JSON, markdown, or any other formatting. - Be natural and professional.'**
   String aiPromptOpening(
     String jobRole,
+    String roleContext,
     String typeLabel,
     String varietyInstructions,
   );
@@ -2692,9 +2753,10 @@ abstract class AppLocalizations {
   /// No description provided for @aiPromptConversationalNext.
   ///
   /// In en, this message translates to:
-  /// **'Interviewer for \"{jobRole}\" ({typeLabel}). Last Q: \"{lastQuestion}\" Candidate A: \"{lastAnswer}\" Goal: Ask the next question. 1. Briefly acknowledge or react to the candidate\'s last answer. 2. Ask a follow-up or a new relevant question. {varietyInstructions} 3. Keep it natural and professional. 4. Return ONLY the text of the reaction and the question. No JSON. History context: {history}'**
+  /// **'Interviewer for \"{jobRole}\" ({typeLabel}). Role context: {roleContext}. Last Q: \"{lastQuestion}\" Candidate A: \"{lastAnswer}\" Goal: Ask the next question. 1. Briefly acknowledge or react to the candidate\'s last answer. 2. Ask a follow-up or a new relevant question. {varietyInstructions} 3. Keep it natural and professional. 4. Return ONLY the text of the reaction and the question. No JSON. History context: {history}'**
   String aiPromptConversationalNext(
     String jobRole,
+    String roleContext,
     String typeLabel,
     String lastQuestion,
     String lastAnswer,
@@ -2705,8 +2767,8 @@ abstract class AppLocalizations {
   /// No description provided for @aiPromptClosing.
   ///
   /// In en, this message translates to:
-  /// **'Act as a professional and human interviewer. The interview for the \"{jobRole}\" role has ended. Thank the candidate for their time, confirm that the process has successfully concluded, and say goodbye in a friendly and professional manner, maintaining the tone of the conversation. Rules: - Return ONLY the farewell text. - Do not use JSON or markdown. - Be brief but warm (max 2-3 sentences). - Do not mention technical results or feedback in this message.'**
-  String aiPromptClosing(String jobRole);
+  /// **'Act as a professional and human interviewer. The interview for the \"{jobRole}\" role has ended. Role context: {roleContext}. Thank the candidate for their time, confirm that the process has successfully concluded, and say goodbye in a friendly and professional manner, maintaining the tone of the conversation. Rules: - Return ONLY the farewell text. - Do not use JSON or markdown. - Be brief but warm (max 2-3 sentences). - Do not mention technical results or feedback in this message.'**
+  String aiPromptClosing(String jobRole, String roleContext);
 
   /// No description provided for @statsLabelQuestionPrefix.
   ///
@@ -2777,7 +2839,7 @@ abstract class AppLocalizations {
   /// No description provided for @aiPromptRewriteQuestion.
   ///
   /// In en, this message translates to:
-  /// **'Rewrite this interview question so it is more complete, specific, and natural. Weak question: \"{weakQuestion}\" Previous question: \"{lastQuestion}\" Last candidate answer: \"{lastAnswer}\" Return ONLY one question in English. Rules: - Exactly one question. - It must ask for concrete context, example, decision, impact, or result. - It must not repeat the previous question. - It should not be vague or too short. - No markdown.'**
+  /// **'Rewrite this interview question to be more complete, specific, and natural. Weak question: \"{weakQuestion}\" Previous question: \"{lastQuestion}\" Candidate\'s last response: \"{lastAnswer}\" Return ONLY one question in English. Rules: - A single question. - Must ask for concrete context, example, decision, impact, or result. - Cannot repeat the previous question. - Must not be vague or too short. - No markdown.'**
   String aiPromptRewriteQuestion(
     String weakQuestion,
     String lastQuestion,

@@ -5,7 +5,6 @@ import 'package:prep_up/core/localization/interview_l10n.dart';
 import 'package:prep_up/domain/entities/interview_config.dart';
 import 'package:prep_up/domain/entities/interview_tags.dart';
 import 'package:prep_up/domain/entities/interview_session.dart';
-import 'package:prep_up/domain/entities/interview_session_model.dart';
 import 'package:prep_up/domain/services/gemini_service.dart';
 import 'package:prep_up/l10n/app_localizations.dart';
 import 'package:speech_to_text/speech_to_text.dart';
@@ -73,14 +72,15 @@ class InterviewSessionController extends ChangeNotifier {
       if (_config.jobRole == null) {
         throw GeminiException(l10n.interviewMissingJobRole);
       }
-      final jobRole = _config.jobRole!.label(l10n);
+      final jobRoleLabel = _config.jobRole!.label(l10n);
       if (_config.type == null) {
         throw GeminiException(l10n.interviewMissingType);
       }
 
       final questions = await _geminiService.generateInterviewQuestions(
         type: _config.type!,
-        jobRole: jobRole,
+        role: _config.jobRole,
+        jobRoleLabel: jobRoleLabel,
         count: 1,
         l10n: l10n,
         selectedFocus: _selectedFocusAreas,
@@ -114,7 +114,10 @@ class InterviewSessionController extends ChangeNotifier {
       final evaluation = await _geminiService.evaluateUserAnswer(
         question: question,
         userAnswer: safeAnswer,
-        jobRole: _config.jobRole == null ? '' : _config.jobRole!.label(l10n),
+        role: _config.jobRole,
+        jobRoleLabel: _config.jobRole == null
+            ? ''
+            : _config.jobRole!.label(l10n),
         type: _config.type ?? InterviewType.mixed,
         l10n: l10n,
       );
@@ -123,6 +126,10 @@ class InterviewSessionController extends ChangeNotifier {
         question: question,
         userAnswer: safeAnswer,
         evaluation: evaluation,
+        role: _config.jobRole,
+        jobRoleLabel: _config.jobRole == null
+            ? ''
+            : _config.jobRole!.label(l10n),
         l10n: l10n,
       );
 
@@ -157,9 +164,10 @@ class InterviewSessionController extends ChangeNotifier {
   Future<void> _completeInterview() async {
     final l10n = lookupAppLocalizations(AppLocaleRuntime.locale);
     try {
-      final jobRole = _config.jobRole?.label(l10n) ?? '';
+      final jobRoleLabel = _config.jobRole?.label(l10n) ?? '';
       final closing = await _geminiService.generateClosingMessage(
-        jobRole: jobRole,
+        role: _config.jobRole,
+        jobRoleLabel: jobRoleLabel,
         l10n: l10n,
       );
       _currentQuestion = closing;
@@ -182,13 +190,14 @@ class InterviewSessionController extends ChangeNotifier {
 
     final l10n = lookupAppLocalizations(AppLocaleRuntime.locale);
     try {
-      final jobRole = _config.jobRole == null
+      final jobRoleLabel = _config.jobRole == null
           ? ''
           : _config.jobRole!.label(l10n);
       final type = _config.type ?? InterviewType.mixed;
 
       final next = await _geminiService.generateNextQuestion(
-        jobRole: jobRole,
+        role: _config.jobRole,
+        jobRoleLabel: jobRoleLabel,
         type: type,
         turns: _session.turns,
         selectedFocus: _selectedFocusAreas,

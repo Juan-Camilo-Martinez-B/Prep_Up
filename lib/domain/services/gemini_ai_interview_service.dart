@@ -1,6 +1,5 @@
-import 'dart:convert';
-import 'package:flutter/material.dart';
 import 'package:prep_up/core/localization/app_locale.dart';
+import 'package:prep_up/core/localization/interview_l10n.dart';
 import 'package:prep_up/domain/entities/interview_results_model.dart';
 import 'package:prep_up/domain/entities/interview_session_model.dart';
 import 'package:prep_up/domain/entities/interview_tags.dart';
@@ -10,7 +9,7 @@ import 'package:prep_up/l10n/app_localizations.dart';
 
 class GeminiAiInterviewService implements AiInterviewService {
   GeminiAiInterviewService({GeminiService? geminiService})
-      : _geminiService = geminiService ?? GeminiService();
+    : _geminiService = geminiService ?? GeminiService();
 
   final GeminiService _geminiService;
 
@@ -21,9 +20,20 @@ class GeminiAiInterviewService implements AiInterviewService {
     required int count,
   }) {
     final l10n = lookupAppLocalizations(AppLocaleRuntime.locale);
+
+    // Intentar encontrar el JobRole enum basado en el label si es posible
+    // Si no, pasar null y el label original.
+    JobRole? role;
+    try {
+      role = JobRole.values.firstWhere(
+        (r) => r.label(l10n).toLowerCase() == jobRole.toLowerCase(),
+      );
+    } catch (_) {}
+
     return _geminiService.generateInterviewQuestions(
       type: type,
-      jobRole: jobRole,
+      role: role,
+      jobRoleLabel: jobRole,
       count: count,
       l10n: l10n,
     );

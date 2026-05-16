@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'dart:math' as math;
 
-import 'package:flutter/widgets.dart';
 import 'package:http/http.dart' as http;
 import 'package:prep_up/core/config/app_config.dart';
 import 'package:prep_up/core/localization/interview_l10n.dart';
@@ -10,7 +9,6 @@ import 'package:prep_up/domain/entities/interview_config.dart';
 import 'package:prep_up/domain/entities/interview_feedback_model.dart';
 import 'package:prep_up/domain/entities/interview_results_model.dart';
 import 'package:prep_up/domain/entities/interview_session.dart';
-import 'package:prep_up/domain/entities/interview_session_model.dart';
 import 'package:prep_up/domain/entities/interview_tags.dart';
 import 'package:prep_up/l10n/app_localizations.dart';
 import 'package:prep_up/core/utils/ai_utils.dart';
@@ -316,13 +314,15 @@ class GeminiService {
 
   Future<List<String>> generateInterviewQuestions({
     required InterviewType type,
-    required String jobRole,
+    required JobRole? role,
+    required String jobRoleLabel,
     required int count,
     required AppLocalizations l10n,
     List<String>? selectedFocus,
   }) async {
     final safeCount = count <= 0 ? 5 : count;
     final typeLabel = type.label(l10n);
+    final roleContext = role?.roleContext(l10n) ?? '';
 
     final systemInstruction = l10n.aiPromptSystemInterviewer(l10n.localeName);
 
@@ -334,7 +334,8 @@ class GeminiService {
     final prompt = l10n.aiPromptQuestionGen(
       safeCount,
       typeLabel,
-      jobRole,
+      jobRoleLabel,
+      roleContext,
       varietyInstructions,
       seed,
       jsonSchema,
@@ -365,11 +366,13 @@ class GeminiService {
   Future<AnswerEvaluationModel> evaluateUserAnswer({
     required String question,
     required String userAnswer,
-    required String jobRole,
+    required JobRole? role,
+    required String jobRoleLabel,
     required AppLocalizations l10n,
     InterviewType type = InterviewType.mixed,
   }) async {
     final typeLabel = type.label(l10n);
+    final roleContext = role?.roleContext(l10n) ?? '';
     final systemInstruction = l10n.aiPromptSystemInterviewer(l10n.localeName);
 
     final seed = DateTime.now().millisecondsSinceEpoch;
@@ -377,7 +380,8 @@ class GeminiService {
         '{"overallScore": 0, "subjectMastery": 0, "strengths": ["..."], "improvements": ["..."], "suggestedAnswer": "...", "followUpQuestions": ["..."]}';
     final prompt = l10n.aiPromptEvaluation(
       typeLabel,
-      jobRole,
+      jobRoleLabel,
+      roleContext,
       question,
       userAnswer,
       seed,
@@ -423,13 +427,18 @@ class GeminiService {
     required String question,
     required String userAnswer,
     required AnswerEvaluationModel evaluation,
+    required JobRole? role,
+    required String jobRoleLabel,
     required AppLocalizations l10n,
   }) async {
     final systemInstruction = l10n.aiPromptSystemCoach(l10n.localeName);
+    final roleContext = role?.roleContext(l10n) ?? '';
 
     const jsonSchema =
         '{"summary": "...", "actionItems": ["..."], "keyPhrasesToUse": ["..."]}';
     final prompt = l10n.aiPromptFeedback(
+      jobRoleLabel,
+      roleContext,
       question,
       userAnswer,
       jsonEncode(evaluation.toJson()),
@@ -487,7 +496,10 @@ class GeminiService {
       throw GeminiException(l10n.processingNotEnoughData);
     }
 
-    final jobRole = config.jobRole == null ? '' : config.jobRole!.label(l10n);
+    final jobRoleLabel = config.jobRole == null
+        ? ''
+        : config.jobRole!.label(l10n);
+    final jobRole = config.jobRole;
     final type = config.type ?? InterviewType.mixed;
 
     final analyzedTurns = await Future.wait(
@@ -495,7 +507,8 @@ class GeminiService {
         final evaluation = await evaluateUserAnswer(
           question: turn.question,
           userAnswer: turn.answer,
-          jobRole: jobRole,
+          role: jobRole,
+          jobRoleLabel: jobRoleLabel,
           type: type,
           l10n: l10n,
         );
@@ -504,6 +517,8 @@ class GeminiService {
           question: turn.question,
           userAnswer: turn.answer,
           evaluation: evaluation,
+          role: jobRole,
+          jobRoleLabel: jobRoleLabel,
           l10n: l10n,
         );
 
@@ -515,7 +530,8 @@ class GeminiService {
   }
 
   Future<String> generateNextQuestion({
-    required String jobRole,
+    required JobRole? role,
+    required String jobRoleLabel,
     required InterviewType type,
     required List<InterviewTurn> turns,
     required List<String> selectedFocus,
@@ -524,9 +540,11 @@ class GeminiService {
     final typeLabel = type.label(l10n);
     final history = formatTurnsForHistory(turns, l10n);
     final varietyInstructions = getVarietyInstructions(l10n, selectedFocus);
+    final roleContext = role?.roleContext(l10n) ?? '';
 
     final prompt = l10n.aiPromptNextQuestion(
-      jobRole,
+      jobRoleLabel,
+      roleContext,
       typeLabel,
       history,
       varietyInstructions,
@@ -543,11 +561,13 @@ class GeminiService {
   }
 
   Future<String> generateClosingMessage({
-    required String jobRole,
+    required JobRole? role,
+    required String jobRoleLabel,
     required AppLocalizations l10n,
   }) async {
+    final roleContext = role?.roleContext(l10n) ?? '';
     final systemInstruction = l10n.aiPromptSystemInterviewer(l10n.localeName);
-    final prompt = l10n.aiPromptClosing(jobRole);
+    final prompt = l10n.aiPromptClosing(jobRoleLabel, roleContext);
 
     final closing = await sendPrompt(
       prompt: prompt,
@@ -560,16 +580,19 @@ class GeminiService {
   }
 
   Future<String> generateOpeningQuestion({
-    required String jobRole,
+    required JobRole? role,
+    required String jobRoleLabel,
     required InterviewType type,
     required List<String> selectedFocus,
     required AppLocalizations l10n,
   }) async {
     final typeLabel = type.label(l10n);
     final varietyInstructions = getVarietyInstructions(l10n, selectedFocus);
+    final roleContext = role?.roleContext(l10n) ?? '';
 
     final prompt = l10n.aiPromptOpening(
-      jobRole,
+      jobRoleLabel,
+      roleContext,
       typeLabel,
       varietyInstructions,
     );
@@ -585,7 +608,8 @@ class GeminiService {
   }
 
   Future<String> generateConversationalNextQuestion({
-    required String jobRole,
+    required JobRole? role,
+    required String jobRoleLabel,
     required InterviewType type,
     required String lastQuestion,
     required String lastAnswer,
@@ -596,9 +620,11 @@ class GeminiService {
     final typeLabel = type.label(l10n);
     final history = formatTurnsForHistory(turns, l10n);
     final varietyInstructions = getVarietyInstructions(l10n, selectedFocus);
+    final roleContext = role?.roleContext(l10n) ?? '';
 
     final prompt = l10n.aiPromptConversationalNext(
-      jobRole,
+      jobRoleLabel,
+      roleContext,
       typeLabel,
       lastQuestion,
       lastAnswer,
@@ -658,7 +684,10 @@ class GeminiService {
 
     final history = formatTurnsForHistory(session.turns, l10n);
 
-    final jobRole = config.jobRole == null ? '' : config.jobRole!.label(l10n);
+    final jobRoleLabel = config.jobRole == null
+        ? ''
+        : config.jobRole!.label(l10n);
+    final roleContext = config.jobRole?.roleContext(l10n) ?? '';
     final typeLabel = config.type == null
         ? l10n.interviewTypeMixed
         : config.type!.label(l10n);
@@ -668,7 +697,8 @@ class GeminiService {
     const jsonSchema =
         '{"overallScore": 0, "outcome": "...", "breakdown": {"communication": 75, "technicalKnowledge": 70, "confidence": 72}, "highlights": ["..."], "personalizedFeedback": "...", "recommendations": ["..."], "improvementTips": ["..."]}';
     final prompt = l10n.aiPromptResultsAnalysis(
-      jobRole,
+      jobRoleLabel,
+      roleContext,
       typeLabel,
       overallScore,
       outcome == InterviewOutcome.approved ? 'approved' : 'improve',
@@ -782,7 +812,7 @@ class GeminiService {
     final improvementTips = parsed.improvementTips.isNotEmpty
         ? parsed.improvementTips
         : [
-            'Investiga más sobre las tendencias actuales en ${jobRole.isNotEmpty ? jobRole : "tu área"}.',
+            'Investiga más sobre las tendencias actuales en ${jobRoleLabel.isNotEmpty ? jobRoleLabel : "tu área"}.',
             'Prepara ejemplos reales de desafíos que hayas superado.',
             'Practica frente al espejo para mejorar tu lenguaje corporal.',
           ];

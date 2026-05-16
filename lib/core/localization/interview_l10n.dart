@@ -35,6 +35,20 @@ extension JobRoleL10n on JobRole {
       JobRole.productManager => l10n.jobRoleProductManager,
     };
   }
+
+  String roleContext(AppLocalizations l10n) {
+    return switch (this) {
+      JobRole.frontendDeveloper => l10n.aiJobRoleContextFrontendDeveloper,
+      JobRole.backendDeveloper => l10n.aiJobRoleContextBackendDeveloper,
+      JobRole.mobileDeveloper => l10n.aiJobRoleContextMobileDeveloper,
+      JobRole.uiUxDesigner => l10n.aiJobRoleContextUiUxDesigner,
+      JobRole.dataAnalyst => l10n.aiJobRoleContextDataAnalyst,
+      JobRole.dataScientist => l10n.aiJobRoleContextDataScientist,
+      JobRole.qaTester => l10n.aiJobRoleContextQaTester,
+      JobRole.devOps => l10n.aiJobRoleContextDevOps,
+      JobRole.productManager => l10n.aiJobRoleContextProductManager,
+    };
+  }
 }
 
 extension InterviewConfigMissingFieldL10n on InterviewConfigField {
