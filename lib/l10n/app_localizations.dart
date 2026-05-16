@@ -1238,6 +1238,12 @@ abstract class AppLocalizations {
   /// **'No question yet.'**
   String get callQuestionNoneYet;
 
+  /// No description provided for @callQuestionWaiting.
+  ///
+  /// In en, this message translates to:
+  /// **'The AI is preparing your question...'**
+  String get callQuestionWaiting;
+
   /// No description provided for @callEvaluationTitle.
   ///
   /// In en, this message translates to:

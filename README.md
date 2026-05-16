@@ -22,15 +22,14 @@ Proporcionar una herramienta integral y accesible de simulación de entrevistas 
 
 ## 🚀 Alcance y Funcionalidades Principales
 
-* **Autenticación Segura**: Registro e inicio de sesión integrados con Supabase, con manejo de sesiones persistentes.
-* **Simulación Conversacional de Entrevistas**: Integración de Text-to-Speech (TTS) y Speech-to-Text (STT) para una experiencia inmersiva "cara a cara".
-* **Preguntas Dinámicas con IA**: Uso del motor de Google Gemini para generar preguntas relevantes basadas en el rol seleccionado y el contexto de la conversación (preguntas de seguimiento adaptativas).
-* **Evaluación y Feedback en Tiempo Real**: Análisis profundo de cada respuesta calculando puntajes de dominio del tema, comunicación, fortalezas y aspectos a mejorar.
-* **Dashboard de Resultados**: Visualización gráfica del rendimiento general tras finalizar la entrevista, incluyendo recomendaciones personalizadas.
-* **Historial de Prácticas (Tracking) con Soporte Offline**: Registro de todas las sesiones de entrevista anteriores, lo que permite al usuario revisar su evolución incluso sin conexión a internet mediante una arquitectura de caché híbrida.
-* **Soporte Multi-idioma e Internacionalización**: Interfaz y motor de IA capaces de adaptarse y funcionar tanto en español como en inglés, con traducciones manejadas a través de `.arb`.
-* **Modo Oscuro/Claro**: Personalización de la interfaz gráfica adaptable a las preferencias del sistema o del usuario.
-* **UI Dinámica y Premium**: Integración de animaciones encadenadas, efectos de máquina de escribir para la IA y estados de carga mediante esqueletos (Skeletons).
+* **Autenticación Segura y Recuperación OTP**: Registro, inicio de sesión y flujo premium de restablecimiento de contraseña mediante códigos de 6 dígitos enviados por correo.
+* **Simulación Conversacional con IA**: Integración de Text-to-Speech (TTS) y Speech-to-Text (STT) usando Google Gemini para una experiencia "cara a cara" con preguntas adaptativas.
+* **Validación y Sanitización de Inputs**: Implementación de `TextInputFormatter` para prevenir espacios accidentales al inicio en todos los campos críticos.
+* **Evaluación y Feedback Profundo**: Análisis de respuestas con puntajes de dominio, comunicación y sugerencias de mejora personalizadas.
+* **Dashboard y Estadísticas Evolutivas**: Visualización gráfica del progreso mediante gráficos de rendimiento y KPIs de usuario.
+* **Estrategia Offline-First (Cache-First)**: Soporte híbrido que permite acceso instantáneo al historial y perfil desde SQLite con sincronización remota en segundo plano.
+* **Internacionalización (i18n)**: Soporte completo bilingüe (Español/Inglés) gestionado a través de archivos `.arb`.
+* **UI Premium y Adaptativa**: Diseño dinámico con modo oscuro/claro, animaciones de `flutter_animate` y estados de carga con `Skeletonizer` en todas las pantallas principales.
 
 ---
 
@@ -61,7 +60,7 @@ La aplicación implementa una variación de **Clean Architecture** enfocada al e
 
 * **Presentation Layer**: Encargada únicamente de dibujar la UI y reaccionar a los cambios de estado.
 * **Domain / Business Logic Layer**: Administrada a través de Controladores (`ChangeNotifier`) que orquestan el flujo entre los servicios y la UI. Contiene las definiciones de modelos fuertemente tipados.
-* **Data / Services Layer**: Clases de servicio dedicadas que encapsulan las llamadas a APIS externas y Bases de Datos. Implementa una estrategia **Offline-First** mediante un decorador de caché que coordina Supabase (remoto) y SQLite (local).
+* **Data / Services Layer**: Clases de servicio dedicadas que encapsulan las llamadas a APIS externas y Bases de Datos. Implementa una estrategia **Offline-First (Cache-First)** mediante un decorador de caché (`CachedDatabaseService`) que expone capas local y remota para optimizar la latencia en la UI.
 
 ---
 
@@ -95,7 +94,7 @@ La aplicación implementa una variación de **Clean Architecture** enfocada al e
 * **Componentes Visuales de Vanguardia**: 
     *   `AnimatedTextKit`: Para el efecto de "escritura" en tiempo real de la IA.
     *   `FlutterAnimate`: Para transiciones fluidas y dinámicas en el Dashboard.
-    *   `Skeletonizer`: Para una experiencia de carga moderna que previsualiza la estructura de los datos.
+    *   `Skeletonizer`: Utilizado en Dashboard, Historial y Entrevista para una transición fluida entre estados de carga y datos reales.
     *   `AppPrimaryButton` y tarjetas con efectos "Glassmorphism".
 
 ---

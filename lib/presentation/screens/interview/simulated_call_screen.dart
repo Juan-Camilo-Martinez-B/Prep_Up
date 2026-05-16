@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:animated_text_kit/animated_text_kit.dart';
+import 'package:skeletonizer/skeletonizer.dart';
 import 'dart:math' as math;
 
 import 'package:camera/camera.dart';
@@ -377,6 +378,7 @@ class _SimulatedCallScreenState extends State<SimulatedCallScreen> {
                     _voiceController.currentQuestionNumber;
                 final totalQuestions = _voiceController.targetQuestionCount;
                 final isLoading = !hasQuestion && _voiceController.isStarting;
+                final isProcessing = _voiceController.state == InterviewConversationState.processing;
                 final isFinishing = _voiceController.isFinishing;
 
                 return AppCard(
@@ -426,13 +428,9 @@ class _SimulatedCallScreenState extends State<SimulatedCallScreen> {
                         ),
                       ),
                       const SizedBox(height: 10),
-                      if (isLoading)
-                        const SizedBox(
-                          height: 44,
-                          child: Center(child: CircularProgressIndicator()),
-                        )
-                      else
-                        hasQuestion
+                      Skeletonizer(
+                        enabled: isProcessing || isLoading,
+                        child: hasQuestion
                             ? AnimatedTextKit(
                                 key: ValueKey(question),
                                 animatedTexts: [
@@ -448,9 +446,17 @@ class _SimulatedCallScreenState extends State<SimulatedCallScreen> {
                                 displayFullTextOnTap: true,
                               )
                             : Text(
-                                l10n.callQuestionNoneYet,
-                                style: Theme.of(context).textTheme.titleMedium,
+                                l10n.callQuestionWaiting,
+                                style: Theme.of(
+                                  context,
+                                ).textTheme.titleMedium?.copyWith(
+                                  fontStyle: FontStyle.italic,
+                                  color: scheme.onSurfaceVariant.withValues(
+                                    alpha: 0.7,
+                                  ),
+                                ),
                               ),
+                      ),
                     ],
                   ),
                 );

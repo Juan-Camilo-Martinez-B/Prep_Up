@@ -289,6 +289,7 @@
     }
   },
   "callQuestionNoneYet": "No question yet.",
+  "callQuestionWaiting": "The AI is preparing your question...",
   "callEvaluationTitle": "Evaluation",
   "callEvaluationSubtitle": "Real-time feedback",
   "callScoreLabel": "Score: {score}/100",

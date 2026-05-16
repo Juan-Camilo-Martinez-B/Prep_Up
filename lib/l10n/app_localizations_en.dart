@@ -636,6 +636,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get callQuestionNoneYet => 'No question yet.';
 
   @override
+  String get callQuestionWaiting => 'The AI is preparing your question...';
+
+  @override
   String get callEvaluationTitle => 'Evaluation';
 
   @override
