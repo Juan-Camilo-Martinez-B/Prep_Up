@@ -20,4 +20,5 @@ abstract class RelationalDatabaseService {
 
   Future<void> saveInterviewResult(InterviewResultsModel result);
   Future<InterviewResultsModel?> getInterviewResultForSession(String sessionId);
+  Future<List<InterviewResultsModel>> getInterviewResultsForUser(String userId);
 }

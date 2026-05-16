@@ -48,8 +48,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
     final user = authService.currentUser;
     if (user != null) {
-      final dbUser = await dbService.getUserById(user.id);
-      final history = await dbService.getInterviewHistoryForUser(user.id);
+      final dbUserFuture = dbService.getUserById(user.id);
+      final historyFuture = dbService.getInterviewHistoryForUser(user.id);
+      final resultsFuture = dbService.getInterviewResultsForUser(user.id);
+
+      final dbUser = await dbUserFuture;
+      final history = await historyFuture;
+      final results = await resultsFuture;
+
+      final resultsMap = {for (var r in results) r.sessionId: r};
 
       final List<ChartData> dataPoints = [];
       int totalScore = 0;
@@ -59,7 +66,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
       for (var i = 0; i < history.length; i++) {
         final session = history[i];
-        final result = await dbService.getInterviewResultForSession(session.id);
+        final result = resultsMap[session.id];
 
         if (result != null) {
           if (resultsCount < 7) {

@@ -45,15 +45,15 @@ class _InterviewHistoryScreenState extends State<InterviewHistoryScreen> {
     }
 
     try {
-      final history = await dbService.getInterviewHistoryForUser(user.id);
-      final Map<String, int> scores = {};
+      final historyFuture = dbService.getInterviewHistoryForUser(user.id);
+      final resultsFuture = dbService.getInterviewResultsForUser(user.id);
 
-      for (final session in history) {
-        final result = await dbService.getInterviewResultForSession(session.id);
-        if (result != null) {
-          scores[session.id] = result.overallScore;
-        }
-      }
+      final history = await historyFuture;
+      final results = await resultsFuture;
+
+      final Map<String, int> scores = {
+        for (final result in results) result.sessionId: result.overallScore
+      };
 
       if (!mounted) return;
       setState(() {

@@ -207,4 +207,35 @@ class SupabaseDatabaseService implements RelationalDatabaseService {
     };
     return InterviewResultsModel.fromJson(modelData);
   }
+
+  @override
+  Future<List<InterviewResultsModel>> getInterviewResultsForUser(
+    String userId,
+  ) async {
+    final response = await _supabase
+        .from('resultados_entrevista')
+        .select()
+        .eq('user_id', userId)
+        .order('analyzed_at', ascending: false);
+
+    return (response as List).map((row) {
+      final modelData = {
+        'id': row['id'],
+        'sessionId': row['session_id'],
+        'userId': row['user_id'],
+        'overallScore': row['score'],
+        'outcome': row['outcome'],
+        'breakdown': row['breakdown'],
+        'highlights': row['highlights'],
+        'personalizedFeedback': row['personalized_feedback'],
+        'recommendations': row['recommendations'],
+        'improvementTips': row['improvement_tips'],
+        'averageResponseSeconds': row['average_response_seconds'] ?? 0,
+        'totalResponseSeconds': row['total_response_seconds'] ?? 0,
+        'validAnswersCount': row['valid_answers_count'] ?? 0,
+        'analyzedAt': row['analyzed_at'],
+      };
+      return InterviewResultsModel.fromJson(modelData);
+    }).toList();
+  }
 }
