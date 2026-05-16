@@ -1,4 +1,5 @@
 import 'dart:ui' as ui;
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter/material.dart';
 import 'package:prep_up/core/localization/l10n_extensions.dart';
 import 'package:prep_up/core/navigation/app_routes.dart';
@@ -262,7 +263,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           child: _GlowingLineChart(data: _scoreHistory),
                         ),
                       ),
-                    ),
+                    ).animate().fadeIn(duration: 600.ms).slideY(begin: 0.1, end: 0),
                     const SizedBox(height: 24),
 
                     // Real Metrics
@@ -271,14 +272,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       title: l10n.dashboardStatAvgScoreTitle,
                       subtitle: l10n.dashboardStatAvgScoreSubtitle(_totalInterviews),
                       color: scheme.primary,
-                    ),
+                    ).animate().fadeIn(delay: 200.ms).slideX(begin: -0.1, end: 0),
                     const SizedBox(height: 16),
                     _NeonStatItem(
                       index: _totalInterviews.toString(),
                       title: l10n.dashboardStatTotalTitle,
                       subtitle: l10n.dashboardStatTotalSubtitle,
                       color: Colors.purpleAccent,
-                    ),
+                    ).animate().fadeIn(delay: 400.ms).slideX(begin: 0.1, end: 0),
                     const SizedBox(height: 24),
 
                     // Recent Activity Card

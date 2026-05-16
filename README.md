@@ -27,9 +27,10 @@ Proporcionar una herramienta integral y accesible de simulación de entrevistas 
 * **Preguntas Dinámicas con IA**: Uso del motor de Google Gemini para generar preguntas relevantes basadas en el rol seleccionado y el contexto de la conversación (preguntas de seguimiento adaptativas).
 * **Evaluación y Feedback en Tiempo Real**: Análisis profundo de cada respuesta calculando puntajes de dominio del tema, comunicación, fortalezas y aspectos a mejorar.
 * **Dashboard de Resultados**: Visualización gráfica del rendimiento general tras finalizar la entrevista, incluyendo recomendaciones personalizadas.
-* **Historial de Prácticas (Tracking)**: Registro de todas las sesiones de entrevista anteriores, lo que permite al usuario revisar su evolución.
+* **Historial de Prácticas (Tracking) con Soporte Offline**: Registro de todas las sesiones de entrevista anteriores, lo que permite al usuario revisar su evolución incluso sin conexión a internet mediante una arquitectura de caché híbrida.
 * **Soporte Multi-idioma e Internacionalización**: Interfaz y motor de IA capaces de adaptarse y funcionar tanto en español como en inglés, con traducciones manejadas a través de `.arb`.
 * **Modo Oscuro/Claro**: Personalización de la interfaz gráfica adaptable a las preferencias del sistema o del usuario.
+* **UI Dinámica y Premium**: Integración de animaciones encadenadas, efectos de máquina de escribir para la IA y estados de carga mediante esqueletos (Skeletons).
 
 ---
 
@@ -42,7 +43,7 @@ lib/
 ├── core/             # Configuraciones globales, manejo de errores, navegación, enrutamiento, utils y localización (l10n extensions).
 ├── domain/           # Modelos de dominio (Entities), definición de servicios y reglas de negocio.
 │   ├── entities/     # Modelos de datos (User, InterviewSession, AnswerEvaluation, etc.).
-│   └── services/     # Lógica central e integración (GeminiService, SupabaseDatabaseService, AuthService).
+│   └── services/     # Lógica central e integración (GeminiService, CachedDatabaseService, SqfliteDatabaseService, SupabaseDatabaseService).
 ├── l10n/             # Archivos de traducción y delegados de localización (AppLocalizations).
 ├── presentation/     # Capa de Interfaz de Usuario (UI) y Controladores de estado.
 │   ├── controllers/  # Providers/StateManagers (InterviewVoiceController, MediaDeviceController, etc.).
@@ -60,7 +61,7 @@ La aplicación implementa una variación de **Clean Architecture** enfocada al e
 
 * **Presentation Layer**: Encargada únicamente de dibujar la UI y reaccionar a los cambios de estado.
 * **Domain / Business Logic Layer**: Administrada a través de Controladores (`ChangeNotifier`) que orquestan el flujo entre los servicios y la UI. Contiene las definiciones de modelos fuertemente tipados.
-* **Data / Services Layer**: Clases de servicio dedicadas que encapsulan las llamadas a APIS externas y Bases de Datos (Supabase, Gemini), manejando el mapeo de excepciones y las reglas de negocio base.
+* **Data / Services Layer**: Clases de servicio dedicadas que encapsulan las llamadas a APIS externas y Bases de Datos. Implementa una estrategia **Offline-First** mediante un decorador de caché que coordina Supabase (remoto) y SQLite (local).
 
 ---
 
@@ -90,14 +91,19 @@ La aplicación implementa una variación de **Clean Architecture** enfocada al e
 ## 🛠️ Widgets, Componentes y Módulos Relevantes
 
 * **`InterviewVoiceController`**: El motor de la entrevista. Maneja el ciclo de vida complejo de escuchar (micrófono), hablar (TTS), pausar y comunicarse de forma asíncrona con el backend generativo de IA para mantener un flujo conversacional natural.
-* **`GeminiService`**: Servicio centralizado que estructura los *prompts* del sistema mediante schemas JSON estrictos, forzando a la IA a devolver evaluaciones cuantificables y listas de feedback consistentes. Contiene un sistema de "fallback" (rescate) por si la IA devuelve respuestas malformadas.
-* **Componentes Visuales Premium**: Widgets personalizados como `AppPrimaryButton`, tarjetas con efectos "Glassmorphism" y manejo avanzado de tipografías (Inter) que dan una apariencia premium e inmersiva a la plataforma.
+* **`GeminiService`**: Servicio centralizado que estructura los *prompts* del sistema mediante schemas JSON estrictos.
+* **Componentes Visuales de Vanguardia**: 
+    *   `AnimatedTextKit`: Para el efecto de "escritura" en tiempo real de la IA.
+    *   `FlutterAnimate`: Para transiciones fluidas y dinámicas en el Dashboard.
+    *   `Skeletonizer`: Para una experiencia de carga moderna que previsualiza la estructura de los datos.
+    *   `AppPrimaryButton` y tarjetas con efectos "Glassmorphism".
 
 ---
 
 ## 🔌 APIs, Servicios e Integraciones Externas Utilizadas
 
-* **Supabase (`supabase_flutter`)**: Proveedor de Backend as a Service (BaaS). Se usa para la Autenticación (Email/Password) y almacenamiento persistente (Tablas relacionales) del historial y usuarios.
+* **Supabase (`supabase_flutter`)**: Backend as a Service para Autenticación y almacenamiento remoto.
+* **SQLite (`sqflite`)**: Base de datos local para persistencia offline y caché de alto rendimiento.
 * **Google Gemini API (`google_generative_ai` y llamadas HTTP custom)**: El núcleo intelectual de la app. Responsable de la generación conversacional adaptativa y la evaluación semántica y técnica del usuario.
 * **`speech_to_text`**: API nativa de transcripción de audio a texto en tiempo real para capturar la respuesta del usuario.
 * **`flutter_tts`**: Conversión de Texto a Voz nativa para dotar a la IA de una voz realista y localizada.
@@ -111,8 +117,10 @@ Definidas en el `pubspec.yaml`:
 * `provider: ^6.1.2` (Inyección y Estado)
 * `flutter_dotenv: ^5.1.0` (Gestión de secretos en archivo `.env`)
 * `intl: ^0.20.2` y `flutter_localizations` (Internacionalización)
-* `shared_preferences: ^2.3.2` (Caché local y preferencias de sesión)
-* `http: ^1.2.2` (Conexiones de red, específicamente para el Gemini Service avanzado)
+* `shared_preferences: ^2.3.2` (Preferencias de sesión)
+* `sqflite` & `path` (Persistencia local relacional)
+* `animated_text_kit`, `flutter_animate` & `skeletonizer` (Mejoras visuales y UX)
+* `http: ^1.2.2` (Conexiones de red avanzadas)
 
 ---
 

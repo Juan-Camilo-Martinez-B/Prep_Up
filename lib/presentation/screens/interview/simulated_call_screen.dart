@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:animated_text_kit/animated_text_kit.dart';
 import 'dart:math' as math;
 
 import 'package:camera/camera.dart';
@@ -430,10 +431,25 @@ class _SimulatedCallScreenState extends State<SimulatedCallScreen> {
                           child: Center(child: CircularProgressIndicator()),
                         )
                       else
-                        Text(
-                          hasQuestion ? question : l10n.callQuestionNoneYet,
-                          style: Theme.of(context).textTheme.titleMedium,
-                        ),
+                        hasQuestion
+                            ? AnimatedTextKit(
+                                key: ValueKey(question),
+                                animatedTexts: [
+                                  TypewriterAnimatedText(
+                                    question,
+                                    textStyle: Theme.of(
+                                      context,
+                                    ).textTheme.titleMedium!,
+                                    speed: const Duration(milliseconds: 40),
+                                  ),
+                                ],
+                                totalRepeatCount: 1,
+                                displayFullTextOnTap: true,
+                              )
+                            : Text(
+                                l10n.callQuestionNoneYet,
+                                style: Theme.of(context).textTheme.titleMedium,
+                              ),
                     ],
                   ),
                 );
