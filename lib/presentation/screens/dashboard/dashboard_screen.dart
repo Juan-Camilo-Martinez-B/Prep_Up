@@ -7,9 +7,12 @@ import 'package:prep_up/domain/entities/interview_results_model.dart';
 import 'package:prep_up/domain/entities/interview_session_model.dart';
 import 'package:prep_up/domain/services/auth_service.dart';
 import 'package:prep_up/domain/services/relational_database_service.dart';
+import 'package:prep_up/domain/services/cached_database_service.dart';
 import 'package:prep_up/presentation/controllers/interview_config_controller.dart';
 import 'package:prep_up/presentation/widgets/app_card.dart';
 import 'package:prep_up/presentation/widgets/app_screen_scaffold.dart';
+import 'package:prep_up/domain/entities/user_model.dart';
+import 'package:prep_up/l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
 
 class ChartData {
@@ -48,68 +51,94 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final dbService = context.read<RelationalDatabaseService>();
 
     final user = authService.currentUser;
-    if (user != null) {
-      final dbUserFuture = dbService.getUserById(user.id);
-      final historyFuture = dbService.getInterviewHistoryForUser(user.id);
-      final resultsFuture = dbService.getInterviewResultsForUser(user.id);
+    if (user == null) return;
 
-      final dbUser = await dbUserFuture;
-      final history = await historyFuture;
-      final results = await resultsFuture;
+    // --- CARGA OPTIMIZADA (CACHE FIRST) ---
+    if (dbService is CachedDatabaseService) {
+      // 1. Obtener datos locales de forma inmediata
+      final localUser = await dbService.local.getUserById(user.id);
+      final localHistory = await dbService.local.getInterviewHistoryForUser(user.id);
+      final localResults = await dbService.local.getInterviewResultsForUser(user.id);
 
-      final resultsMap = {for (var r in results) r.sessionId: r};
-
-      final List<ChartData> dataPoints = [];
-      int totalScore = 0;
-      int resultsCount = 0;
-      InterviewSessionModel? latestSession;
-      InterviewResultsModel? latestResult;
-
-      for (var i = 0; i < history.length; i++) {
-        final session = history[i];
-        final result = resultsMap[session.id];
-
-        if (result != null) {
-          if (resultsCount < 7) {
-            final date = session.createdAt;
-            final label =
-                '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}';
-            dataPoints.add(
-              ChartData(score: result.overallScore.toDouble(), label: label),
-            );
-          }
-          totalScore += result.overallScore;
-          resultsCount++;
-
-          if (latestSession == null) {
-            latestSession = session;
-            latestResult = result;
-          }
-        }
+      if (mounted && (localHistory.isNotEmpty || localResults.isNotEmpty)) {
+        _processAndDisplayData(localUser, localHistory, localResults, l10n);
       }
+    }
+
+    // 2. Sincronizar con remoto (segundo plano/sincrónico pero ya mostramos algo)
+    try {
+      final dbUser = await dbService.getUserById(user.id);
+      final history = await dbService.getInterviewHistoryForUser(user.id);
+      final results = await dbService.getInterviewResultsForUser(user.id);
 
       if (mounted) {
-        setState(() {
-          _firstName = dbUser?.displayName.split(' ').first ?? l10n.profileDemoName;
-
-          var historyData = dataPoints.reversed.toList();
-          if (historyData.length == 1) {
-            historyData.insert(
-              0,
-              ChartData(score: historyData.first.score, label: l10n.statsLabelChartStart),
-            );
-          }
-
-          _scoreHistory = historyData;
-          _totalInterviews = resultsCount;
-          _avgOverallScore = resultsCount > 0
-              ? (totalScore / resultsCount).round()
-              : 0;
-          _latestSession = latestSession;
-          _latestResult = latestResult;
-          _isLoading = false;
-        });
+        _processAndDisplayData(dbUser, history, results, l10n);
       }
+    } catch (e) {
+      debugPrint('Error syncing dashboard data: $e');
+      if (mounted && _isLoading) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
+  void _processAndDisplayData(
+    UserModel? dbUser,
+    List<InterviewSessionModel> history,
+    List<InterviewResultsModel> results,
+    AppLocalizations l10n,
+  ) {
+    final resultsMap = {for (var r in results) r.sessionId: r};
+
+    final List<ChartData> dataPoints = [];
+    int totalScore = 0;
+    int resultsCount = 0;
+    InterviewSessionModel? latestSession;
+    InterviewResultsModel? latestResult;
+
+    for (var i = 0; i < history.length; i++) {
+      final session = history[i];
+      final result = resultsMap[session.id];
+
+      if (result != null) {
+        if (resultsCount < 7) {
+          final date = session.createdAt;
+          final label =
+              '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}';
+          dataPoints.add(
+            ChartData(score: result.overallScore.toDouble(), label: label),
+          );
+        }
+        totalScore += result.overallScore;
+        resultsCount++;
+
+        if (latestSession == null) {
+          latestSession = session;
+          latestResult = result;
+        }
+      }
+    }
+
+    if (mounted) {
+      setState(() {
+        _firstName = dbUser?.displayName.split(' ').first ?? l10n.profileDemoName;
+
+        var historyData = dataPoints.reversed.toList();
+        if (historyData.length == 1) {
+          historyData.insert(
+            0,
+            ChartData(score: historyData.first.score, label: l10n.statsLabelChartStart),
+          );
+        }
+
+        _scoreHistory = historyData;
+        _totalInterviews = resultsCount;
+        _avgOverallScore =
+            resultsCount > 0 ? (totalScore / resultsCount).round() : 0;
+        _latestSession = latestSession;
+        _latestResult = latestResult;
+        _isLoading = false;
+      });
     }
   }
 

@@ -7,6 +7,8 @@ import 'package:prep_up/core/navigation/app_routes.dart';
 import 'package:prep_up/domain/entities/interview_session_model.dart';
 import 'package:prep_up/domain/services/auth_service.dart';
 import 'package:prep_up/domain/services/relational_database_service.dart';
+import 'package:prep_up/domain/services/cached_database_service.dart';
+import 'package:prep_up/domain/entities/interview_results_model.dart';
 import 'package:prep_up/domain/services/supabase_database_service.dart';
 import 'package:prep_up/presentation/widgets/app_card.dart';
 import 'package:prep_up/presentation/widgets/app_primary_button.dart';
@@ -45,33 +47,45 @@ class _InterviewHistoryScreenState extends State<InterviewHistoryScreen> {
       return;
     }
 
+    // --- CARGA OPTIMIZADA (CACHE FIRST) ---
+    if (dbService is CachedDatabaseService) {
+      final localHistory = await dbService.local.getInterviewHistoryForUser(user.id);
+      final localResults = await dbService.local.getInterviewResultsForUser(user.id);
+
+      if (mounted && localHistory.isNotEmpty) {
+        _processAndDisplayHistory(localHistory, localResults);
+      }
+    }
+
     try {
-      final historyFuture = dbService.getInterviewHistoryForUser(user.id);
-      final resultsFuture = dbService.getInterviewResultsForUser(user.id);
+      final history = await dbService.getInterviewHistoryForUser(user.id);
+      final results = await dbService.getInterviewResultsForUser(user.id);
 
-      final history = await historyFuture;
-      final results = await resultsFuture;
+      if (mounted) {
+        _processAndDisplayHistory(history, results);
+      }
+    } catch (e) {
+      if (mounted && _isLoading) {
+        setState(() => _isLoading = false);
+      }
+      debugPrint('Error loading history: $e');
+    }
+  }
 
-      final Map<String, int> scores = {
-        for (final result in results) result.sessionId: result.overallScore
-      };
+  void _processAndDisplayHistory(
+    List<InterviewSessionModel> history,
+    List<InterviewResultsModel> results,
+  ) {
+    final Map<String, int> scores = {
+      for (final result in results) result.sessionId: result.overallScore
+    };
 
-      if (!mounted) return;
+    if (mounted) {
       setState(() {
         _history = history;
         _scores = scores;
         _isLoading = false;
       });
-    } catch (e) {
-      if (!mounted) return;
-      setState(() => _isLoading = false);
-      final message = userFriendlyErrorMessage(e, l10n);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(message),
-          backgroundColor: Theme.of(context).colorScheme.error,
-        ),
-      );
     }
   }
 

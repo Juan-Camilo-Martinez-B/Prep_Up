@@ -4,6 +4,7 @@ import 'dart:math' as math;
 
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:prep_up/core/localization/app_locale.dart';
 import 'package:prep_up/core/localization/l10n_extensions.dart';
 import 'package:prep_up/core/navigation/app_routes.dart';
@@ -531,11 +532,20 @@ class _SimulatedCallScreenState extends State<SimulatedCallScreen> {
                                 16,
                               ),
                             ),
+                            inputFormatters: [
+                              TextInputFormatter.withFunction((oldValue,
+                                  newValue) {
+                                if (newValue.text.startsWith(' ')) {
+                                  return oldValue;
+                                }
+                                return newValue;
+                              }),
+                            ],
                             enabled:
                                 (canInteract || isListening) && !isComplete,
                           ),
                           Positioned(
-                            bottom: 12,
+                            bottom: 24, // Movido hacia arriba de 12 a 24
                             right: 8,
                             child: IconButton.filledTonal(
                               onPressed: canInteract || isListening

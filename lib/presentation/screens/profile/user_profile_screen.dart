@@ -1,14 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:prep_up/core/errors/user_friendly_error.dart';
 import 'package:prep_up/core/localization/l10n_extensions.dart';
 import 'package:prep_up/core/navigation/app_routes.dart';
 import 'package:prep_up/domain/entities/user_model.dart';
 import 'package:prep_up/domain/services/auth_service.dart';
 import 'package:prep_up/domain/services/relational_database_service.dart';
+import 'package:prep_up/domain/services/cached_database_service.dart';
+import 'package:prep_up/domain/entities/interview_results_model.dart';
 import 'package:prep_up/presentation/widgets/app_card.dart';
 import 'package:prep_up/presentation/widgets/app_primary_button.dart';
 import 'package:prep_up/presentation/widgets/app_screen_scaffold.dart';
 import 'package:prep_up/core/localization/interview_l10n.dart';
+import 'package:prep_up/domain/entities/interview_session_model.dart';
 import 'package:provider/provider.dart';
 
 class UserProfileScreen extends StatefulWidget {
@@ -43,43 +47,58 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
       return;
     }
 
+    // --- CARGA OPTIMIZADA (CACHE FIRST) ---
+    if (dbService is CachedDatabaseService) {
+      final localUser = await dbService.local.getUserById(currentUser.id);
+      final localHistory = await dbService.local.getInterviewHistoryForUser(currentUser.id);
+      final localResults = await dbService.local.getInterviewResultsForUser(currentUser.id);
+
+      if (mounted && localUser != null) {
+        _processAndDisplayProfile(localUser, localHistory, localResults);
+      }
+    }
+
     try {
       final user = await dbService.getUserById(currentUser.id);
-      final history = await dbService.getInterviewHistoryForUser(
-        currentUser.id,
-      );
-
+      final history = await dbService.getInterviewHistoryForUser(currentUser.id);
       final results = await Future.wait(
         history.map((s) => dbService.getInterviewResultForSession(s.id)),
       );
 
-      var count = 0;
-      var totalScore = 0.0;
+      // Limpiar nulls de los resultados remotos
+      final cleanResults = results.whereType<InterviewResultsModel>().toList();
 
-      for (final result in results) {
-        if (result != null) {
-          totalScore += result.overallScore;
-          count++;
-        }
+      if (mounted) {
+        _processAndDisplayProfile(user, history, cleanResults);
       }
+    } catch (e) {
+      if (mounted && _isLoading) {
+        setState(() => _isLoading = false);
+      }
+      debugPrint('Error loading profile data: $e');
+    }
+  }
 
-      if (!mounted) return;
+  void _processAndDisplayProfile(
+    UserModel? user,
+    List<InterviewSessionModel> history,
+    List<InterviewResultsModel> results,
+  ) {
+    var count = 0;
+    var totalScore = 0.0;
+
+    for (final result in results) {
+      totalScore += result.overallScore;
+      count++;
+    }
+
+    if (mounted) {
       setState(() {
         _user = user;
         _interviewCount = count;
         _avgScore = count > 0 ? totalScore / count : 0;
         _isLoading = false;
       });
-    } catch (e) {
-      if (!mounted) return;
-      setState(() => _isLoading = false);
-      final message = userFriendlyErrorMessage(e, l10n);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(message),
-          backgroundColor: Theme.of(context).colorScheme.error,
-        ),
-      );
     }
   }
 
@@ -129,6 +148,14 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                   ),
                   prefixIcon: const Icon(Icons.person_outline_rounded),
                 ),
+                inputFormatters: [
+                  TextInputFormatter.withFunction((oldValue, newValue) {
+                    if (newValue.text.startsWith(' ')) {
+                      return oldValue;
+                    }
+                    return newValue;
+                  }),
+                ],
               ),
               const SizedBox(height: 16),
               DropdownButtonFormField<UserOccupation>(
@@ -163,6 +190,14 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                   ),
                   prefixIcon: const Icon(Icons.phone_outlined),
                 ),
+                inputFormatters: [
+                  TextInputFormatter.withFunction((oldValue, newValue) {
+                    if (newValue.text.startsWith(' ')) {
+                      return oldValue;
+                    }
+                    return newValue;
+                  }),
+                ],
               ),
               const SizedBox(height: 24),
               AppPrimaryButton(
