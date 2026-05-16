@@ -67,47 +67,12 @@ class RecommendationsScreen extends StatelessWidget {
             ),
             const SizedBox(height: 14),
           ],
-          AppCard(
-            title: l10n.recommendationsNextSessionTitle,
-            subtitle: l10n.recommendationsNextSessionSubtitle,
-            leading: Icon(Icons.replay_rounded, color: scheme.secondary),
-            child: Wrap(
-              spacing: 12,
-              runSpacing: 12,
-              children: [
-                SizedBox(
-                  width: (MediaQuery.of(context).size.width - 80) / 2,
-                  child: OutlinedButton.icon(
-                    onPressed: () {
-                      // Para repetir, vamos a la selección de tipo limpiando el stack
-                      // pero manteniendo el dashboard como base.
-                      Navigator.of(context).pushNamedAndRemoveUntil(
-                        AppRoutes.selectInterviewType,
-                        (route) => route.settings.name == AppRoutes.dashboard,
-                      );
-                    },
-                    style: OutlinedButton.styleFrom(
-                      minimumSize: const Size(0, 54),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                    ),
-                    icon: const Icon(Icons.play_arrow_rounded),
-                    label: Text(l10n.repeatButton),
-                  ),
-                ),
-                SizedBox(
-                  width: (MediaQuery.of(context).size.width - 80) / 2,
-                  child: AppPrimaryButton(
-                    label: l10n.dashboardButton,
-                    icon: Icons.home_rounded,
-                    onPressed: () => Navigator.of(
-                      context,
-                    ).pushNamedAndRemoveUntil(AppRoutes.dashboard, (r) => false),
-                  ),
-                ),
-              ],
-            ),
+          AppPrimaryButton(
+            label: l10n.dashboardButton,
+            icon: Icons.home_rounded,
+            onPressed: () => Navigator.of(
+              context,
+            ).pushNamedAndRemoveUntil(AppRoutes.dashboard, (r) => false),
           ),
         ],
       ),
