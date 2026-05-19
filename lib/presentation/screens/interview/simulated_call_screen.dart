@@ -84,13 +84,8 @@ class _SimulatedCallScreenState extends State<SimulatedCallScreen> {
       }
     });
 
-    _answerController.addListener(() {
-      if (!mounted) return;
-      if (_answerController.text.isNotEmpty &&
-          (_voiceController.isSpeaking || _voiceController.isListening)) {
-        _voiceController.onUserInteractionStarted();
-      }
-    });
+    // El onChanged del TextField se encarga de manejar la edición manual del usuario,
+    // previniendo que los cambios automáticos de voz a texto apaguen el micrófono.
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       await _mediaController.refreshPermissions();
@@ -378,7 +373,9 @@ class _SimulatedCallScreenState extends State<SimulatedCallScreen> {
                     _voiceController.currentQuestionNumber;
                 final totalQuestions = _voiceController.targetQuestionCount;
                 final isLoading = !hasQuestion && _voiceController.isStarting;
-                final isProcessing = _voiceController.state == InterviewConversationState.processing;
+                final isProcessing =
+                    _voiceController.state ==
+                    InterviewConversationState.processing;
                 final isFinishing = _voiceController.isFinishing;
 
                 return AppCard(
@@ -447,14 +444,13 @@ class _SimulatedCallScreenState extends State<SimulatedCallScreen> {
                               )
                             : Text(
                                 l10n.callQuestionWaiting,
-                                style: Theme.of(
-                                  context,
-                                ).textTheme.titleMedium?.copyWith(
-                                  fontStyle: FontStyle.italic,
-                                  color: scheme.onSurfaceVariant.withValues(
-                                    alpha: 0.7,
-                                  ),
-                                ),
+                                style: Theme.of(context).textTheme.titleMedium
+                                    ?.copyWith(
+                                      fontStyle: FontStyle.italic,
+                                      color: scheme.onSurfaceVariant.withValues(
+                                        alpha: 0.7,
+                                      ),
+                                    ),
                               ),
                       ),
                     ],
@@ -524,6 +520,14 @@ class _SimulatedCallScreenState extends State<SimulatedCallScreen> {
                             controller: _answerController,
                             minLines: 3,
                             maxLines: 6,
+                            onChanged: (text) {
+                              _voiceController.updateVoiceDraft(text);
+                              if (text.isNotEmpty &&
+                                  (_voiceController.isSpeaking ||
+                                      _voiceController.isListening)) {
+                                _voiceController.onUserInteractionStarted();
+                              }
+                            },
                             decoration: InputDecoration(
                               labelText: l10n.callAnswerFieldLabel,
                               alignLabelWithHint: true,
@@ -539,8 +543,10 @@ class _SimulatedCallScreenState extends State<SimulatedCallScreen> {
                               ),
                             ),
                             inputFormatters: [
-                              TextInputFormatter.withFunction((oldValue,
-                                  newValue) {
+                              TextInputFormatter.withFunction((
+                                oldValue,
+                                newValue,
+                              ) {
                                 if (newValue.text.startsWith(' ')) {
                                   return oldValue;
                                 }

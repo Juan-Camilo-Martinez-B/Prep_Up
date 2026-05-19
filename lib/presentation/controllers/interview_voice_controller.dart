@@ -52,6 +52,7 @@ class InterviewVoiceController extends ChangeNotifier {
   InterviewConversationState _state = InterviewConversationState.idle;
   String _currentQuestion = '';
   String _voiceDraft = '';
+  String _previousVoiceText = '';
   String _lastSubmittedAnswer = '';
   String _statusMessage = '';
   String? _error;
@@ -62,9 +63,6 @@ class InterviewVoiceController extends ChangeNotifier {
   bool _hasStarted = false;
   bool _isTtsConfigured = false;
   bool _isAiSpeaking = false;
-  int _activeListeningCycle = 0;
-  int _handledListeningCycle = 0;
-  int _emptyVoiceRetries = 0;
   double _soundLevel = 0;
   String? _speechLocaleId;
   DateTime? _currentQuestionAskedAt;
@@ -72,6 +70,7 @@ class InterviewVoiceController extends ChangeNotifier {
   bool _isFinishing = false;
   String? _completionReason;
   bool _isSessionCancelled = false;
+  Timer? _silenceTimer;
 
   InterviewSession get session => _session;
   InterviewConversationState get state => _state;
@@ -165,7 +164,7 @@ class InterviewVoiceController extends ChangeNotifier {
       return;
     }
 
-    await _beginListening(clearDraft: true, stopTts: true);
+    await _beginListening(clearDraft: false, stopTts: true);
   }
 
   Future<void> submitAnswer(String answer) async {
@@ -178,9 +177,9 @@ class InterviewVoiceController extends ChangeNotifier {
       return;
     }
 
-    _handledListeningCycle = _activeListeningCycle;
-    _emptyVoiceRetries = 0;
+    _cancelSilenceTimer();
     _voiceDraft = safeAnswer;
+    _previousVoiceText = '';
     _lastSubmittedAnswer = safeAnswer;
     _state = InterviewConversationState.processing;
     _statusMessage = _l10n.interviewAnswerSavedAndNext;
@@ -247,7 +246,6 @@ class InterviewVoiceController extends ChangeNotifier {
 
     await _speech.stop();
     _voiceDraft = '';
-    _emptyVoiceRetries = 0;
     await _deliverQuestion(
       question,
       introMessage: _l10n.interviewRepeatQuestionIntro,
@@ -304,6 +302,14 @@ class InterviewVoiceController extends ChangeNotifier {
       unawaited(_speech.stop());
       _setIdle();
       _statusMessage = _l10n.interviewWaitingAnswer;
+      _notifySafely();
+    }
+  }
+
+  void updateVoiceDraft(String text) {
+    if (_voiceDraft != text) {
+      _voiceDraft = text;
+      _previousVoiceText = text;
       _notifySafely();
     }
   }
@@ -478,8 +484,8 @@ class InterviewVoiceController extends ChangeNotifier {
     _currentQuestion = question.trim();
     _currentQuestionAskedAt = DateTime.now().toUtc();
     _voiceDraft = '';
+    _previousVoiceText = '';
     _error = null;
-    _emptyVoiceRetries = 0;
     _statusMessage = introMessage ?? _l10n.interviewQuestionReady;
     _notifySafely();
 
@@ -556,10 +562,11 @@ class InterviewVoiceController extends ChangeNotifier {
 
       if (clearDraft) {
         _voiceDraft = '';
+        _previousVoiceText = '';
+      } else {
+        _previousVoiceText = _voiceDraft.trim();
       }
 
-      _activeListeningCycle += 1;
-      _handledListeningCycle = 0;
       _soundLevel = 0;
       _state = InterviewConversationState.listening;
       _statusMessage = _l10n.interviewListening;
@@ -583,6 +590,7 @@ class InterviewVoiceController extends ChangeNotifier {
           autoPunctuation: true,
         ),
       );
+      _resetSilenceTimer();
     } catch (e) {
       _setIdle();
       _error = _l10n.interviewCouldNotActivateMic;
@@ -594,29 +602,59 @@ class InterviewVoiceController extends ChangeNotifier {
   void _onSpeechResult(SpeechRecognitionResult result) {
     if (_isSessionCancelled) return;
     final transcript = result.recognizedWords.trim();
-    if (transcript != _voiceDraft) {
-      _voiceDraft = transcript;
-      _notifySafely();
-    }
+    final currentFullText = _previousVoiceText.isEmpty
+        ? transcript
+        : '$_previousVoiceText $transcript'.trim();
 
-    if (result.finalResult) {
-      unawaited(_finalizeListeningCycle(transcript: transcript));
+    if (currentFullText != _voiceDraft) {
+      _voiceDraft = currentFullText;
+      _notifySafely();
+      _resetSilenceTimer();
     }
   }
 
   void _onSpeechStatus(String status) {
     if (!isListening || _isSessionCancelled) return;
     if (status == 'done' || status == 'notListening') {
-      unawaited(_finalizeListeningCycle());
+      unawaited(_restartListeningIfNeeded());
     }
   }
 
   void _onSpeechError(SpeechRecognitionError error) {
     if (!isListening || _isSessionCancelled) return;
-    _setIdle();
-    _error = _l10n.interviewCouldNotTranscribe;
-    _statusMessage = _l10n.interviewCouldNotTranscribe;
-    _notifySafely();
+    debugPrint('Speech recognition error: ${error.errorMsg}');
+    unawaited(_restartListeningIfNeeded());
+  }
+
+  Future<void> _restartListeningIfNeeded() async {
+    if (!isListening || _isSessionCancelled) return;
+
+    _previousVoiceText = _voiceDraft.trim();
+    
+    // Esperar un momento (200ms) para que el motor nativo libere recursos de audio por completo
+    await Future.delayed(const Duration(milliseconds: 200));
+    if (!isListening || _isSessionCancelled) return;
+
+    try {
+      await _speech.listen(
+        onResult: _onSpeechResult,
+        listenFor: const Duration(seconds: 180),
+        pauseFor: const Duration(seconds: 6),
+        localeId: _speechLocaleId,
+        onSoundLevelChange: _onSoundLevelChange,
+        listenOptions: SpeechListenOptions(
+          listenMode: ListenMode.dictation,
+          cancelOnError: false,
+          partialResults: true,
+          autoPunctuation: true,
+        ),
+      );
+      _resetSilenceTimer();
+    } catch (e) {
+      debugPrint('Error restarting speech recognition: $e');
+      _setIdle();
+      _notifySafely();
+    }
   }
 
   void _onSoundLevelChange(double level) {
@@ -625,52 +663,6 @@ class InterviewVoiceController extends ChangeNotifier {
     _notifySafely();
   }
 
-  Future<void> _finalizeListeningCycle({String? transcript}) async {
-    if (_isSessionCancelled) return;
-    final cycle = _activeListeningCycle;
-    if (cycle == 0 || cycle == _handledListeningCycle) return;
-    _handledListeningCycle = cycle;
-
-    await _speech.stop();
-    if (_isSessionCancelled) return;
-
-    final finalTranscript = (transcript ?? _voiceDraft).trim();
-    if (finalTranscript.isEmpty) {
-      await _handleNoVoiceDetected();
-      return;
-    }
-
-    await submitAnswer(finalTranscript);
-  }
-
-  Future<void> _handleNoVoiceDetected() async {
-    if (_isSessionCancelled) return;
-    _emptyVoiceRetries += 1;
-    _setIdle();
-
-    if (_emptyVoiceRetries > 1) {
-      _error = _l10n.interviewNoVoiceDetectedWrite;
-      _statusMessage = _l10n.interviewWaitingAnswer;
-      _notifySafely();
-      return;
-    }
-
-    _statusMessage = _l10n.interviewNoVoiceDetectedRetrying;
-    _error = _l10n.interviewNoClearVoice;
-    _notifySafely();
-
-    if (_isTtsAvailable) {
-      try {
-        _state = InterviewConversationState.speaking;
-        _notifySafely();
-        await _tts.speak(_l10n.interviewCouldNotHearClearly);
-      } catch (_) {
-        _isTtsAvailable = false;
-      }
-    }
-
-    await _beginListening(clearDraft: true, stopTts: true);
-  }
 
   Future<String?> _resolveTtsLanguage() async {
     try {
@@ -737,6 +729,7 @@ class InterviewVoiceController extends ChangeNotifier {
   void _setIdle() {
     _state = InterviewConversationState.idle;
     _soundLevel = 0;
+    _cancelSilenceTimer();
   }
 
   int _calculateCurrentResponseDurationSeconds() {
@@ -750,23 +743,11 @@ class InterviewVoiceController extends ChangeNotifier {
     }
 
     final remaining = remainingInterviewSeconds;
-    final averageBudgetPerQuestion =
-        (totalInterviewSeconds / targetQuestionCount).round().clamp(45, 180);
-    final measuredAverage = answered == 0
-        ? averageBudgetPerQuestion
-        : (_session.turns.fold<int>(
-                    0,
-                    (sum, turn) => sum + turn.responseDurationSeconds,
-                  ) /
-                  answered)
-              .round()
-              .clamp(30, 180);
-    final minimumNeededForAnotherQuestion = math.max(
-      40,
-      math.min(averageBudgetPerQuestion, measuredAverage + 15),
-    );
+    if (remaining <= 0) {
+      return true;
+    }
 
-    return remaining < minimumNeededForAnotherQuestion;
+    return false;
   }
 
   Future<void> _completeInterview({required String reason}) async {
@@ -847,10 +828,29 @@ class InterviewVoiceController extends ChangeNotifier {
     }
   }
 
+  void _resetSilenceTimer() {
+    _silenceTimer?.cancel();
+    if (!isListening || _isSessionCancelled) return;
+
+    _silenceTimer = Timer(const Duration(seconds: 4), () {
+      if (!isListening || _isSessionCancelled) return;
+      final finalAnswer = _voiceDraft.trim();
+      if (finalAnswer.isNotEmpty) {
+        unawaited(submitAnswer(finalAnswer));
+      }
+    });
+  }
+
+  void _cancelSilenceTimer() {
+    _silenceTimer?.cancel();
+    _silenceTimer = null;
+  }
+
   @override
   void dispose() {
     _isSessionCancelled = true;
     _isDisposed = true;
+    _cancelSilenceTimer();
     _speech.cancel();
     _tts.stop();
     super.dispose();
