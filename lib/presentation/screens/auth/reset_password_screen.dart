@@ -43,7 +43,9 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
 
     if (password.length < 6) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('La contraseña debe tener al menos 6 caracteres')),
+        const SnackBar(
+          content: Text('La contraseña debe tener al menos 6 caracteres'),
+        ),
       );
       return;
     }
@@ -66,10 +68,9 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
             backgroundColor: Colors.green,
           ),
         );
-        Navigator.of(context).pushNamedAndRemoveUntil(
-          AppRoutes.login,
-          (route) => false,
-        );
+        Navigator.of(
+          context,
+        ).pushNamedAndRemoveUntil(AppRoutes.login, (route) => false);
       }
     } catch (e) {
       if (mounted) {
@@ -120,110 +121,119 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
       prefixIconColor: scheme.primary,
     );
 
-    return AppScreenScaffold(
-      title: '',
-      showBackButton: false,
-      extendBodyBehindAppBar: true,
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              scheme.primary.withValues(alpha: 0.05),
-              scheme.surface,
-            ],
+    return PopScope(
+      canPop: false,
+      child: AppScreenScaffold(
+        title: '',
+        showBackButton: false,
+        extendBodyBehindAppBar: true,
+        body: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [scheme.primary.withValues(alpha: 0.05), scheme.surface],
+            ),
           ),
-        ),
-        child: SafeArea(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const SizedBox(height: 20),
-                Hero(
-                  tag: 'auth_icon',
-                  child: Container(
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      color: scheme.primaryContainer.withValues(alpha: 0.3),
-                      shape: BoxShape.circle,
+          child: SafeArea(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const SizedBox(height: 20),
+                  Hero(
+                    tag: 'auth_icon',
+                    child: Container(
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: scheme.primaryContainer.withValues(alpha: 0.3),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        Icons.lock_reset_outlined,
+                        size: 60,
+                        color: scheme.primary,
+                      ),
                     ),
-                    child: Icon(
-                      Icons.lock_reset_outlined,
-                      size: 60,
-                      color: scheme.primary,
+                  ),
+                  const SizedBox(height: 32),
+                  Text(
+                    'Nueva Contraseña',
+                    textAlign: TextAlign.center,
+                    style: theme.textTheme.headlineMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: -0.5,
                     ),
                   ),
-                ),
-                const SizedBox(height: 32),
-                Text(
-                  'Nueva Contraseña',
-                  textAlign: TextAlign.center,
-                  style: theme.textTheme.headlineMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: -0.5,
+                  const SizedBox(height: 12),
+                  Text(
+                    'Crea una contraseña segura para tu cuenta.',
+                    textAlign: TextAlign.center,
+                    style: theme.textTheme.bodyLarge?.copyWith(
+                      color: scheme.onSurfaceVariant,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  'Crea una contraseña segura para tu cuenta.',
-                  textAlign: TextAlign.center,
-                  style: theme.textTheme.bodyLarge?.copyWith(
-                    color: scheme.onSurfaceVariant,
-                  ),
-                ),
-                const SizedBox(height: 40),
-                AppCard(
-                  padding: const EdgeInsets.all(24),
-                  child: Column(
-                    children: [
-                      TextField(
-                        controller: _passwordController,
-                        obscureText: _obscurePassword,
-                        inputFormatters: [
-                          FilteringTextInputFormatter.deny(RegExp(r'^\s+')),
-                        ],
-                        decoration: inputDecoration.copyWith(
-                          labelText: 'Nueva Contraseña',
-                          prefixIcon: const Icon(Icons.lock_outline_rounded),
-                          suffixIcon: IconButton(
-                            icon: Icon(
-                              _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                  const SizedBox(height: 40),
+                  AppCard(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      children: [
+                        TextField(
+                          controller: _passwordController,
+                          obscureText: _obscurePassword,
+                          inputFormatters: [
+                            FilteringTextInputFormatter.deny(RegExp(r'^\s+')),
+                          ],
+                          decoration: inputDecoration.copyWith(
+                            labelText: 'Nueva Contraseña',
+                            prefixIcon: const Icon(Icons.lock_outline_rounded),
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                _obscurePassword
+                                    ? Icons.visibility_off_outlined
+                                    : Icons.visibility_outlined,
+                              ),
+                              onPressed: () => setState(
+                                () => _obscurePassword = !_obscurePassword,
+                              ),
                             ),
-                            onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
                           ),
                         ),
-                      ),
-                      const SizedBox(height: 20),
-                      TextField(
-                        controller: _confirmPasswordController,
-                        obscureText: _obscureConfirmPassword,
-                        inputFormatters: [
-                          FilteringTextInputFormatter.deny(RegExp(r'^\s+')),
-                        ],
-                        decoration: inputDecoration.copyWith(
-                          labelText: 'Confirmar Contraseña',
-                          prefixIcon: const Icon(Icons.lock_clock_outlined),
-                          suffixIcon: IconButton(
-                            icon: Icon(
-                              _obscureConfirmPassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                        const SizedBox(height: 20),
+                        TextField(
+                          controller: _confirmPasswordController,
+                          obscureText: _obscureConfirmPassword,
+                          inputFormatters: [
+                            FilteringTextInputFormatter.deny(RegExp(r'^\s+')),
+                          ],
+                          decoration: inputDecoration.copyWith(
+                            labelText: 'Confirmar Contraseña',
+                            prefixIcon: const Icon(Icons.lock_clock_outlined),
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                _obscureConfirmPassword
+                                    ? Icons.visibility_off_outlined
+                                    : Icons.visibility_outlined,
+                              ),
+                              onPressed: () => setState(
+                                () => _obscureConfirmPassword =
+                                    !_obscureConfirmPassword,
+                              ),
                             ),
-                            onPressed: () => setState(() => _obscureConfirmPassword = !_obscureConfirmPassword),
                           ),
                         ),
-                      ),
-                      const SizedBox(height: 40),
-                      AppPrimaryButton(
-                        label: 'Actualizar Contraseña',
-                        isLoading: _isLoading,
-                        onPressed: _handleReset,
-                      ),
-                    ],
+                        const SizedBox(height: 40),
+                        AppPrimaryButton(
+                          label: 'Actualizar Contraseña',
+                          isLoading: _isLoading,
+                          onPressed: _handleReset,
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),

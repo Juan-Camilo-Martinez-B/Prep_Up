@@ -69,10 +69,9 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
               backgroundColor: Colors.green,
             ),
           );
-          Navigator.of(context).pushNamedAndRemoveUntil(
-            AppRoutes.dashboard,
-            (route) => false,
-          );
+          Navigator.of(
+            context,
+          ).pushNamedAndRemoveUntil(AppRoutes.dashboard, (route) => false);
         }
       } else {
         await _authService.verifyRecoveryOTP(
@@ -131,169 +130,186 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
 
-    return AppScreenScaffold(
-      title: '',
-      showBackButton: true,
-      extendBodyBehindAppBar: true,
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              scheme.primary.withValues(alpha: 0.05),
-              scheme.surface,
-            ],
+    return PopScope(
+      canPop: false,
+      child: AppScreenScaffold(
+        title: '',
+        showBackButton: false,
+        extendBodyBehindAppBar: true,
+        body: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [scheme.primary.withValues(alpha: 0.05), scheme.surface],
+            ),
           ),
-        ),
-        child: SafeArea(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const SizedBox(height: 20),
-                Hero(
-                  tag: 'auth_icon',
-                  child: Container(
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      color: scheme.primaryContainer.withValues(alpha: 0.3),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      Icons.shield_outlined,
-                      size: 60,
-                      color: scheme.primary,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 32),
-                Text(
-                  widget.type == VerifyOtpType.signup
-                      ? 'Verifica tu identidad'
-                      : 'Recuperar contraseña',
-                  textAlign: TextAlign.center,
-                  style: theme.textTheme.headlineMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: -0.5,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                RichText(
-                  textAlign: TextAlign.center,
-                  text: TextSpan(
-                    style: theme.textTheme.bodyLarge?.copyWith(
-                      color: scheme.onSurfaceVariant,
-                    ),
-                    children: [
-                      TextSpan(
-                        text: widget.type == VerifyOtpType.signup
-                            ? 'Ingresa el código de 6 dígitos enviado a\n'
-                            : 'Hemos enviado un código de seguridad a\n',
+          child: SafeArea(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const SizedBox(height: 20),
+                  Hero(
+                    tag: 'auth_icon',
+                    child: Container(
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: scheme.primaryContainer.withValues(alpha: 0.3),
+                        shape: BoxShape.circle,
                       ),
-                      TextSpan(
-                        text: widget.email,
-                        style: TextStyle(
-                          color: scheme.primary,
-                          fontWeight: FontWeight.bold,
+                      child: Icon(
+                        Icons.shield_outlined,
+                        size: 60,
+                        color: scheme.primary,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+                  Text(
+                    widget.type == VerifyOtpType.signup
+                        ? 'Verifica tu identidad'
+                        : 'Recuperar contraseña',
+                    textAlign: TextAlign.center,
+                    style: theme.textTheme.headlineMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: -0.5,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  RichText(
+                    textAlign: TextAlign.center,
+                    text: TextSpan(
+                      style: theme.textTheme.bodyLarge?.copyWith(
+                        color: scheme.onSurfaceVariant,
+                      ),
+                      children: [
+                        TextSpan(
+                          text: widget.type == VerifyOtpType.signup
+                              ? 'Ingresa el código de 6 dígitos enviado a\n'
+                              : 'Hemos enviado un código de seguridad a\n',
                         ),
-                      ),
-                    ],
+                        TextSpan(
+                          text: widget.email,
+                          style: TextStyle(
+                            color: scheme.primary,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-                const SizedBox(height: 40),
-                AppCard(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
-                  child: Column(
-                    children: [
-                      Row(
-                        children: List.generate(6, (index) {
-                          return Expanded(
-                            child: Padding(
-                              padding: EdgeInsets.only(right: index == 5 ? 0 : 6),
-                              child: TextField(
-                                controller: _controllers[index],
-                                focusNode: _focusNodes[index],
-                                textAlign: TextAlign.center,
-                                keyboardType: TextInputType.number,
-                                inputFormatters: [
-                                  FilteringTextInputFormatter.digitsOnly,
-                                  LengthLimitingTextInputFormatter(1),
-                                ],
-                                style: theme.textTheme.titleLarge?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                  color: scheme.primary,
+                  const SizedBox(height: 40),
+                  AppCard(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 24,
+                    ),
+                    child: Column(
+                      children: [
+                        Row(
+                          children: List.generate(6, (index) {
+                            return Expanded(
+                              child: Padding(
+                                padding: EdgeInsets.only(
+                                  right: index == 5 ? 0 : 6,
                                 ),
-                                decoration: InputDecoration(
-                                  filled: true,
-                                  fillColor: scheme.surfaceContainerHigh,
-                                  counterText: '',
-                                  contentPadding: const EdgeInsets.symmetric(vertical: 12),
-                                  enabledBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(10),
-                                    borderSide: BorderSide(
-                                      color: scheme.outlineVariant.withValues(alpha: 0.5),
-                                      width: 1,
+                                child: TextField(
+                                  controller: _controllers[index],
+                                  focusNode: _focusNodes[index],
+                                  textAlign: TextAlign.center,
+                                  keyboardType: TextInputType.number,
+                                  inputFormatters: [
+                                    FilteringTextInputFormatter.digitsOnly,
+                                    LengthLimitingTextInputFormatter(1),
+                                  ],
+                                  style: theme.textTheme.titleLarge?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    color: scheme.primary,
+                                  ),
+                                  decoration: InputDecoration(
+                                    filled: true,
+                                    fillColor: scheme.surfaceContainerHigh,
+                                    counterText: '',
+                                    contentPadding: const EdgeInsets.symmetric(
+                                      vertical: 12,
+                                    ),
+                                    enabledBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(10),
+                                      borderSide: BorderSide(
+                                        color: scheme.outlineVariant.withValues(
+                                          alpha: 0.5,
+                                        ),
+                                        width: 1,
+                                      ),
+                                    ),
+                                    focusedBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(10),
+                                      borderSide: BorderSide(
+                                        color: scheme.primary,
+                                        width: 2,
+                                      ),
                                     ),
                                   ),
-                                  focusedBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(10),
-                                    borderSide: BorderSide(
-                                      color: scheme.primary,
-                                      width: 2,
-                                    ),
-                                  ),
+                                  onChanged: (value) =>
+                                      _onOtpChanged(index, value),
                                 ),
-                                onChanged: (value) => _onOtpChanged(index, value),
                               ),
+                            );
+                          }),
+                        ),
+                        const SizedBox(height: 40),
+                        if (_isLoading)
+                          const CircularProgressIndicator()
+                        else
+                          AppPrimaryButton(
+                            label: 'Verificar Código',
+                            onPressed: _handleVerify,
+                          ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        '¿No recibiste el código? ',
+                        style: theme.textTheme.bodyMedium,
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Código reenviado con éxito'),
                             ),
                           );
-                        }),
-                      ),
-                      const SizedBox(height: 40),
-                      if (_isLoading)
-                        const CircularProgressIndicator()
-                      else
-                        AppPrimaryButton(
-                          label: 'Verificar Código',
-                          onPressed: _handleVerify,
+                        },
+                        style: TextButton.styleFrom(
+                          padding: EdgeInsets.zero,
+                          minimumSize: Size.zero,
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                         ),
+                        child: Text(
+                          'Reenviar',
+                          style: TextStyle(
+                            color: scheme.primary,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
                     ],
                   ),
-                ),
-                const SizedBox(height: 32),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      '¿No recibiste el código? ',
-                      style: theme.textTheme.bodyMedium,
-                    ),
-                    TextButton(
-                      onPressed: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Código reenviado con éxito'),
-                          ),
-                        );
-                      },
-                      style: TextButton.styleFrom(
-                        padding: EdgeInsets.zero,
-                        minimumSize: Size.zero,
-                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      ),
-                      child: Text(
-                        'Reenviar',
-                        style: TextStyle(
-                          color: scheme.primary,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
+                  const SizedBox(height: 16),
+                  TextButton(
+                    onPressed: () => Navigator.of(
+                      context,
+                    ).pushNamedAndRemoveUntil(AppRoutes.login, (r) => false),
+                    child: const Text('Volver al inicio de sesión'),
+                  ),
+                ],
+              ),
             ),
           ),
         ),

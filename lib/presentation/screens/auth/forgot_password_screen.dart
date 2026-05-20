@@ -31,9 +31,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   Future<void> _handleResetPassword() async {
     final l10n = context.l10n;
     if (_emailController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.forgotPasswordEnterEmail)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.forgotPasswordEnterEmail)));
       return;
     }
 
@@ -43,9 +43,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       await _authService.resetPassword(_emailController.text.trim());
       setState(() => _sent = true);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(l10n.forgotPasswordSent)),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(l10n.forgotPasswordSent)));
         // Navegar a la verificación con OTP
         Navigator.of(context).pushNamed(
           AppRoutes.verifyOtp,
@@ -79,52 +79,60 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    return AppScreenScaffold(
-      title: l10n.forgotPasswordTitle,
-      background: const TechBackground(),
-      body: ListView(
-        children: [
-          AppCard(
-            title: l10n.forgotPasswordCardTitle,
-            subtitle: l10n.forgotPasswordCardSubtitle,
-            leading: Icon(
-              Icons.refresh_rounded,
-              color: Theme.of(context).colorScheme.primary,
-            ),
-            child: Column(
-              children: [
-                TextField(
-                  controller: _emailController,
-                  keyboardType: TextInputType.emailAddress,
-                  inputFormatters: [
-                    FilteringTextInputFormatter.deny(RegExp(r'\s')),
-                  ],
-                  decoration: InputDecoration(
-                    labelText: l10n.emailLabel,
-                    prefixIcon: const Icon(Icons.alternate_email_rounded),
+    return PopScope(
+      canPop: false,
+      child: AppScreenScaffold(
+        title: '',
+        showBackButton: false,
+        extendBodyBehindAppBar: true,
+        background: const TechBackground(),
+        body: ListView(
+          children: [
+            AppCard(
+              title: l10n.forgotPasswordCardTitle,
+              subtitle: l10n.forgotPasswordCardSubtitle,
+              leading: Icon(
+                Icons.refresh_rounded,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+              child: Column(
+                children: [
+                  TextField(
+                    controller: _emailController,
+                    keyboardType: TextInputType.emailAddress,
+                    inputFormatters: [
+                      FilteringTextInputFormatter.deny(RegExp(r'\s')),
+                    ],
+                    decoration: InputDecoration(
+                      labelText: l10n.emailLabel,
+                      prefixIcon: const Icon(Icons.alternate_email_rounded),
+                    ),
                   ),
-                ),
-                const SizedBox(height: 16),
-                if (_isLoading)
-                  const CircularProgressIndicator()
-                else
-                  AppPrimaryButton(
-                    label: _sent
-                        ? l10n.forgotPasswordSentShort
-                        : l10n.forgotPasswordSendLink,
-                    icon: _sent ? Icons.check_circle_rounded : Icons.send_rounded,
-                    onPressed: _sent ? null : _handleResetPassword,
+                  const SizedBox(height: 16),
+                  if (_isLoading)
+                    const CircularProgressIndicator()
+                  else
+                    AppPrimaryButton(
+                      label: _sent
+                          ? l10n.forgotPasswordSentShort
+                          : l10n.forgotPasswordSendLink,
+                      icon: _sent
+                          ? Icons.check_circle_rounded
+                          : Icons.send_rounded,
+                      onPressed: _sent ? null : _handleResetPassword,
+                    ),
+                  const SizedBox(height: 10),
+                  TextButton(
+                    onPressed: () => Navigator.of(
+                      context,
+                    ).pushNamedAndRemoveUntil(AppRoutes.login, (r) => false),
+                    child: Text(l10n.forgotPasswordBackToLogin),
                   ),
-                const SizedBox(height: 10),
-                TextButton(
-                  onPressed: () => Navigator.of(context)
-                      .pushNamedAndRemoveUntil(AppRoutes.login, (r) => false),
-                  child: Text(l10n.forgotPasswordBackToLogin),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

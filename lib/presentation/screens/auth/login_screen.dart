@@ -170,9 +170,9 @@ class _LoginScreenState extends State<LoginScreen> {
     );
 
     return PopScope(
-      canPop: false,
+      canPop: true,
       child: AppScreenScaffold(
-        title: '', // Emptied for immersive effect
+        title: '',
         showBackButton: false,
         extendBodyBehindAppBar: true,
         background: const TechBackground(),
@@ -241,7 +241,9 @@ class _LoginScreenState extends State<LoginScreen> {
                               controller: _passwordController,
                               obscureText: _obscure,
                               inputFormatters: [
-                                FilteringTextInputFormatter.deny(RegExp(r'^\s+')),
+                                FilteringTextInputFormatter.deny(
+                                  RegExp(r'^\s+'),
+                                ),
                               ],
                               decoration: inputDecoration.copyWith(
                                 labelText: l10n.passwordLabel,

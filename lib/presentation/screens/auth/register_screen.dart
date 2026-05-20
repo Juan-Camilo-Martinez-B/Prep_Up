@@ -21,13 +21,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _phoneController = TextEditingController();
-  UserOccupation? _selectedOccupation;
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
   final _authService = AuthService();
+
+  UserOccupation? _selectedOccupation;
+  var _isLoading = false;
   var _obscure = true;
   var _obscureConfirm = true;
-  var _isLoading = false;
 
   @override
   void dispose() {
@@ -37,15 +38,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
     _passwordController.dispose();
     _confirmPasswordController.dispose();
     super.dispose();
-  }
-
-  bool _isPasswordStrong(String password) {
-    if (password.length < 8) return false;
-    if (!password.contains(RegExp(r'[A-Z]'))) return false;
-    if (!password.contains(RegExp(r'[a-z]'))) return false;
-    if (!password.contains(RegExp(r'[0-9]'))) return false;
-    if (!password.contains(RegExp(r'[!@#$%^&*(),.?":{}|<>]'))) return false;
-    return true;
   }
 
   bool _isValidEmail(String email) {
@@ -60,13 +52,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
     final occupation = _selectedOccupation;
     final password = _passwordController.text.trim();
     final confirmPassword = _confirmPasswordController.text.trim();
- 
+
     if (name.isEmpty ||
         email.isEmpty ||
         phone.isEmpty ||
         occupation == null ||
-        password.isEmpty ||
-        confirmPassword.isEmpty) {
+        password.isEmpty) {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text(l10n.authFillAllFields)));
@@ -76,28 +67,23 @@ class _RegisterScreenState extends State<RegisterScreen> {
     if (!_isValidEmail(email)) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text(l10n.registerInvalidEmail)));
-      return;
-    }
-
-    if (phone.length != 10) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(l10n.registerPhoneLengthError)));
-      return;
-    }
-
-    if (!_isPasswordStrong(password)) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(l10n.registerWeakPassword)));
+      ).showSnackBar(SnackBar(content: Text(l10n.authInvalidEmail)));
       return;
     }
 
     if (password != confirmPassword) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Las contraseñas no coinciden')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Las contraseñas no coinciden')),
+      );
+      return;
+    }
+
+    if (password.length < 6) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('La contraseña debe tener al menos 6 caracteres'),
+        ),
+      );
       return;
     }
 
@@ -122,7 +108,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
       await _authService.signUp(
         email: email,
         password: password,
-        metadata: {'full_name': name, 'phone': phone, 'occupation': occupation.name},
+        metadata: {
+          'full_name': name,
+          'phone': phone,
+          'occupation': occupation.name,
+        },
         emailRedirectTo: 'io.supabase.prepup://login-callback',
       );
 
@@ -133,9 +123,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
             content: Text(l10n.registerSuccess),
           ),
         );
-        Navigator.of(
-          context,
-        ).pushNamed(AppRoutes.verifyOtp, arguments: email);
+        Navigator.of(context).pushNamed(AppRoutes.verifyOtp, arguments: email);
       }
     } catch (e) {
       if (mounted) {
@@ -190,208 +178,220 @@ class _RegisterScreenState extends State<RegisterScreen> {
       prefixIconColor: scheme.primary,
     );
 
-    return AppScreenScaffold(
-      title: '', // Emptied for immersive effect
-      showBackButton: true,
-      extendBodyBehindAppBar: true,
-      background: const TechBackground(),
-      body: SafeArea(
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            return SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(vertical: 24),
-              child: ConstrainedBox(
-                constraints: BoxConstraints(
-                  minHeight: constraints.maxHeight - 48,
-                ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    // Header Section
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.person_add_alt_1_rounded,
-                            size: 64,
-                            color: scheme.primary,
-                          ),
-                          const SizedBox(height: 16),
-                          Text(
-                            l10n.registerTitle,
-                            textAlign: TextAlign.center,
-                            style: theme.textTheme.headlineMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              letterSpacing: -0.5,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            l10n.registerSubtitle,
-                            textAlign: TextAlign.center,
-                            style: theme.textTheme.bodyLarge?.copyWith(
-                              color: scheme.onSurfaceVariant,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 48),
-                    // Main Form Card
-                    AppCard(
-                      padding: const EdgeInsets.all(24),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          TextField(
-                            controller: _nameController,
-                            inputFormatters: [
-                              FilteringTextInputFormatter.deny(RegExp(r'^\s+')),
-                            ],
-                            decoration: inputDecoration.copyWith(
-                              labelText: l10n.fullNameLabel,
-                              prefixIcon: const Icon(Icons.badge_outlined),
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          TextField(
-                            controller: _emailController,
-                            keyboardType: TextInputType.emailAddress,
-                            inputFormatters: [
-                              FilteringTextInputFormatter.deny(RegExp(r'\s')),
-                            ],
-                            decoration: inputDecoration.copyWith(
-                              labelText: l10n.emailLabel,
-                              prefixIcon: const Icon(
-                                Icons.alternate_email_rounded,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          TextField(
-                            controller: _phoneController,
-                            keyboardType: TextInputType.phone,
-                            inputFormatters: [
-                              FilteringTextInputFormatter.digitsOnly,
-                              LengthLimitingTextInputFormatter(10),
-                            ],
-                            decoration: inputDecoration.copyWith(
-                              labelText: l10n.phoneLabel,
-                              prefixIcon: const Icon(
-                                Icons.phone_android_rounded,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          DropdownButtonFormField<UserOccupation>(
-                            value: _selectedOccupation,
-                            onChanged: (val) {
-                              setState(() {
-                                _selectedOccupation = val;
-                              });
-                            },
-                            items: UserOccupation.values.map((occ) {
-                              return DropdownMenuItem(
-                                value: occ,
-                                child: Text(occ.label(l10n)),
-                              );
-                            }).toList(),
-                            decoration: inputDecoration.copyWith(
-                              labelText: l10n.occupationLabel,
-                              prefixIcon: const Icon(
-                                Icons.work_outline_rounded,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          TextField(
-                            controller: _passwordController,
-                            obscureText: _obscure,
-                            inputFormatters: [
-                              FilteringTextInputFormatter.deny(RegExp(r'^\s+')),
-                            ],
-                            decoration: inputDecoration.copyWith(
-                              labelText: l10n.passwordLabel,
-                              prefixIcon: const Icon(Icons.password_rounded),
-                              suffixIcon: IconButton(
-                                onPressed: () =>
-                                    setState(() => _obscure = !_obscure),
-                                icon: Icon(
-                                  _obscure
-                                      ? Icons.visibility_off_outlined
-                                      : Icons.visibility_outlined,
-                                  color: scheme.onSurfaceVariant,
-                                ),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          TextField(
-                            controller: _confirmPasswordController,
-                            obscureText: _obscureConfirm,
-                            inputFormatters: [
-                              FilteringTextInputFormatter.deny(RegExp(r'^\s+')),
-                            ],
-                            decoration: inputDecoration.copyWith(
-                              labelText: 'Confirmar Contraseña',
-                              prefixIcon: const Icon(Icons.lock_clock_outlined),
-                              suffixIcon: IconButton(
-                                onPressed: () =>
-                                    setState(() => _obscureConfirm = !_obscureConfirm),
-                                icon: Icon(
-                                  _obscureConfirm
-                                      ? Icons.visibility_off_outlined
-                                      : Icons.visibility_outlined,
-                                  color: scheme.onSurfaceVariant,
-                                ),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 32),
-                          if (_isLoading)
-                            const Center(child: CircularProgressIndicator())
-                          else
-                            AppPrimaryButton(
-                              label: l10n.registerButton,
-                              icon: Icons.how_to_reg_rounded,
-                              onPressed: _handleRegister,
-                            ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 32),
-                    // Bottom Section
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          l10n.registerAlreadyMember,
-                          style: TextStyle(color: scheme.onSurfaceVariant),
-                        ),
-                        TextButton(
-                          onPressed: () => Navigator.of(
-                            context,
-                          ).pushReplacementNamed(AppRoutes.login),
-                          child: Text(
-                            l10n.loginButton,
-                            style: TextStyle(
+    return PopScope(
+      canPop: true,
+      child: AppScreenScaffold(
+        title: '',
+        showBackButton: false,
+        extendBodyBehindAppBar: true,
+        background: const TechBackground(),
+        body: SafeArea(
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              return SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(vertical: 24),
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    minHeight: constraints.maxHeight - 48,
+                  ),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      // Header Section
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.person_add_alt_1_rounded,
+                              size: 64,
                               color: scheme.primary,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
+                            ),
+                            const SizedBox(height: 16),
+                            Text(
+                              l10n.registerTitle,
+                              textAlign: TextAlign.center,
+                              style: theme.textTheme.headlineMedium?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: -0.5,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              l10n.registerSubtitle,
+                              textAlign: TextAlign.center,
+                              style: theme.textTheme.bodyLarge?.copyWith(
+                                color: scheme.onSurfaceVariant,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 48),
+                      // Main Form Card
+                      AppCard(
+                        padding: const EdgeInsets.all(24),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            TextField(
+                              controller: _nameController,
+                              inputFormatters: [
+                                FilteringTextInputFormatter.deny(
+                                  RegExp(r'^\s+'),
+                                ),
+                              ],
+                              decoration: inputDecoration.copyWith(
+                                labelText: l10n.fullNameLabel,
+                                prefixIcon: const Icon(Icons.badge_outlined),
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            TextField(
+                              controller: _emailController,
+                              keyboardType: TextInputType.emailAddress,
+                              inputFormatters: [
+                                FilteringTextInputFormatter.deny(RegExp(r'\s')),
+                              ],
+                              decoration: inputDecoration.copyWith(
+                                labelText: l10n.emailLabel,
+                                prefixIcon: const Icon(
+                                  Icons.alternate_email_rounded,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            TextField(
+                              controller: _phoneController,
+                              keyboardType: TextInputType.phone,
+                              inputFormatters: [
+                                FilteringTextInputFormatter.digitsOnly,
+                                LengthLimitingTextInputFormatter(10),
+                              ],
+                              decoration: inputDecoration.copyWith(
+                                labelText: l10n.phoneLabel,
+                                prefixIcon: const Icon(
+                                  Icons.phone_android_rounded,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            DropdownButtonFormField<UserOccupation>(
+                              value: _selectedOccupation,
+                              onChanged: (val) {
+                                setState(() {
+                                  _selectedOccupation = val;
+                                });
+                              },
+                              items: UserOccupation.values.map((occ) {
+                                return DropdownMenuItem(
+                                  value: occ,
+                                  child: Text(occ.label(l10n)),
+                                );
+                              }).toList(),
+                              decoration: inputDecoration.copyWith(
+                                labelText: l10n.occupationLabel,
+                                prefixIcon: const Icon(
+                                  Icons.work_outline_rounded,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            TextField(
+                              controller: _passwordController,
+                              obscureText: _obscure,
+                              inputFormatters: [
+                                FilteringTextInputFormatter.deny(
+                                  RegExp(r'^\s+'),
+                                ),
+                              ],
+                              decoration: inputDecoration.copyWith(
+                                labelText: l10n.passwordLabel,
+                                prefixIcon: const Icon(Icons.password_rounded),
+                                suffixIcon: IconButton(
+                                  onPressed: () =>
+                                      setState(() => _obscure = !_obscure),
+                                  icon: Icon(
+                                    _obscure
+                                        ? Icons.visibility_off_outlined
+                                        : Icons.visibility_outlined,
+                                    color: scheme.onSurfaceVariant,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            TextField(
+                              controller: _confirmPasswordController,
+                              obscureText: _obscureConfirm,
+                              inputFormatters: [
+                                FilteringTextInputFormatter.deny(
+                                  RegExp(r'^\s+'),
+                                ),
+                              ],
+                              decoration: inputDecoration.copyWith(
+                                labelText: 'Confirmar Contraseña',
+                                prefixIcon: const Icon(
+                                  Icons.lock_clock_outlined,
+                                ),
+                                suffixIcon: IconButton(
+                                  onPressed: () => setState(
+                                    () => _obscureConfirm = !_obscureConfirm,
+                                  ),
+                                  icon: Icon(
+                                    _obscureConfirm
+                                        ? Icons.visibility_off_outlined
+                                        : Icons.visibility_outlined,
+                                    color: scheme.onSurfaceVariant,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 32),
+                            if (_isLoading)
+                              const Center(child: CircularProgressIndicator())
+                            else
+                              AppPrimaryButton(
+                                label: l10n.registerButton,
+                                icon: Icons.how_to_reg_rounded,
+                                onPressed: _handleRegister,
+                              ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 32),
+                      // Bottom Section
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            l10n.registerAlreadyMember,
+                            style: TextStyle(color: scheme.onSurfaceVariant),
+                          ),
+                          TextButton(
+                            onPressed: () => Navigator.of(
+                              context,
+                            ).pushReplacementNamed(AppRoutes.login),
+                            child: Text(
+                              l10n.loginButton,
+                              style: TextStyle(
+                                color: scheme.primary,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ),
                             ),
                           ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 24),
-                  ],
+                        ],
+                      ),
+                      const SizedBox(height: 24),
+                    ],
+                  ),
                 ),
-              ),
-            );
-          },
+              );
+            },
+          ),
         ),
       ),
     );
