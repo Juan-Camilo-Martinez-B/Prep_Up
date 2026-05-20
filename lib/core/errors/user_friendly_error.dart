@@ -69,11 +69,11 @@ String userFriendlyAuthErrorMessage(
   }
 
   if (message.contains('rate limit') || message.contains('too many requests')) {
-    return 'Límite de intentos excedido. Por favor, inténtalo de nuevo en unos minutos.';
+    return l10n.authRateLimitExceeded;
   }
 
   if (message.contains('signup is disabled')) {
-    return 'El registro de nuevos usuarios está temporalmente deshabilitado.';
+    return l10n.authSignupDisabled;
   }
 
   if (message.contains('password') &&

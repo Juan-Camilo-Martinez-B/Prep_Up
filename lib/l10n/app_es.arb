@@ -637,6 +637,7 @@
   "aiFocusArea_distributed": "diseño de sistemas distribuidos",
   "aiFocusArea_cleanArch": "principios SOLID y Clean Architecture",
   "aiFocusArea_packaging": "gestión de dependencias y empaquetado",
+  "aiFocusArea_maintenance": "automatización de tareas y scripts de mantenimiento",
   "aiPromptSystemInterviewer": "Eres un entrevistador experto. Respondes en {language}. Cuando te pidan JSON, devuélvelo sin texto adicional.",
   "@aiPromptSystemInterviewer": {
     "placeholders": {
@@ -775,5 +776,27 @@
   "occupationRecruiter": "Reclutador",
   "occupationEntrepreneur": "Emprendedor",
   "occupationFreelancer": "Freelancer",
-  "errorAIFailureFriendly": "No pudimos procesar el feedback detallado en este momento. Por favor, revisa tus puntajes abajo."
+  "errorAIFailureFriendly": "No pudimos procesar el feedback detallado en este momento. Por favor, revisa tus puntajes abajo.",
+  "verifyOtpTitleVerify": "Verifica tu identidad",
+  "verifyOtpTitleRecovery": "Recuperar contraseña",
+  "verifyOtpSubtitleVerify": "Ingresa el código de 6 dígitos enviado a\n",
+  "verifyOtpSubtitleRecovery": "Hemos enviado un código de seguridad a\n",
+  "verifyOtpButton": "Verificar Código",
+  "verifyOtpNotReceived": "¿No recibiste el código? ",
+  "verifyOtpResend": "Reenviar",
+  "verifyOtpResendSuccess": "Código reenviado con éxito",
+  "verifyOtpSuccess": "¡Correo verificado con éxito!",
+  "verifyOtpCodeValidated": "¡Código validado! Crea tu nueva contraseña.",
+  "verifyOtpEnterCompleteCode": "Por favor ingresa el código completo",
+  "verifyOtpBackToLogin": "Volver al inicio de sesión",
+  "authPasswordsDoNotMatch": "Las contraseñas no coinciden",
+  "authPasswordLengthError": "La contraseña debe tener al menos 6 caracteres",
+  "authPasswordUpdateSuccess": "Contraseña actualizada con éxito",
+  "authNewPasswordTitle": "Nueva Contraseña",
+  "authNewPasswordSubtitle": "Crea una contraseña segura para tu cuenta.",
+  "authNewPasswordLabel": "Nueva Contraseña",
+  "authConfirmPasswordLabel": "Confirmar Contraseña",
+  "authResetPasswordButton": "Actualizar Contraseña",
+  "authRateLimitExceeded": "Límite de intentos excedido. Por favor, inténtalo de nuevo en unos minutos.",
+  "authSignupDisabled": "El registro de nuevos usuarios está temporalmente deshabilitado."
 }

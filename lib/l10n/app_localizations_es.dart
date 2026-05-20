@@ -1440,7 +1440,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get aiFocusArea_maintenance =>
-      'task automation and maintenance scripts';
+      'automatización de tareas y scripts de mantenimiento';
 
   @override
   String aiPromptSystemInterviewer(String language) {
@@ -1626,4 +1626,78 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get errorAIFailureFriendly =>
       'No pudimos procesar el feedback detallado en este momento. Por favor, revisa tus puntajes abajo.';
+
+  @override
+  String get verifyOtpTitleVerify => 'Verifica tu identidad';
+
+  @override
+  String get verifyOtpTitleRecovery => 'Recuperar contraseña';
+
+  @override
+  String get verifyOtpSubtitleVerify =>
+      'Ingresa el código de 6 dígitos enviado a\n';
+
+  @override
+  String get verifyOtpSubtitleRecovery =>
+      'Hemos enviado un código de seguridad a\n';
+
+  @override
+  String get verifyOtpButton => 'Verificar Código';
+
+  @override
+  String get verifyOtpNotReceived => '¿No recibiste el código? ';
+
+  @override
+  String get verifyOtpResend => 'Reenviar';
+
+  @override
+  String get verifyOtpResendSuccess => 'Código reenviado con éxito';
+
+  @override
+  String get verifyOtpSuccess => '¡Correo verificado con éxito!';
+
+  @override
+  String get verifyOtpCodeValidated =>
+      '¡Código validado! Crea tu nueva contraseña.';
+
+  @override
+  String get verifyOtpEnterCompleteCode =>
+      'Por favor ingresa el código completo';
+
+  @override
+  String get verifyOtpBackToLogin => 'Volver al inicio de sesión';
+
+  @override
+  String get authPasswordsDoNotMatch => 'Las contraseñas no coinciden';
+
+  @override
+  String get authPasswordLengthError =>
+      'La contraseña debe tener al menos 6 caracteres';
+
+  @override
+  String get authPasswordUpdateSuccess => 'Contraseña actualizada con éxito';
+
+  @override
+  String get authNewPasswordTitle => 'Nueva Contraseña';
+
+  @override
+  String get authNewPasswordSubtitle =>
+      'Crea una contraseña segura para tu cuenta.';
+
+  @override
+  String get authNewPasswordLabel => 'Nueva Contraseña';
+
+  @override
+  String get authConfirmPasswordLabel => 'Confirmar Contraseña';
+
+  @override
+  String get authResetPasswordButton => 'Actualizar Contraseña';
+
+  @override
+  String get authRateLimitExceeded =>
+      'Límite de intentos excedido. Por favor, inténtalo de nuevo en unos minutos.';
+
+  @override
+  String get authSignupDisabled =>
+      'El registro de nuevos usuarios está temporalmente deshabilitado.';
 }

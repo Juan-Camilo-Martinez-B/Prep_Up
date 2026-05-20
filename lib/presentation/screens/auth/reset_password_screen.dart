@@ -31,20 +31,21 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
   }
 
   Future<void> _handleReset() async {
+    final l10n = context.l10n;
     final password = _passwordController.text;
     final confirmPassword = _confirmPasswordController.text;
 
     if (password.isEmpty || confirmPassword.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Por favor completa todos los campos')),
+        SnackBar(content: Text(l10n.authFillAllFields)),
       );
       return;
     }
 
     if (password.length < 6) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('La contraseña debe tener al menos 6 caracteres'),
+        SnackBar(
+          content: Text(l10n.authPasswordLengthError),
         ),
       );
       return;
@@ -52,7 +53,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
 
     if (password != confirmPassword) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Las contraseñas no coinciden')),
+        SnackBar(content: Text(l10n.authPasswordsDoNotMatch)),
       );
       return;
     }
@@ -63,8 +64,8 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
       await _authService.updatePassword(password);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Contraseña actualizada con éxito'),
+          SnackBar(
+            content: Text(l10n.authPasswordUpdateSuccess),
             backgroundColor: Colors.green,
           ),
         );
@@ -74,7 +75,6 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
       }
     } catch (e) {
       if (mounted) {
-        final l10n = context.l10n;
         final message = userFriendlyErrorMessage(e, l10n);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -92,6 +92,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
     final isDark = theme.brightness == Brightness.dark;
@@ -159,7 +160,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                   ),
                   const SizedBox(height: 32),
                   Text(
-                    'Nueva Contraseña',
+                    l10n.authNewPasswordTitle,
                     textAlign: TextAlign.center,
                     style: theme.textTheme.headlineMedium?.copyWith(
                       fontWeight: FontWeight.bold,
@@ -168,7 +169,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                   ),
                   const SizedBox(height: 12),
                   Text(
-                    'Crea una contraseña segura para tu cuenta.',
+                    l10n.authNewPasswordSubtitle,
                     textAlign: TextAlign.center,
                     style: theme.textTheme.bodyLarge?.copyWith(
                       color: scheme.onSurfaceVariant,
@@ -186,7 +187,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                             FilteringTextInputFormatter.deny(RegExp(r'^\s+')),
                           ],
                           decoration: inputDecoration.copyWith(
-                            labelText: 'Nueva Contraseña',
+                            labelText: l10n.authNewPasswordLabel,
                             prefixIcon: const Icon(Icons.lock_outline_rounded),
                             suffixIcon: IconButton(
                               icon: Icon(
@@ -208,7 +209,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                             FilteringTextInputFormatter.deny(RegExp(r'^\s+')),
                           ],
                           decoration: inputDecoration.copyWith(
-                            labelText: 'Confirmar Contraseña',
+                            labelText: l10n.authConfirmPasswordLabel,
                             prefixIcon: const Icon(Icons.lock_clock_outlined),
                             suffixIcon: IconButton(
                               icon: Icon(
@@ -225,7 +226,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                         ),
                         const SizedBox(height: 40),
                         AppPrimaryButton(
-                          label: 'Actualizar Contraseña',
+                          label: l10n.authResetPasswordButton,
                           isLoading: _isLoading,
                           onPressed: _handleReset,
                         ),

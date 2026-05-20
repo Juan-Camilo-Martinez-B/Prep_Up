@@ -1615,4 +1615,75 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get errorAIFailureFriendly =>
       'We couldn\'t process the detailed feedback at this moment. Please check your scores below.';
+
+  @override
+  String get verifyOtpTitleVerify => 'Verify your identity';
+
+  @override
+  String get verifyOtpTitleRecovery => 'Recover password';
+
+  @override
+  String get verifyOtpSubtitleVerify => 'Enter the 6-digit code sent to\n';
+
+  @override
+  String get verifyOtpSubtitleRecovery => 'We have sent a security code to\n';
+
+  @override
+  String get verifyOtpButton => 'Verify Code';
+
+  @override
+  String get verifyOtpNotReceived => 'Didn\'t receive the code? ';
+
+  @override
+  String get verifyOtpResend => 'Resend';
+
+  @override
+  String get verifyOtpResendSuccess => 'Code resent successfully';
+
+  @override
+  String get verifyOtpSuccess => 'Email verified successfully!';
+
+  @override
+  String get verifyOtpCodeValidated =>
+      'Code validated! Create your new password.';
+
+  @override
+  String get verifyOtpEnterCompleteCode => 'Please enter the complete code';
+
+  @override
+  String get verifyOtpBackToLogin => 'Back to Login';
+
+  @override
+  String get authPasswordsDoNotMatch => 'Passwords do not match';
+
+  @override
+  String get authPasswordLengthError =>
+      'Password must be at least 6 characters';
+
+  @override
+  String get authPasswordUpdateSuccess => 'Password updated successfully';
+
+  @override
+  String get authNewPasswordTitle => 'New Password';
+
+  @override
+  String get authNewPasswordSubtitle =>
+      'Create a secure password for your account.';
+
+  @override
+  String get authNewPasswordLabel => 'New Password';
+
+  @override
+  String get authConfirmPasswordLabel => 'Confirm Password';
+
+  @override
+  String get authResetPasswordButton => 'Update Password';
+
+  @override
+  String get authRateLimitExceeded =>
+      'Rate limit exceeded. Please try again in a few minutes.';
+
+  @override
+  String get authSignupDisabled =>
+      'New user registration is temporarily disabled.';
 }

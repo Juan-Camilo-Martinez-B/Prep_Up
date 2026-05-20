@@ -2917,6 +2917,138 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'We couldn\'t process the detailed feedback at this moment. Please check your scores below.'**
   String get errorAIFailureFriendly;
+
+  /// No description provided for @verifyOtpTitleVerify.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify your identity'**
+  String get verifyOtpTitleVerify;
+
+  /// No description provided for @verifyOtpTitleRecovery.
+  ///
+  /// In en, this message translates to:
+  /// **'Recover password'**
+  String get verifyOtpTitleRecovery;
+
+  /// No description provided for @verifyOtpSubtitleVerify.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the 6-digit code sent to\n'**
+  String get verifyOtpSubtitleVerify;
+
+  /// No description provided for @verifyOtpSubtitleRecovery.
+  ///
+  /// In en, this message translates to:
+  /// **'We have sent a security code to\n'**
+  String get verifyOtpSubtitleRecovery;
+
+  /// No description provided for @verifyOtpButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify Code'**
+  String get verifyOtpButton;
+
+  /// No description provided for @verifyOtpNotReceived.
+  ///
+  /// In en, this message translates to:
+  /// **'Didn\'t receive the code? '**
+  String get verifyOtpNotReceived;
+
+  /// No description provided for @verifyOtpResend.
+  ///
+  /// In en, this message translates to:
+  /// **'Resend'**
+  String get verifyOtpResend;
+
+  /// No description provided for @verifyOtpResendSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Code resent successfully'**
+  String get verifyOtpResendSuccess;
+
+  /// No description provided for @verifyOtpSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Email verified successfully!'**
+  String get verifyOtpSuccess;
+
+  /// No description provided for @verifyOtpCodeValidated.
+  ///
+  /// In en, this message translates to:
+  /// **'Code validated! Create your new password.'**
+  String get verifyOtpCodeValidated;
+
+  /// No description provided for @verifyOtpEnterCompleteCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter the complete code'**
+  String get verifyOtpEnterCompleteCode;
+
+  /// No description provided for @verifyOtpBackToLogin.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to Login'**
+  String get verifyOtpBackToLogin;
+
+  /// No description provided for @authPasswordsDoNotMatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Passwords do not match'**
+  String get authPasswordsDoNotMatch;
+
+  /// No description provided for @authPasswordLengthError.
+  ///
+  /// In en, this message translates to:
+  /// **'Password must be at least 6 characters'**
+  String get authPasswordLengthError;
+
+  /// No description provided for @authPasswordUpdateSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Password updated successfully'**
+  String get authPasswordUpdateSuccess;
+
+  /// No description provided for @authNewPasswordTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'New Password'**
+  String get authNewPasswordTitle;
+
+  /// No description provided for @authNewPasswordSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Create a secure password for your account.'**
+  String get authNewPasswordSubtitle;
+
+  /// No description provided for @authNewPasswordLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'New Password'**
+  String get authNewPasswordLabel;
+
+  /// No description provided for @authConfirmPasswordLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm Password'**
+  String get authConfirmPasswordLabel;
+
+  /// No description provided for @authResetPasswordButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Update Password'**
+  String get authResetPasswordButton;
+
+  /// No description provided for @authRateLimitExceeded.
+  ///
+  /// In en, this message translates to:
+  /// **'Rate limit exceeded. Please try again in a few minutes.'**
+  String get authRateLimitExceeded;
+
+  /// No description provided for @authSignupDisabled.
+  ///
+  /// In en, this message translates to:
+  /// **'New user registration is temporarily disabled.'**
+  String get authSignupDisabled;
 }
 
 class _AppLocalizationsDelegate

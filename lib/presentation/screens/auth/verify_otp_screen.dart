@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:prep_up/core/errors/user_friendly_error.dart';
 import 'package:prep_up/core/localization/l10n_extensions.dart';
 import 'package:prep_up/core/navigation/app_routes.dart';
@@ -46,10 +45,11 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
   }
 
   Future<void> _handleVerify() async {
+    final l10n = context.l10n;
     final otp = _controllers.map((c) => c.text).join();
     if (otp.length < 6) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Por favor ingresa el código completo')),
+        SnackBar(content: Text(l10n.verifyOtpEnterCompleteCode)),
       );
       return;
     }
@@ -64,8 +64,8 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
         );
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('¡Correo verificado con éxito!'),
+            SnackBar(
+              content: Text(l10n.verifyOtpSuccess),
               backgroundColor: Colors.green,
             ),
           );
@@ -80,8 +80,8 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
         );
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('¡Código validado! Crea tu nueva contraseña.'),
+            SnackBar(
+              content: Text(l10n.verifyOtpCodeValidated),
               backgroundColor: Colors.green,
             ),
           );
@@ -90,7 +90,6 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
       }
     } catch (e) {
       if (mounted) {
-        final l10n = context.l10n;
         final message = userFriendlyErrorMessage(e, l10n);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -127,6 +126,7 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
 
@@ -169,8 +169,8 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
                   const SizedBox(height: 32),
                   Text(
                     widget.type == VerifyOtpType.signup
-                        ? 'Verifica tu identidad'
-                        : 'Recuperar contraseña',
+                        ? l10n.verifyOtpTitleVerify
+                        : l10n.verifyOtpTitleRecovery,
                     textAlign: TextAlign.center,
                     style: theme.textTheme.headlineMedium?.copyWith(
                       fontWeight: FontWeight.bold,
@@ -187,8 +187,8 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
                       children: [
                         TextSpan(
                           text: widget.type == VerifyOtpType.signup
-                              ? 'Ingresa el código de 6 dígitos enviado a\n'
-                              : 'Hemos enviado un código de seguridad a\n',
+                              ? l10n.verifyOtpSubtitleVerify
+                              : l10n.verifyOtpSubtitleRecovery,
                         ),
                         TextSpan(
                           text: widget.email,
@@ -264,7 +264,7 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
                           const CircularProgressIndicator()
                         else
                           AppPrimaryButton(
-                            label: 'Verificar Código',
+                            label: l10n.verifyOtpButton,
                             onPressed: _handleVerify,
                           ),
                       ],
@@ -275,14 +275,14 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        '¿No recibiste el código? ',
+                        l10n.verifyOtpNotReceived,
                         style: theme.textTheme.bodyMedium,
                       ),
                       TextButton(
                         onPressed: () {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Código reenviado con éxito'),
+                            SnackBar(
+                              content: Text(l10n.verifyOtpResendSuccess),
                             ),
                           );
                         },
@@ -292,7 +292,7 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
                           tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                         ),
                         child: Text(
-                          'Reenviar',
+                          l10n.verifyOtpResend,
                           style: TextStyle(
                             color: scheme.primary,
                             fontWeight: FontWeight.bold,
@@ -306,7 +306,7 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
                     onPressed: () => Navigator.of(
                       context,
                     ).pushNamedAndRemoveUntil(AppRoutes.login, (r) => false),
-                    child: const Text('Volver al inicio de sesión'),
+                    child: Text(l10n.verifyOtpBackToLogin),
                   ),
                 ],
               ),

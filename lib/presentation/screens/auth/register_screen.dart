@@ -73,15 +73,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
     if (password != confirmPassword) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Las contraseñas no coinciden')),
+        SnackBar(content: Text(l10n.authPasswordsDoNotMatch)),
       );
       return;
     }
 
     if (password.length < 6) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('La contraseña debe tener al menos 6 caracteres'),
+        SnackBar(
+          content: Text(l10n.authPasswordLengthError),
         ),
       );
       return;
@@ -332,7 +332,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 ),
                               ],
                               decoration: inputDecoration.copyWith(
-                                labelText: 'Confirmar Contraseña',
+                                labelText: l10n.authConfirmPasswordLabel,
                                 prefixIcon: const Icon(
                                   Icons.lock_clock_outlined,
                                 ),
