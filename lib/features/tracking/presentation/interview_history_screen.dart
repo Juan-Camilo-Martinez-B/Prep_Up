@@ -1,0 +1,217 @@
+import 'package:flutter/material.dart';
+import 'package:skeletonizer/skeletonizer.dart';
+import 'package:prep_up/core/errors/user_friendly_error.dart';
+import 'package:prep_up/core/localization/interview_l10n.dart';
+import 'package:prep_up/core/localization/l10n_extensions.dart';
+import 'package:prep_up/core/navigation/app_routes.dart';
+import 'package:prep_up/shared/domain/entities/interview_session_model.dart';
+import 'package:prep_up/features/auth/domain/auth_gateway.dart';
+import 'package:prep_up/shared/domain/ports/relational_database_service.dart';
+import 'package:prep_up/shared/domain/ports/offline_cache.dart';
+import 'package:prep_up/shared/domain/entities/interview_results_model.dart';
+import 'package:prep_up/shared/presentation/widgets/app_card.dart';
+import 'package:prep_up/shared/presentation/widgets/app_primary_button.dart';
+import 'package:prep_up/shared/presentation/widgets/app_screen_scaffold.dart';
+import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
+
+class InterviewHistoryScreen extends StatefulWidget {
+  const InterviewHistoryScreen({super.key});
+
+  @override
+  State<InterviewHistoryScreen> createState() => _InterviewHistoryScreenState();
+}
+
+class _InterviewHistoryScreenState extends State<InterviewHistoryScreen> {
+  List<InterviewSessionModel> _history = [];
+  Map<String, int> _scores = {};
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadHistory();
+    });
+  }
+
+  Future<void> _loadHistory() async {
+    final l10n = context.l10n;
+    final authService = context.read<AuthGateway>();
+    final dbService = context.read<RelationalDatabaseService>();
+
+    final user = authService.currentUser;
+    if (user == null) {
+      if (mounted) setState(() => _isLoading = false);
+      return;
+    }
+
+    // --- CARGA OPTIMIZADA (CACHE FIRST) ---
+    if (dbService is OfflineCache) {
+      final cache = dbService as OfflineCache;
+      final localHistory = await cache.readHistory(user.id);
+      final localResults = await cache.readResults(user.id);
+
+      if (mounted && localHistory.isNotEmpty) {
+        _processAndDisplayHistory(localHistory, localResults);
+      }
+    }
+
+    try {
+      final history = await dbService.getInterviewHistoryForUser(user.id);
+      final results = await dbService.getInterviewResultsForUser(user.id);
+
+      if (mounted) {
+        _processAndDisplayHistory(history, results);
+      }
+    } catch (e) {
+      if (mounted && _isLoading) {
+        setState(() => _isLoading = false);
+      }
+      debugPrint('Error loading history: $e');
+    }
+  }
+
+  void _processAndDisplayHistory(
+    List<InterviewSessionModel> history,
+    List<InterviewResultsModel> results,
+  ) {
+    final Map<String, int> scores = {
+      for (final result in results) result.sessionId: result.overallScore
+    };
+
+    if (mounted) {
+      setState(() {
+        _history = history;
+        _scores = scores;
+        _isLoading = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
+    return AppScreenScaffold(
+      title: l10n.historyTitle,
+      background: const TechBackground(),
+      body: Skeletonizer(
+        enabled: _isLoading,
+        child: ListView(
+          children: [
+            if (!_isLoading && _history.isEmpty)
+              AppCard(
+                title: l10n.statsNoDataTitle,
+                subtitle: l10n.statsNoDataSubtitle,
+                child: const SizedBox.shrink(),
+              )
+            else if (_isLoading)
+              ...List.generate(
+                5,
+                (index) => Column(
+                  children: [
+                    AppCard(
+                      title: l10n.statsNoDataTitle,
+                      subtitle: l10n.statsNoDataSubtitle,
+                      leading: const _ScoreBadge(score: '99'),
+                      trailing: const Icon(Icons.arrow_forward_rounded),
+                    ),
+                    const SizedBox(height: 12),
+                  ],
+                ),
+              )
+            else
+              ..._history.map((session) {
+                final score = _scores[session.id]?.toString() ?? '--';
+                final date = DateFormat.yMMMd(
+                  Localizations.localeOf(context).languageCode,
+                ).format(session.createdAt);
+
+                return Column(
+                  children: [
+                    AppCard(
+                      title: session.jobRole.label(l10n),
+                      subtitle: '${session.type.label(l10n)} • $date',
+                      onTap: () async {
+                        try {
+                          final dbService =
+                              context.read<RelationalDatabaseService>();
+                          final result = await dbService.getInterviewResultForSession(
+                            session.id,
+                          );
+                          if (result != null && context.mounted) {
+                            Navigator.of(context).pushNamed(
+                              AppRoutes.generalResults,
+                              arguments: {
+                                'results': result,
+                                'session': session.toDomain(),
+                              },
+                            );
+                          }
+                        } catch (e) {
+                          if (!context.mounted) return;
+                          final message = userFriendlyErrorMessage(e, l10n);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(message),
+                              backgroundColor:
+                                  Theme.of(context).colorScheme.error,
+                            ),
+                          );
+                        }
+                      },
+                      leading: _ScoreBadge(score: score),
+                      trailing: const Icon(Icons.arrow_forward_rounded),
+                    ),
+                    const SizedBox(height: 12),
+                  ],
+                );
+              }),
+            const SizedBox(height: 12),
+            AppPrimaryButton(
+              label: l10n.backToDashboard,
+              icon: Icons.home_rounded,
+              onPressed: () => Navigator.of(
+                context,
+              ).pushNamedAndRemoveUntil(AppRoutes.dashboard, (r) => false),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ScoreBadge extends StatelessWidget {
+  const _ScoreBadge({required this.score});
+
+  final String score;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final value = int.tryParse(score) ?? 0;
+    final color = value >= 80
+        ? scheme.primary
+        : value >= 70
+        ? scheme.secondary
+        : scheme.error;
+
+    return Container(
+      width: 48,
+      height: 48,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: color.withValues(alpha: 0.16),
+        border: Border.all(color: color.withValues(alpha: 0.45)),
+      ),
+      child: Center(
+        child: Text(
+          score,
+          style: Theme.of(context).textTheme.titleSmall?.copyWith(color: color),
+        ),
+      ),
+    );
+  }
+}
