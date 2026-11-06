@@ -5,17 +5,20 @@ import 'package:prep_up/core/localization/app_locale.dart';
 import 'package:prep_up/core/localization/l10n_extensions.dart';
 import 'package:prep_up/core/navigation/app_router.dart';
 import 'package:prep_up/core/navigation/app_routes.dart';
-import 'package:prep_up/domain/entities/app_settings_model.dart';
-import 'package:prep_up/domain/services/auth_preferences.dart';
-import 'package:prep_up/domain/services/auth_service.dart';
-import 'package:prep_up/domain/services/gemini_service.dart';
-import 'package:prep_up/domain/services/cached_database_service.dart';
-import 'package:prep_up/domain/services/relational_database_service.dart';
-import 'package:prep_up/domain/services/sqflite_database_service.dart';
-import 'package:prep_up/domain/services/supabase_database_service.dart';
+import 'package:prep_up/features/auth/domain/auth_gateway.dart';
+import 'package:prep_up/features/auth/domain/session_preferences.dart';
+import 'package:prep_up/features/auth/infrastructure/auth_preferences.dart';
+import 'package:prep_up/features/auth/infrastructure/auth_service.dart';
+import 'package:prep_up/features/interview/domain/interview_ai_port.dart';
+import 'package:prep_up/features/interview/infrastructure/gemini_service.dart';
+import 'package:prep_up/features/interview/presentation/controllers/interview_config_controller.dart';
+import 'package:prep_up/features/interview/presentation/controllers/media_device_controller.dart';
 import 'package:prep_up/l10n/app_localizations.dart';
-import 'package:prep_up/presentation/controllers/interview_config_controller.dart';
-import 'package:prep_up/presentation/controllers/media_device_controller.dart';
+import 'package:prep_up/shared/domain/entities/app_settings_model.dart';
+import 'package:prep_up/shared/domain/ports/relational_database_service.dart';
+import 'package:prep_up/shared/infrastructure/cached_database_service.dart';
+import 'package:prep_up/shared/infrastructure/sqflite_database_service.dart';
+import 'package:prep_up/shared/infrastructure/supabase_database_service.dart';
 import 'package:prep_up/theme/app_theme.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -27,7 +30,8 @@ Future<void> main() async {
   await dotenv.load(fileName: ".env");
 
   // Inicializar Supabase
-  final remember = await AuthPreferences.getRememberSession();
+  final sessionPreferences = AuthPreferences();
+  final remember = await sessionPreferences.getRememberSession();
   await Supabase.initialize(
     url: dotenv.env['SUPABASE_URL'] ?? '',
     anonKey: dotenv.env['SUPABASE_ANON_KEY'] ?? '',
@@ -41,25 +45,47 @@ Future<void> main() async {
   final localDb = SqfliteDatabaseService();
   final cachedDb = CachedDatabaseService(remote: remoteDb, local: localDb);
   await cachedDb.initialize();
+  final authService = AuthService(database: remoteDb);
 
-  runApp(AiInterviewTrainerApp(databaseService: cachedDb));
+  runApp(
+    AiInterviewTrainerApp(
+      databaseService: cachedDb,
+      authService: authService,
+      sessionPreferences: sessionPreferences,
+      settingsStore: remoteDb,
+    ),
+  );
 }
 
 class AiInterviewTrainerApp extends StatefulWidget {
   final RelationalDatabaseService databaseService;
-  const AiInterviewTrainerApp({super.key, required this.databaseService});
+  final AuthGateway authService;
+  final SessionPreferences sessionPreferences;
+  final RelationalDatabaseService settingsStore;
+
+  const AiInterviewTrainerApp({
+    super.key,
+    required this.databaseService,
+    required this.authService,
+    required this.sessionPreferences,
+    required this.settingsStore,
+  });
 
   @override
   State<AiInterviewTrainerApp> createState() => _AiInterviewTrainerAppState();
 }
 
 class _AiInterviewTrainerAppState extends State<AiInterviewTrainerApp> {
-  final AppThemeController _themeController = AppThemeController();
+  late final AppThemeController _themeController;
   final AppLocaleController _localeController = AppLocaleController();
 
   @override
   void initState() {
     super.initState();
+    _themeController = AppThemeController(
+      database: widget.settingsStore,
+      auth: widget.authService,
+    );
     _loadInitialSettings();
   }
 
@@ -89,11 +115,12 @@ class _AiInterviewTrainerAppState extends State<AiInterviewTrainerApp> {
 
     return MultiProvider(
       providers: [
-        Provider<AuthService>(create: (_) => AuthService()),
-        Provider<RelationalDatabaseService>(
-          create: (_) => widget.databaseService,
+        Provider<AuthGateway>.value(value: widget.authService),
+        Provider<SessionPreferences>.value(value: widget.sessionPreferences),
+        Provider<RelationalDatabaseService>.value(
+          value: widget.databaseService,
         ),
-        Provider<GeminiService>(create: (_) => GeminiService()),
+        Provider<InterviewAiPort>(create: (_) => GeminiService()),
         ChangeNotifierProvider(create: (_) => InterviewConfigController()),
         ChangeNotifierProvider(create: (_) => MediaDeviceController()),
       ],

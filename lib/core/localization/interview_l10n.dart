@@ -1,6 +1,6 @@
-import 'package:prep_up/domain/entities/interview_config.dart';
-import 'package:prep_up/domain/entities/interview_tags.dart';
-import 'package:prep_up/domain/entities/user_model.dart';
+import 'package:prep_up/shared/domain/entities/interview_config.dart';
+import 'package:prep_up/shared/domain/entities/interview_tags.dart';
+import 'package:prep_up/shared/domain/entities/user_model.dart';
 import 'package:prep_up/l10n/app_localizations.dart';
 
 extension InterviewTypeL10n on InterviewType {

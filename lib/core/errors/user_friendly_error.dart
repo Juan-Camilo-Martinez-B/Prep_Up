@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:http/http.dart' as http;
-import 'package:prep_up/domain/services/gemini_service.dart';
+import 'package:prep_up/features/interview/domain/gemini_exception.dart';
 import 'package:prep_up/l10n/app_localizations.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 

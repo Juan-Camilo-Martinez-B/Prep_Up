@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:prep_up/domain/entities/app_settings_model.dart';
-import 'package:prep_up/domain/entities/interview_results_model.dart';
-import 'package:prep_up/domain/entities/interview_session_model.dart';
-import 'package:prep_up/domain/entities/user_model.dart';
-import 'package:prep_up/domain/services/relational_database_service.dart';
+import 'package:prep_up/features/auth/infrastructure/auth_preferences.dart';
+import 'package:prep_up/features/auth/infrastructure/auth_service.dart';
 import 'package:prep_up/main.dart';
+import 'package:prep_up/shared/domain/entities/app_settings_model.dart';
+import 'package:prep_up/shared/domain/entities/interview_results_model.dart';
+import 'package:prep_up/shared/domain/entities/interview_session_model.dart';
+import 'package:prep_up/shared/domain/entities/user_model.dart';
+import 'package:prep_up/shared/domain/ports/relational_database_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -57,7 +59,14 @@ void main() {
     });
 
     final fakeDb = FakeRelationalDatabase();
-    await tester.pumpWidget(AiInterviewTrainerApp(databaseService: fakeDb));
+    await tester.pumpWidget(
+      AiInterviewTrainerApp(
+        databaseService: fakeDb,
+        authService: AuthService(database: fakeDb),
+        sessionPreferences: AuthPreferences(),
+        settingsStore: fakeDb,
+      ),
+    );
     await tester.pump(const Duration(seconds: 2));
 
     // Verificar elementos del splash/auth screen

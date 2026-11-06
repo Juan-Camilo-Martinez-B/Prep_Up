@@ -1,12 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:prep_up/domain/entities/app_settings_model.dart';
-import 'package:prep_up/domain/services/auth_service.dart';
-import 'package:prep_up/domain/services/relational_database_service.dart';
-import 'package:prep_up/domain/services/supabase_database_service.dart';
+import 'package:prep_up/features/auth/domain/auth_gateway.dart';
+import 'package:prep_up/shared/domain/entities/app_settings_model.dart';
+import 'package:prep_up/shared/domain/ports/relational_database_service.dart';
 
 class AppThemeController extends ChangeNotifier {
-  final RelationalDatabaseService _dbService = SupabaseDatabaseService();
-  final AuthService _authService = AuthService();
+  AppThemeController({
+    required RelationalDatabaseService database,
+    required AuthGateway auth,
+  }) : _dbService = database,
+       _authService = auth;
+
+  final RelationalDatabaseService _dbService;
+  final AuthGateway _authService;
   AppThemeMode _themeMode = AppThemeMode.system;
 
   AppThemeMode get themeMode => _themeMode;
