@@ -1,0 +1,55 @@
+import 'package:prep_up/core/localization/app_locale.dart';
+import 'package:prep_up/core/localization/interview_l10n.dart';
+import 'package:prep_up/shared/domain/entities/interview_results_model.dart';
+import 'package:prep_up/shared/domain/entities/interview_session_model.dart';
+import 'package:prep_up/shared/domain/entities/interview_tags.dart';
+import 'package:prep_up/features/interview/domain/ai_interview_service.dart';
+import 'package:prep_up/features/interview/domain/interview_ai_port.dart';
+import 'package:prep_up/features/interview/infrastructure/gemini_service.dart';
+import 'package:prep_up/l10n/app_localizations.dart';
+
+class GeminiAiInterviewService implements AiInterviewService {
+  GeminiAiInterviewService({InterviewAiPort? geminiService})
+    : _geminiService = geminiService ?? GeminiService();
+
+  final InterviewAiPort _geminiService;
+
+  @override
+  Future<List<String>> generateQuestions({
+    required InterviewType type,
+    required String jobRole,
+    required int count,
+  }) {
+    final l10n = lookupAppLocalizations(AppLocaleRuntime.locale);
+
+    // Intentar encontrar el JobRole enum basado en el label si es posible
+    // Si no, pasar null y el label original.
+    JobRole? role;
+    try {
+      role = JobRole.values.firstWhere(
+        (r) => r.label(l10n).toLowerCase() == jobRole.toLowerCase(),
+      );
+    } catch (_) {}
+
+    return _geminiService.generateInterviewQuestions(
+      type: type,
+      role: role,
+      jobRoleLabel: jobRole,
+      count: count,
+      l10n: l10n,
+    );
+  }
+
+  @override
+  Future<InterviewResultsModel> analyzeInterview({
+    required InterviewSessionModel session,
+    String? transcript,
+    String? videoReference,
+  }) async {
+    // This method is deprecated in favor of GeminiService.generateInterviewResults
+    // used directly in controllers.
+    throw UnimplementedError(
+      'GeminiAiInterviewService.analyzeInterview is deprecated. Use GeminiService directly.',
+    );
+  }
+}
