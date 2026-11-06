@@ -20,6 +20,20 @@ Proporcionar una herramienta integral y accesible de simulación de entrevistas 
 
 ---
 
+## Documentación
+
+El detalle de arquitectura, módulos, datos, flujos y cómo extender el código está en [`docs/`](docs/README.md).
+
+| Guía | Contenido |
+| --- | --- |
+| [Arquitectura](docs/arquitectura.md) | Monolito modular, puertos y composition root |
+| [Módulos](docs/modulos.md) | Auth, entrevista, análisis, dashboard y el resto |
+| [Persistencia](docs/persistencia.md) | Supabase, SQLite, caché y SharedPreferences |
+| [Flujos](docs/flujos.md) | Rutas, voz y análisis |
+| [Desarrollo](docs/desarrollo.md) | Entorno, pruebas y cómo agregar un módulo |
+
+---
+
 ## 🚀 Alcance y Funcionalidades Principales
 
 * **Autenticación Segura y Recuperación OTP**: Registro, inicio de sesión y flujo premium de restablecimiento de contraseña mediante códigos de 6 dígitos enviados por correo.
@@ -76,7 +90,7 @@ La aplicación es un **monolito modular con puertos hexagonales**. No hay micros
 
 * **Provider / State Management**: Uso del patrón *Observer* mediante el paquete `provider` para la inyección de dependencias global (`MultiProvider` en `main.dart`) y manejo reactivo de estado en las vistas.
 * **Dependency Injection (DI)**: El composition root inyecta `AuthGateway`, `InterviewAiPort` y `RelationalDatabaseService`. Las pantallas no construyen `AuthService()` ni `GeminiService()`.
-* **Adapter / Wrapper Pattern**: Servicios como `GeminiService` actúan como wrappers para estandarizar la comunicación HTTP con la API de Google, traduciendo excepciones genéricas a `GeminiException` y luego a la jerarquía de errores propia del sistema (`AppException`).
+* **Adapter / Wrapper Pattern**: `GeminiService` implementa `InterviewAiPort` y traduce fallos HTTP a `GeminiException`. La UI los muestra con `userFriendlyErrorMessage`.
 * **Factory Pattern**: Utilizado extensivamente en los modelos de dominio (`fromJson`, `toJson`) para serializar y deserializar respuestas estructuradas de las APIs.
 
 ---
