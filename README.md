@@ -35,39 +35,47 @@ Proporcionar una herramienta integral y accesible de simulación de entrevistas 
 
 ## 🏗️ Estructura General del Proyecto
 
-El proyecto sigue una estructura limpia y escalable, dividiendo responsabilidades en capas claras dentro del directorio `lib/`:
+El proyecto es un monolito modular: un solo binario Flutter, con un módulo por carpeta. Dentro de cada módulo la frontera es hexagonal: la presentación depende de puertos y solo `main.dart` construye los adapters.
 
 ```
 lib/
-├── core/             # Configuraciones globales, manejo de errores, navegación, enrutamiento, utils y localización (l10n extensions).
-├── domain/           # Modelos de dominio (Entities), definición de servicios y reglas de negocio.
-│   ├── entities/     # Modelos de datos (User, InterviewSession, AnswerEvaluation, etc.).
-│   └── services/     # Lógica central e integración (GeminiService, CachedDatabaseService, SqfliteDatabaseService, SupabaseDatabaseService).
-├── l10n/             # Archivos de traducción y delegados de localización (AppLocalizations).
-├── presentation/     # Capa de Interfaz de Usuario (UI) y Controladores de estado.
-│   ├── controllers/  # Providers/StateManagers (InterviewVoiceController, MediaDeviceController, etc.).
-│   ├── screens/      # Vistas de la aplicación agrupadas por features (auth, dashboard, interview, analysis, tracking, profile).
-│   └── widgets/      # Componentes visuales reutilizables (Botones, Tarjetas, Modales).
-├── theme/            # Definición del Design System, paleta de colores y tipografía (AppTheme).
-└── main.dart         # Punto de entrada, inyección de dependencias (Providers) y configuración principal.
+├── core/                  # Navegación, errores, configuración, localización.
+├── shared/
+│   ├── domain/
+│   │   ├── entities/      # Modelos que cruzan módulos.
+│   │   └── ports/         # RelationalDatabaseService, OfflineCache.
+│   ├── infrastructure/    # Supabase, SQLite y el decorador de caché.
+│   └── presentation/      # Widgets compartidos del design system.
+├── features/
+│   ├── auth/              # domain (AuthGateway) + infrastructure (Supabase) + presentation.
+│   ├── interview/         # domain (InterviewAiPort) + infrastructure (Gemini) + presentation.
+│   ├── analysis/          # presentation; usa los puertos compartidos.
+│   ├── tracking/          # presentation.
+│   ├── profile/           # presentation.
+│   ├── settings/          # presentation.
+│   └── dashboard/         # presentation.
+├── l10n/                  # Traducciones (AppLocalizations).
+├── theme/                 # Design system y AppThemeController.
+└── main.dart              # Composition root: único lugar que instancia los adapters.
 ```
 
 ---
 
 ## 🏛️ Arquitectura Utilizada
 
-La aplicación implementa una variación de **Clean Architecture** enfocada al ecosistema de Flutter, separando estrictamente la presentación de la lógica de negocio y del acceso a datos.
+La aplicación es un **monolito modular con puertos hexagonales**. No hay microservicios propios: autenticación y datos viven en Supabase, y la IA se llama a Gemini desde el cliente.
 
-* **Presentation Layer**: Encargada únicamente de dibujar la UI y reaccionar a los cambios de estado.
-* **Domain / Business Logic Layer**: Administrada a través de Controladores (`ChangeNotifier`) que orquestan el flujo entre los servicios y la UI. Contiene las definiciones de modelos fuertemente tipados.
-* **Data / Services Layer**: Clases de servicio dedicadas que encapsulan las llamadas a APIS externas y Bases de Datos. Implementa una estrategia **Offline-First (Cache-First)** mediante un decorador de caché (`CachedDatabaseService`) que expone capas local y remota para optimizar la latencia en la UI.
+* **Presentation**: pantallas y controladores. Dibujan la UI y hablan con puertos (`AuthGateway`, `InterviewAiPort`, `RelationalDatabaseService`, `OfflineCache`), no con Supabase, SQLite ni el cliente HTTP.
+* **Domain**: entidades y puertos. No importa SDKs de infraestructura.
+* **Infrastructure**: adapters que implementan esos puertos (`AuthService`, `GeminiService`, `SupabaseDatabaseService`, `SqfliteDatabaseService`, `CachedDatabaseService`).
+* **Composition root**: `main.dart` crea una sola instancia de cada adapter y la registra en `Provider`. Auth y tema siguen escribiendo directo en Supabase; el historial usa la caché local y luego el remoto.
 
 ---
 
 ## 🧩 Patrones de Diseño Implementados
 
 * **Provider / State Management**: Uso del patrón *Observer* mediante el paquete `provider` para la inyección de dependencias global (`MultiProvider` en `main.dart`) y manejo reactivo de estado en las vistas.
-* **Dependency Injection (DI)**: Los servicios como `AuthService`, `GeminiService` y `SupabaseDatabaseService` se inyectan a los controladores para facilitar el testeo y la modularidad.
+* **Dependency Injection (DI)**: El composition root inyecta `AuthGateway`, `InterviewAiPort` y `RelationalDatabaseService`. Las pantallas no construyen `AuthService()` ni `GeminiService()`.
 * **Adapter / Wrapper Pattern**: Servicios como `GeminiService` actúan como wrappers para estandarizar la comunicación HTTP con la API de Google, traduciendo excepciones genéricas a `GeminiException` y luego a la jerarquía de errores propia del sistema (`AppException`).
 * **Factory Pattern**: Utilizado extensivamente en los modelos de dominio (`fromJson`, `toJson`) para serializar y deserializar respuestas estructuradas de las APIs.
 
