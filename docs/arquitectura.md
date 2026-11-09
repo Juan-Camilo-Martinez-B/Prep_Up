@@ -2,9 +2,9 @@
 
 Prep_Up es un **monolito modular con puertos hexagonales**.
 
-No es un conjunto de microservicios. No hay procesos propios que desplegar por dominio: la app es un cliente, Supabase ya es el backend de auth y datos, y Gemini ya es el servicio de IA. Partir el cliente en servicios añadiría red y contratos sin un equipo ni un despliegue que lo justifique.
+No es un conjunto de microservicios. No hay procesos propios que desplegar por dominio: la app es un cliente, Supabase ya es el backend de auth y datos, y Groq ya es el servicio de IA. Partir el cliente en servicios añadiría red y contratos sin un equipo ni un despliegue que lo justifique.
 
-Tampoco es Clean Architecture de libro. No hay un caso de uso por pantalla ni DTOs duplicados. Las clases grandes (`GeminiService`, `InterviewVoiceController`, `SimulatedCallScreen`, `DashboardScreen`) se movieron de carpeta y, donde hacía falta, implementan un puerto. Su cuerpo no se partió.
+Tampoco es Clean Architecture de libro. No hay un caso de uso por pantalla ni DTOs duplicados. Las clases grandes (`GroqService`, `InterviewVoiceController`, `SimulatedCallScreen`, `DashboardScreen`) se movieron de carpeta y, donde hacía falta, implementan un puerto. Su cuerpo no se partió.
 
 ## Regla de dependencia
 
@@ -66,7 +66,7 @@ lib/
    - `AuthGateway`
    - `SessionPreferences`
    - `RelationalDatabaseService` (la caché)
-   - `InterviewAiPort` (`GeminiService`)
+   - `InterviewAiPort` (`GroqService`)
    - `InterviewConfigController`
    - `MediaDeviceController`
 
@@ -80,15 +80,15 @@ lib/
 | `OfflineCache` | `CachedDatabaseService` | dashboard, perfil, historial, para pintar primero lo local |
 | `AuthGateway` | `AuthService` | pantallas de auth, dashboard, perfil, ajustes, procesamiento, tema |
 | `SessionPreferences` | `AuthPreferences` | login y el arranque |
-| `InterviewAiPort` | `GeminiService` | `InterviewVoiceController`, `InterviewSessionController`, procesamiento, llamada simulada |
+| `InterviewAiPort` | `GroqService` | `InterviewVoiceController`, `InterviewSessionController`, procesamiento, llamada simulada |
 
 ## Qué no hace esta arquitectura
 
-- No parte `GeminiService` ni el controlador de voz.
-- No mueve `GEMINI_API_KEY` a una Edge Function. La clave sigue en el cliente, leída de `.env`.
+- No parte `GroqService` ni el controlador de voz.
+- No mueve `GROQ_API_KEY` a una Edge Function. La clave sigue en el cliente, leída de `.env`.
 - No hace que el alta de usuario ni el tema pasen por `CachedDatabaseService`. Eso cambiaría qué queda disponible sin red.
-- No borra código que hoy no usa la UI: `InterviewSessionController`, `AiInterviewService`, `GeminiAiInterviewService`, `VideoAnalysisService`, `VideoStorageService`. Están en el módulo de entrevista para no perder el contrato.
+- No borra código que hoy no usa la UI: `InterviewSessionController`, `AiInterviewService`, `GroqAiInterviewService`, `VideoAnalysisService`, `VideoStorageService`. Están en el módulo de entrevista para no perder el contrato.
 
 ## Cómo saber si un cambio respeta la frontera
 
-Un import de `shared/infrastructure` o de `features/*/infrastructure` fuera de `lib/main.dart` y de la propia carpeta `infrastructure` rompe la regla. Las pantallas piden el puerto con `context.read<AuthGateway>()` o `context.read<InterviewAiPort>()`. No hacen `AuthService()` ni `GeminiService()`.
+Un import de `shared/infrastructure` o de `features/*/infrastructure` fuera de `lib/main.dart` y de la propia carpeta `infrastructure` rompe la regla. Las pantallas piden el puerto con `context.read<AuthGateway>()` o `context.read<InterviewAiPort>()`. No hacen `AuthService()` ni `GroqService()`.

@@ -5,14 +5,14 @@ import 'package:prep_up/shared/domain/entities/interview_session_model.dart';
 import 'package:prep_up/shared/domain/entities/interview_tags.dart';
 import 'package:prep_up/features/interview/domain/ai_interview_service.dart';
 import 'package:prep_up/features/interview/domain/interview_ai_port.dart';
-import 'package:prep_up/features/interview/infrastructure/gemini_service.dart';
+import 'package:prep_up/features/interview/infrastructure/groq_service.dart';
 import 'package:prep_up/l10n/app_localizations.dart';
 
-class GeminiAiInterviewService implements AiInterviewService {
-  GeminiAiInterviewService({InterviewAiPort? geminiService})
-    : _geminiService = geminiService ?? GeminiService();
+class GroqAiInterviewService implements AiInterviewService {
+  GroqAiInterviewService({InterviewAiPort? aiService})
+    : _aiService = aiService ?? GroqService();
 
-  final InterviewAiPort _geminiService;
+  final InterviewAiPort _aiService;
 
   @override
   Future<List<String>> generateQuestions({
@@ -31,7 +31,7 @@ class GeminiAiInterviewService implements AiInterviewService {
       );
     } catch (_) {}
 
-    return _geminiService.generateInterviewQuestions(
+    return _aiService.generateInterviewQuestions(
       type: type,
       role: role,
       jobRoleLabel: jobRole,
@@ -46,10 +46,10 @@ class GeminiAiInterviewService implements AiInterviewService {
     String? transcript,
     String? videoReference,
   }) async {
-    // This method is deprecated in favor of GeminiService.generateInterviewResults
+    // This method is deprecated in favor of GroqService.generateInterviewResults
     // used directly in controllers.
     throw UnimplementedError(
-      'GeminiAiInterviewService.analyzeInterview is deprecated. Use GeminiService directly.',
+      'GroqAiInterviewService.analyzeInterview is deprecated. Use GroqService directly.',
     );
   }
 }

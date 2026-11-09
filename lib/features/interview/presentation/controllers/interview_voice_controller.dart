@@ -9,7 +9,7 @@ import 'package:prep_up/core/localization/interview_l10n.dart';
 import 'package:prep_up/shared/domain/entities/interview_config.dart';
 import 'package:prep_up/shared/domain/entities/interview_session.dart';
 import 'package:prep_up/shared/domain/entities/interview_tags.dart';
-import 'package:prep_up/features/interview/domain/gemini_exception.dart';
+import 'package:prep_up/features/interview/domain/ai_provider_exception.dart';
 import 'package:prep_up/features/interview/domain/interview_ai_port.dart';
 import 'package:prep_up/l10n/app_localizations.dart';
 import 'package:prep_up/core/utils/ai_utils.dart';
@@ -21,17 +21,17 @@ enum InterviewConversationState { idle, listening, speaking, processing }
 
 class InterviewVoiceController extends ChangeNotifier {
   InterviewVoiceController({
-    required InterviewAiPort geminiService,
+    required InterviewAiPort aiService,
     required InterviewConfig config,
     String languageCode = 'es',
     FlutterTts? flutterTts,
     SpeechToText? speech,
-  }) : _geminiService = geminiService,
+  }) : _aiService = aiService,
        _config = config,
        _languageCode = languageCode,
        _tts = flutterTts ?? FlutterTts(),
        _speech = speech ?? SpeechToText(),
-       _selectedFocusAreas = geminiService.getRandomFocusAreas(
+       _selectedFocusAreas = aiService.getRandomFocusAreas(
          lookupAppLocalizations(Locale(languageCode)),
          5,
        ),
@@ -42,7 +42,7 @@ class InterviewVoiceController extends ChangeNotifier {
     _configureTtsCallbacks();
   }
 
-  final InterviewAiPort _geminiService;
+  final InterviewAiPort _aiService;
   final InterviewConfig _config;
   final String _languageCode;
   final FlutterTts _tts;
@@ -192,7 +192,7 @@ class InterviewVoiceController extends ChangeNotifier {
       await _tts.stop();
       await _speech.stop();
 
-      final evaluation = await _geminiService.evaluateUserAnswer(
+      final evaluation = await _aiService.evaluateUserAnswer(
         question: question,
         userAnswer: safeAnswer,
         role: _config.jobRole,
@@ -201,7 +201,7 @@ class InterviewVoiceController extends ChangeNotifier {
         type: _config.type ?? InterviewType.mixed,
       );
 
-      final feedback = await _geminiService.generateFeedback(
+      final feedback = await _aiService.generateFeedback(
         question: question,
         userAnswer: safeAnswer,
         evaluation: evaluation,
@@ -412,13 +412,13 @@ class InterviewVoiceController extends ChangeNotifier {
         ? ''
         : _config.jobRole!.label(_l10n);
     if (jobRoleLabel.isEmpty) {
-      throw GeminiException(_l10n.interviewMissingJobRole);
+      throw AiProviderException(_l10n.interviewMissingJobRole);
     }
     if (_config.type == null) {
-      throw GeminiException(_l10n.interviewMissingType);
+      throw AiProviderException(_l10n.interviewMissingType);
     }
 
-    final response = await _geminiService.generateOpeningQuestion(
+    final response = await _aiService.generateOpeningQuestion(
       role: _config.jobRole,
       jobRoleLabel: jobRoleLabel,
       type: _config.type!,
@@ -429,7 +429,7 @@ class InterviewVoiceController extends ChangeNotifier {
     final parsedFromJson = _tryExtractNextQuestion(response);
     final question = _sanitizeQuestion(parsedFromJson ?? response);
     if (question.isEmpty) {
-      throw GeminiException(_l10n.interviewCouldNotGenerateFirstQuestion);
+      throw AiProviderException(_l10n.interviewCouldNotGenerateFirstQuestion);
     }
     return question;
   }
@@ -444,7 +444,7 @@ class InterviewVoiceController extends ChangeNotifier {
         ? _session.turns.sublist(_session.turns.length - 4)
         : _session.turns;
 
-    final next = await _geminiService.generateConversationalNextQuestion(
+    final next = await _aiService.generateConversationalNextQuestion(
       role: _config.jobRole,
       jobRoleLabel: jobRoleLabel,
       type: type,
@@ -468,7 +468,7 @@ class InterviewVoiceController extends ChangeNotifier {
       weakQuestion: cleaned.isEmpty ? lastTurn.question : cleaned,
       lastTurn: lastTurn,
       isEnglish: _isEnglish,
-      geminiService: _geminiService,
+      aiService: _aiService,
     );
     if (_isSmartInterviewQuestion(
       rewritten,
@@ -477,7 +477,7 @@ class InterviewVoiceController extends ChangeNotifier {
       return rewritten;
     }
 
-    throw GeminiException(_l10n.interviewCouldNotGenerateQualityQuestion);
+    throw AiProviderException(_l10n.interviewCouldNotGenerateQualityQuestion);
   }
 
   Future<void> _deliverQuestion(String question, {String? introMessage}) async {
@@ -766,7 +766,7 @@ class InterviewVoiceController extends ChangeNotifier {
     try {
       if (_isSessionCancelled) return;
       final jobRoleLabel = _config.jobRole?.label(_l10n) ?? '';
-      final closingMsg = await _geminiService.generateClosingMessage(
+      final closingMsg = await _aiService.generateClosingMessage(
         role: _config.jobRole,
         jobRoleLabel: jobRoleLabel,
         l10n: _l10n,
@@ -942,7 +942,7 @@ class InterviewVoiceController extends ChangeNotifier {
     required String weakQuestion,
     required InterviewTurn lastTurn,
     required bool isEnglish,
-    required InterviewAiPort geminiService,
+    required InterviewAiPort aiService,
   }) async {
     final prompt = _l10n.aiPromptRewriteQuestion(
       weakQuestion,
@@ -950,7 +950,7 @@ class InterviewVoiceController extends ChangeNotifier {
       lastTurn.answer,
     );
 
-    final rewritten = await geminiService.sendPrompt(
+    final rewritten = await aiService.sendPrompt(
       prompt: prompt,
       systemInstruction: _l10n.aiPromptSystemInterviewerSpoken,
       temperature: 0.55,

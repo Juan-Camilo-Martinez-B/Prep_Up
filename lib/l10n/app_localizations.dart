@@ -1313,7 +1313,7 @@ abstract class AppLocalizations {
   /// No description provided for @callAnswerHelperTts.
   ///
   /// In en, this message translates to:
-  /// **'Gemini asks by voice and text.'**
+  /// **'The AI asks by voice and text.'**
   String get callAnswerHelperTts;
 
   /// No description provided for @callAnswerHelperFallback.
@@ -1340,11 +1340,11 @@ abstract class AppLocalizations {
   /// **'Repeat question'**
   String get callRepeatQuestion;
 
-  /// No description provided for @callSendToGemini.
+  /// No description provided for @callSendAnswer.
   ///
   /// In en, this message translates to:
   /// **'Send and continue'**
-  String get callSendToGemini;
+  String get callSendAnswer;
 
   /// No description provided for @callRetryVoice.
   ///
@@ -1361,7 +1361,7 @@ abstract class AppLocalizations {
   /// No description provided for @callTip.
   ///
   /// In en, this message translates to:
-  /// **'Tip: keep answers clear; if audio fails, use text and Gemini will continue the conversation.'**
+  /// **'Tip: keep answers clear; if audio fails, use text and the AI will continue the conversation.'**
   String get callTip;
 
   /// No description provided for @callMicActive.
@@ -2192,11 +2192,11 @@ abstract class AppLocalizations {
   /// **'Loading...'**
   String get genericLoading;
 
-  /// No description provided for @modelGemini.
+  /// No description provided for @aiModelLabel.
   ///
   /// In en, this message translates to:
-  /// **'Model: Gemini'**
-  String get modelGemini;
+  /// **'Model: Groq'**
+  String get aiModelLabel;
 
   /// No description provided for @interviewPreparing.
   ///
@@ -2333,7 +2333,7 @@ abstract class AppLocalizations {
   /// No description provided for @interviewEmptyQuestion.
   ///
   /// In en, this message translates to:
-  /// **'Gemini returned an empty question.'**
+  /// **'The AI returned an empty question.'**
   String get interviewEmptyQuestion;
 
   /// No description provided for @interviewCouldNotPlayQuestionTextMode.
@@ -2788,59 +2788,11 @@ abstract class AppLocalizations {
   /// **'Start'**
   String get statsLabelChartStart;
 
-  /// No description provided for @errorGeminiMissingKey.
-  ///
-  /// In en, this message translates to:
-  /// **'Missing GEMINI_API_KEY. Configure it in the .env file.'**
-  String get errorGeminiMissingKey;
-
-  /// No description provided for @errorGeminiContact.
-  ///
-  /// In en, this message translates to:
-  /// **'Could not contact Gemini.'**
-  String get errorGeminiContact;
-
-  /// No description provided for @errorGeminiNoInternet.
-  ///
-  /// In en, this message translates to:
-  /// **'No internet connection or could not contact Gemini.'**
-  String get errorGeminiNoInternet;
-
-  /// No description provided for @errorGeminiParse.
-  ///
-  /// In en, this message translates to:
-  /// **'Error parsing Gemini response.'**
-  String get errorGeminiParse;
-
-  /// No description provided for @errorGeminiApiGeneric.
-  ///
-  /// In en, this message translates to:
-  /// **'Error calling Gemini.'**
-  String get errorGeminiApiGeneric;
-
-  /// No description provided for @errorGeminiInvalidResponse.
-  ///
-  /// In en, this message translates to:
-  /// **'Invalid response from Gemini.'**
-  String get errorGeminiInvalidResponse;
-
-  /// No description provided for @errorGeminiNoCandidates.
-  ///
-  /// In en, this message translates to:
-  /// **'Gemini returned no candidates.'**
-  String get errorGeminiNoCandidates;
-
-  /// No description provided for @errorGeminiEmptyResponse.
-  ///
-  /// In en, this message translates to:
-  /// **'Gemini returned an empty response.'**
-  String get errorGeminiEmptyResponse;
-
-  /// No description provided for @errorGeminiFallbackFeedback.
+  /// No description provided for @errorAiFallbackFeedback.
   ///
   /// In en, this message translates to:
   /// **'Review complete. Check your score breakdown for details.'**
-  String get errorGeminiFallbackFeedback;
+  String get errorAiFallbackFeedback;
 
   /// No description provided for @aiPromptRewriteQuestion.
   ///

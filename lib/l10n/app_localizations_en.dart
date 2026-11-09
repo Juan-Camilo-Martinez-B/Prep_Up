@@ -680,7 +680,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get callAnswerFieldHint => 'Start typing or press the microphone...';
 
   @override
-  String get callAnswerHelperTts => 'Gemini asks by voice and text.';
+  String get callAnswerHelperTts => 'The AI asks by voice and text.';
 
   @override
   String get callAnswerHelperFallback =>
@@ -696,7 +696,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get callRepeatQuestion => 'Repeat question';
 
   @override
-  String get callSendToGemini => 'Send and continue';
+  String get callSendAnswer => 'Send and continue';
 
   @override
   String get callRetryVoice => 'Retry voice';
@@ -706,7 +706,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get callTip =>
-      'Tip: keep answers clear; if audio fails, use text and Gemini will continue the conversation.';
+      'Tip: keep answers clear; if audio fails, use text and the AI will continue the conversation.';
 
   @override
   String get callMicActive => 'Active';
@@ -1159,7 +1159,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get genericLoading => 'Loading...';
 
   @override
-  String get modelGemini => 'Model: Gemini';
+  String get aiModelLabel => 'Model: Groq';
 
   @override
   String get interviewPreparing => 'Preparing interview...';
@@ -1241,7 +1241,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get interviewQuestionReady => 'New question ready.';
 
   @override
-  String get interviewEmptyQuestion => 'Gemini returned an empty question.';
+  String get interviewEmptyQuestion => 'The AI returned an empty question.';
 
   @override
   String get interviewCouldNotPlayQuestionTextMode =>
@@ -1543,33 +1543,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get statsLabelChartStart => 'Start';
 
   @override
-  String get errorGeminiMissingKey =>
-      'Missing GEMINI_API_KEY. Configure it in the .env file.';
-
-  @override
-  String get errorGeminiContact => 'Could not contact Gemini.';
-
-  @override
-  String get errorGeminiNoInternet =>
-      'No internet connection or could not contact Gemini.';
-
-  @override
-  String get errorGeminiParse => 'Error parsing Gemini response.';
-
-  @override
-  String get errorGeminiApiGeneric => 'Error calling Gemini.';
-
-  @override
-  String get errorGeminiInvalidResponse => 'Invalid response from Gemini.';
-
-  @override
-  String get errorGeminiNoCandidates => 'Gemini returned no candidates.';
-
-  @override
-  String get errorGeminiEmptyResponse => 'Gemini returned an empty response.';
-
-  @override
-  String get errorGeminiFallbackFeedback =>
+  String get errorAiFallbackFeedback =>
       'Review complete. Check your score breakdown for details.';
 
   @override

@@ -7,7 +7,7 @@ import 'package:prep_up/shared/domain/entities/interview_session.dart';
 import 'package:prep_up/shared/domain/entities/interview_tags.dart';
 
 /// Puerto de la entrevista con IA. La presentación depende de este contrato;
-/// el adapter de Gemini vive en infrastructure.
+/// el adapter de Groq vive en infrastructure.
 abstract class InterviewAiPort {
   List<String> getRandomFocusAreas(AppLocalizations l10n, [int count = 5]);
 

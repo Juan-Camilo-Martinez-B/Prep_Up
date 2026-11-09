@@ -10,7 +10,7 @@ import 'package:prep_up/features/auth/domain/session_preferences.dart';
 import 'package:prep_up/features/auth/infrastructure/auth_preferences.dart';
 import 'package:prep_up/features/auth/infrastructure/auth_service.dart';
 import 'package:prep_up/features/interview/domain/interview_ai_port.dart';
-import 'package:prep_up/features/interview/infrastructure/gemini_service.dart';
+import 'package:prep_up/features/interview/infrastructure/groq_service.dart';
 import 'package:prep_up/features/interview/presentation/controllers/interview_config_controller.dart';
 import 'package:prep_up/features/interview/presentation/controllers/media_device_controller.dart';
 import 'package:prep_up/l10n/app_localizations.dart';
@@ -120,7 +120,7 @@ class _AiInterviewTrainerAppState extends State<AiInterviewTrainerApp> {
         Provider<RelationalDatabaseService>.value(
           value: widget.databaseService,
         ),
-        Provider<InterviewAiPort>(create: (_) => GeminiService()),
+        Provider<InterviewAiPort>(create: (_) => GroqService()),
         ChangeNotifierProvider(create: (_) => InterviewConfigController()),
         ChangeNotifierProvider(create: (_) => MediaDeviceController()),
       ],

@@ -24,8 +24,8 @@ Configuración de la simulación y la llamada de voz.
 
 | Capa | Archivos |
 | --- | --- |
-| domain | `InterviewAiPort`, `GeminiException`, `AiInterviewService`, `VideoAnalysisService`, `VideoStorageService` |
-| infrastructure | `GeminiService`, `GeminiAiInterviewService` |
+| domain | `InterviewAiPort`, `AiProviderException`, `AiInterviewService`, `VideoAnalysisService`, `VideoStorageService` |
+| infrastructure | `GroqService`, `GroqAiInterviewService` |
 | presentation | selección de tipo y rol, configuración, chequeo de dispositivos, llamada simulada, controladores |
 
 `InterviewConfigController` guarda tipo, rol y duración mientras el usuario arma la entrevista. `MediaDeviceController` pide cámara y micrófono. `InterviewVoiceController` no está en el `Provider` global: la llamada simulada lo crea con el `InterviewAiPort` ya registrado.
@@ -87,8 +87,8 @@ Widgets de `shared/presentation/widgets`: `AppCard`, `AppLogo`, `AppPrimaryButto
 | Pieza | Rol |
 | --- | --- |
 | `AppRoutes`, `AppRouter` | nombres de ruta y construcción de páginas |
-| `AppConfig` | `GEMINI_API_KEY`, `GEMINI_MODEL` y las URLs de la API |
-| `userFriendlyErrorMessage` | traduce `GeminiException`, `AuthException` y fallos de red a texto de UI |
+| `AppConfig` | `GROQ_API_KEY`, `GROQ_MODEL`, `GROQ_REASONING_EFFORT` y la URL de la API |
+| `userFriendlyErrorMessage` | traduce `AiProviderException`, `AuthException` y fallos de red a texto de UI |
 | `AppLocaleController` | locale `es` / `en` |
 | `interview_l10n.dart` | etiquetas de tipo de entrevista y rol |
 

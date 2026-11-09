@@ -59,8 +59,9 @@ En `.env`, en la raíz del proyecto. El archivo está declarado como asset en `p
 ```env
 SUPABASE_URL=
 SUPABASE_ANON_KEY=
-GEMINI_API_KEY=
-GEMINI_MODEL=
+GROQ_API_KEY=
+GROQ_MODEL=
+GROQ_REASONING_EFFORT=
 ```
 
-`GEMINI_MODEL` es opcional. Si falta, `AppConfig` usa `gemini-1.5-flash-latest`.
+`GROQ_MODEL` es opcional. Si falta, `AppConfig` usa `openai/gpt-oss-120b`. `GROQ_REASONING_EFFORT` también es opcional: con modelos `gpt-oss` vale `low` por defecto, y con otros modelos no se envía.

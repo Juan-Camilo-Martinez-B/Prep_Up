@@ -7,7 +7,7 @@ class AiUtils {
   static String sanitizeAIText(String raw, AppLocalizations l10n) {
     var cleaned = raw.trim();
 
-    if (cleaned.isEmpty) return l10n.errorGeminiFallbackFeedback;
+    if (cleaned.isEmpty) return l10n.errorAiFallbackFeedback;
 
     // 1. Remove markdown blocks if present
     final fenceStart = cleaned.indexOf('```');

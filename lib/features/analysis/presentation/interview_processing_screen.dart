@@ -69,16 +69,16 @@ class _InterviewProcessingScreenState extends State<InterviewProcessingScreen> {
     });
 
     try {
-      final geminiService = context.read<InterviewAiPort>();
+      final aiService = context.read<InterviewAiPort>();
       final authService = context.read<AuthGateway>();
       final dbService = context.read<RelationalDatabaseService>();
 
-      final processedSession = await geminiService.analyzeInterviewSession(
+      final processedSession = await aiService.analyzeInterviewSession(
         config: config,
         session: session,
         l10n: l10n,
       );
-      final results = await geminiService.generateInterviewResults(
+      final results = await aiService.generateInterviewResults(
         config: config,
         session: processedSession,
         l10n: l10n,
@@ -121,7 +121,7 @@ class _InterviewProcessingScreenState extends State<InterviewProcessingScreen> {
       if (!mounted) return;
       setState(() {
         _results =
-            results; // We can keep the one from gemini, or the resultModel. Either way it has the data.
+            results; // We can keep the one from the AI, or the resultModel. Either way it has the data.
         _processedSession = processedSession;
         _isLoading = false;
       });
@@ -195,7 +195,7 @@ class _InterviewProcessingScreenState extends State<InterviewProcessingScreen> {
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text(
-                    l10n.modelGemini,
+                    l10n.aiModelLabel,
                     style: Theme.of(context).textTheme.labelLarge,
                   ),
                 ),

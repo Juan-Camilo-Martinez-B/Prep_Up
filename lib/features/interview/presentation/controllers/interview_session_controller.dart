@@ -5,19 +5,19 @@ import 'package:prep_up/core/localization/interview_l10n.dart';
 import 'package:prep_up/shared/domain/entities/interview_config.dart';
 import 'package:prep_up/shared/domain/entities/interview_tags.dart';
 import 'package:prep_up/shared/domain/entities/interview_session.dart';
-import 'package:prep_up/features/interview/domain/gemini_exception.dart';
+import 'package:prep_up/features/interview/domain/ai_provider_exception.dart';
 import 'package:prep_up/features/interview/domain/interview_ai_port.dart';
 import 'package:prep_up/l10n/app_localizations.dart';
 import 'package:speech_to_text/speech_to_text.dart';
 
 class InterviewSessionController extends ChangeNotifier {
   InterviewSessionController({
-    required InterviewAiPort geminiService,
+    required InterviewAiPort aiService,
     required InterviewConfig config,
-  }) : _geminiService = geminiService,
+  }) : _aiService = aiService,
        _config = config,
        _speech = SpeechToText(),
-       _selectedFocusAreas = geminiService.getRandomFocusAreas(
+       _selectedFocusAreas = aiService.getRandomFocusAreas(
          lookupAppLocalizations(AppLocaleRuntime.locale),
          5,
        ),
@@ -26,7 +26,7 @@ class InterviewSessionController extends ChangeNotifier {
          turns: const [],
        );
 
-  final InterviewAiPort _geminiService;
+  final InterviewAiPort _aiService;
   final InterviewConfig _config;
   final SpeechToText _speech;
   final List<String> _selectedFocusAreas;
@@ -71,14 +71,14 @@ class InterviewSessionController extends ChangeNotifier {
     final l10n = lookupAppLocalizations(AppLocaleRuntime.locale);
     try {
       if (_config.jobRole == null) {
-        throw GeminiException(l10n.interviewMissingJobRole);
+        throw AiProviderException(l10n.interviewMissingJobRole);
       }
       final jobRoleLabel = _config.jobRole!.label(l10n);
       if (_config.type == null) {
-        throw GeminiException(l10n.interviewMissingType);
+        throw AiProviderException(l10n.interviewMissingType);
       }
 
-      final questions = await _geminiService.generateInterviewQuestions(
+      final questions = await _aiService.generateInterviewQuestions(
         type: _config.type!,
         role: _config.jobRole,
         jobRoleLabel: jobRoleLabel,
@@ -89,7 +89,7 @@ class InterviewSessionController extends ChangeNotifier {
 
       _currentQuestion = questions.isNotEmpty ? questions.first : '';
       if (_currentQuestion.trim().isEmpty) {
-        throw GeminiException(l10n.interviewCouldNotGenerateFirstQuestion);
+        throw AiProviderException(l10n.interviewCouldNotGenerateFirstQuestion);
       }
       _currentQuestionAskedAt = DateTime.now().toUtc();
     } catch (e) {
@@ -112,7 +112,7 @@ class InterviewSessionController extends ChangeNotifier {
 
     final l10n = lookupAppLocalizations(AppLocaleRuntime.locale);
     try {
-      final evaluation = await _geminiService.evaluateUserAnswer(
+      final evaluation = await _aiService.evaluateUserAnswer(
         question: question,
         userAnswer: safeAnswer,
         role: _config.jobRole,
@@ -123,7 +123,7 @@ class InterviewSessionController extends ChangeNotifier {
         l10n: l10n,
       );
 
-      final feedback = await _geminiService.generateFeedback(
+      final feedback = await _aiService.generateFeedback(
         question: question,
         userAnswer: safeAnswer,
         evaluation: evaluation,
@@ -166,7 +166,7 @@ class InterviewSessionController extends ChangeNotifier {
     final l10n = lookupAppLocalizations(AppLocaleRuntime.locale);
     try {
       final jobRoleLabel = _config.jobRole?.label(l10n) ?? '';
-      final closing = await _geminiService.generateClosingMessage(
+      final closing = await _aiService.generateClosingMessage(
         role: _config.jobRole,
         jobRoleLabel: jobRoleLabel,
         l10n: l10n,
@@ -196,7 +196,7 @@ class InterviewSessionController extends ChangeNotifier {
           : _config.jobRole!.label(l10n);
       final type = _config.type ?? InterviewType.mixed;
 
-      final next = await _geminiService.generateNextQuestion(
+      final next = await _aiService.generateNextQuestion(
         role: _config.jobRole,
         jobRoleLabel: jobRoleLabel,
         type: type,
@@ -207,7 +207,7 @@ class InterviewSessionController extends ChangeNotifier {
 
       final cleaned = next.trim();
       if (cleaned.isEmpty) {
-        throw GeminiException(l10n.interviewCouldNotGenerateQualityQuestion);
+        throw AiProviderException(l10n.interviewCouldNotGenerateQualityQuestion);
       }
       _currentQuestion = cleaned;
       _currentQuestionAskedAt = DateTime.now().toUtc();

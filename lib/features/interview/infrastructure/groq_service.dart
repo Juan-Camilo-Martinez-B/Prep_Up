@@ -4,7 +4,7 @@ import 'dart:math' as math;
 import 'package:http/http.dart' as http;
 import 'package:prep_up/core/config/app_config.dart';
 import 'package:prep_up/core/localization/interview_l10n.dart';
-import 'package:prep_up/features/interview/domain/gemini_exception.dart';
+import 'package:prep_up/features/interview/domain/ai_provider_exception.dart';
 import 'package:prep_up/features/interview/domain/interview_ai_port.dart';
 import 'package:prep_up/shared/domain/entities/answer_evaluation_model.dart';
 import 'package:prep_up/shared/domain/entities/interview_config.dart';
@@ -15,17 +15,27 @@ import 'package:prep_up/shared/domain/entities/interview_tags.dart';
 import 'package:prep_up/l10n/app_localizations.dart';
 import 'package:prep_up/core/utils/ai_utils.dart';
 
-class GeminiService implements InterviewAiPort {
-  GeminiService({http.Client? httpClient, String? apiKey, String? model})
-    : _httpClient = httpClient ?? http.Client(),
-      _apiKey = (apiKey ?? AppConfig.geminiApiKey).trim(),
-      _model = _normalizeModelName((model ?? AppConfig.geminiModel).trim());
+/// Adapter de [InterviewAiPort] sobre la API de Groq (compatible con OpenAI).
+class GroqService implements InterviewAiPort {
+  GroqService({
+    http.Client? httpClient,
+    String? apiKey,
+    String? model,
+    String? reasoningEffort,
+  }) : _httpClient = httpClient ?? http.Client(),
+       _apiKey = (apiKey ?? AppConfig.groqApiKey).trim(),
+       _model = (model ?? AppConfig.groqModel).trim(),
+       _reasoningEffort = reasoningEffort ?? AppConfig.groqReasoningEffort;
+
+  /// Tokens extra para modelos de razonamiento: el razonamiento interno
+  /// consume del mismo límite que la respuesta visible.
+  static const int _reasoningTokenBudget = 1024;
+  static const Duration _requestTimeout = Duration(seconds: 60);
 
   final http.Client _httpClient;
   final String _apiKey;
   final String _model;
-
-  static final Map<String, String> _resolvedModelByApiKey = {};
+  final String? _reasoningEffort;
 
   /// Obtiene una lista aleatoria de temas de enfoque localizados.
   @override
@@ -89,217 +99,83 @@ class GeminiService implements InterviewAiPort {
     int maxOutputTokens = 1024,
   }) async {
     if (_apiKey.isEmpty) {
-      throw const GeminiException(
-        'Falta GEMINI_API_KEY. Configúrala en el archivo .env.',
+      throw const AiProviderException(
+        'Falta GROQ_API_KEY. Configúrala en el archivo .env.',
       );
     }
 
-    final resolved = _resolvedModelByApiKey[_apiKey];
-    final baseModel = resolved == null ? _model : _normalizeModelName(resolved);
-    final modelsToTry = _modelsToTry(baseModel);
+    final messages = <Map<String, String>>[
+      if (systemInstruction != null && systemInstruction.trim().isNotEmpty)
+        {'role': 'system', 'content': systemInstruction.trim()},
+      {'role': 'user', 'content': prompt},
+    ];
 
+    final reasoningEffort = _reasoningEffort;
     final body = <String, dynamic>{
-      'contents': [
-        {
-          'role': 'user',
-          'parts': [
-            {'text': prompt},
-          ],
-        },
-      ],
-      'generationConfig': {
-        'temperature': temperature,
-        'maxOutputTokens': maxOutputTokens,
-      },
+      'model': _model,
+      'messages': messages,
+      'temperature': temperature,
+      'max_completion_tokens': reasoningEffort == null
+          ? maxOutputTokens
+          : maxOutputTokens + _reasoningTokenBudget,
+      'reasoning_effort': ?reasoningEffort,
     };
 
-    if (systemInstruction != null && systemInstruction.trim().isNotEmpty) {
-      body['systemInstruction'] = {
-        'parts': [
-          {'text': systemInstruction.trim()},
-        ],
-      };
-    }
-
     try {
-      GeminiException? lastModelError;
-      for (final model in modelsToTry) {
-        try {
-          return await _sendPromptOnce(model: model, body: body);
-        } on GeminiException catch (e) {
-          lastModelError = e;
-          if (e.statusCode == 404) continue;
-          rethrow;
-        }
-      }
-      if (lastModelError?.statusCode == 404) {
-        final discovered = await _discoverBestModel();
-        if (discovered != null) {
-          _resolvedModelByApiKey[_apiKey] = discovered;
-          return await _sendPromptOnce(model: discovered, body: body);
-        }
-      }
-      if (lastModelError != null) throw lastModelError;
-      throw const GeminiException('No se pudo contactar a Gemini.');
+      return await _postChatCompletion(body);
     } on http.ClientException catch (e) {
-      throw GeminiException(
-        'No hay conexión a internet o no se pudo contactar a Gemini.',
+      throw AiProviderException(
+        'No hay conexión a internet o no se pudo contactar a Groq.',
         details: e,
       );
     } on FormatException catch (e) {
-      throw GeminiException(
-        'Error al parsear respuesta de Gemini.',
+      throw AiProviderException(
+        'Error al interpretar la respuesta de Groq.',
         details: e,
       );
     }
   }
 
-  Future<String> _sendPromptOnce({
-    required String model,
-    required Map<String, dynamic> body,
-  }) async {
-    final uri = AppConfig.geminiGenerateContentUri(
-      model: _normalizeModelName(model),
-      apiKey: _apiKey,
-    );
-
-    final response = await _httpClient.post(
-      uri,
-      headers: const {'Content-Type': 'application/json'},
-      body: jsonEncode(body),
-    );
-    final responseBody = response.body;
+  Future<String> _postChatCompletion(Map<String, dynamic> body) async {
+    final response = await _httpClient
+        .post(
+          AppConfig.groqChatCompletionsUri,
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer $_apiKey',
+          },
+          body: jsonEncode(body),
+        )
+        .timeout(_requestTimeout);
+    final responseBody = utf8.decode(response.bodyBytes);
 
     if (response.statusCode < 200 || response.statusCode >= 300) {
-      final message =
-          _tryExtractApiErrorMessage(responseBody) ??
-          'Error al llamar a Gemini.';
-      throw GeminiException(
-        message,
+      throw AiProviderException(
+        _tryExtractApiErrorMessage(responseBody) ?? 'Error al llamar a Groq.',
         statusCode: response.statusCode,
         details: responseBody,
       );
     }
 
     final decoded = jsonDecode(responseBody);
-    if (decoded is! Map<String, dynamic>) {
-      throw GeminiException(
-        'Respuesta inválida de Gemini.',
-        statusCode: response.statusCode,
-        details: decoded,
-      );
-    }
+    final choices = decoded is Map<String, dynamic> ? decoded['choices'] : null;
+    final choice = choices is List && choices.isNotEmpty ? choices.first : null;
+    final message = choice is Map ? choice['message'] : null;
+    final content = message is Map ? message['content'] : null;
+    final text = content is String ? content.trim() : '';
 
-    final candidates = decoded['candidates'];
-    if (candidates is! List || candidates.isEmpty) {
-      throw GeminiException(
-        'Gemini no devolvió candidatos.',
-        statusCode: response.statusCode,
-        details: decoded,
-      );
-    }
-
-    final candidate = candidates.first;
-    if (candidate is! Map) {
-      throw GeminiException(
-        'Candidato inválido en respuesta de Gemini.',
-        statusCode: response.statusCode,
-        details: decoded,
-      );
-    }
-
-    final content = candidate['content'];
-    if (content is! Map) {
-      throw GeminiException(
-        'Contenido inválido en respuesta de Gemini.',
-        statusCode: response.statusCode,
-        details: decoded,
-      );
-    }
-
-    final parts = content['parts'];
-    if (parts is! List || parts.isEmpty) {
-      throw GeminiException(
-        'Gemini devolvió una respuesta vacía.',
-        statusCode: response.statusCode,
-        details: decoded,
-      );
-    }
-
-    final buffer = StringBuffer();
-    for (final part in parts) {
-      if (part is Map && part['text'] is String) {
-        buffer.writeln(part['text'] as String);
-      }
-    }
-
-    final text = buffer.toString().trim();
     if (text.isEmpty) {
-      throw GeminiException(
-        'Gemini devolvió una respuesta vacía.',
+      final finishReason = choice is Map ? choice['finish_reason'] : null;
+      throw AiProviderException(
+        finishReason == 'length'
+            ? 'Groq agotó el límite de tokens antes de responder.'
+            : 'Groq devolvió una respuesta vacía.',
         statusCode: response.statusCode,
         details: decoded,
       );
     }
 
     return text;
-  }
-
-  Future<String?> _discoverBestModel() async {
-    try {
-      final uri = AppConfig.geminiListModelsUri(apiKey: _apiKey);
-      final response = await _httpClient.get(uri);
-      final responseBody = response.body;
-
-      if (response.statusCode < 200 || response.statusCode >= 300) return null;
-
-      final decoded = jsonDecode(responseBody);
-      if (decoded is! Map<String, dynamic>) return null;
-      final models = decoded['models'];
-      if (models is! List) return null;
-
-      final available = <_GeminiModelInfo>[];
-      for (final item in models) {
-        if (item is! Map) continue;
-        final name = item['name'];
-        if (name is! String || name.trim().isEmpty) continue;
-        final supported = item['supportedGenerationMethods'];
-        final methods = supported is List
-            ? supported.whereType<String>().map((e) => e.trim()).toList()
-            : const <String>[];
-        if (!methods.contains('generateContent')) continue;
-        available.add(
-          _GeminiModelInfo(
-            name: _normalizeModelName(name),
-            supportedMethods: methods,
-          ),
-        );
-      }
-
-      if (available.isEmpty) return null;
-
-      final preferences = <String>[
-        _normalizeModelName(_model),
-        'gemini-2.0-flash',
-        'gemini-2.0-flash-lite',
-        'gemini-2.0-flash-exp',
-        'gemini-1.5-flash-latest',
-        'gemini-1.5-flash',
-        'gemini-flash-latest',
-        'gemini-flash',
-        'gemini-1.5-pro-latest',
-        'gemini-1.5-pro',
-      ];
-
-      for (final pref in preferences) {
-        final match = available.where((m) => m.name == pref).toList();
-        if (match.isNotEmpty) return match.first.name;
-      }
-
-      return available.first.name;
-    } catch (_) {
-      return null;
-    }
   }
 
   @override
@@ -487,7 +363,7 @@ class GeminiService implements InterviewAiPort {
     required AppLocalizations l10n,
   }) async {
     if (session.turns.isEmpty) {
-      throw GeminiException(l10n.processingNotEnoughData);
+      throw AiProviderException(l10n.processingNotEnoughData);
     }
 
     final jobRoleLabel = config.jobRole == null
@@ -669,7 +545,7 @@ class GeminiService implements InterviewAiPort {
     required AppLocalizations l10n,
   }) async {
     if (session.turns.isEmpty) {
-      throw GeminiException(l10n.processingNotEnoughData);
+      throw AiProviderException(l10n.processingNotEnoughData);
     }
 
     final total = session.turns.fold<int>(
@@ -714,7 +590,7 @@ class GeminiService implements InterviewAiPort {
 
     final decoded = _tryDecodeJsonMap(_extractJsonText(raw));
 
-    // Graceful fallback: build results from locally-computed data if Gemini
+    // Graceful fallback: build results from locally-computed data if Groq
     // doesn't return parseable JSON (network hiccup, model refusal, etc.).
     if (decoded == null) {
       final avgScore = session.turns.isEmpty
@@ -905,31 +781,6 @@ String _extractJsonText(String raw) {
   }
 
   return trimmed;
-}
-
-String _normalizeModelName(String model) {
-  final trimmed = model.trim();
-  if (trimmed.startsWith('models/')) return trimmed.substring('models/'.length);
-  if (trimmed == 'gemini-1.5-flash') return 'gemini-1.5-flash-latest';
-  if (trimmed == 'gemini-1.5-pro') return 'gemini-1.5-pro-latest';
-  return trimmed;
-}
-
-Iterable<String> _modelsToTry(String model) sync* {
-  final normalized = _normalizeModelName(model);
-  if (normalized.isNotEmpty) yield normalized;
-  if (!normalized.endsWith('-latest')) {
-    yield '$normalized-latest';
-  }
-  yield 'gemini-1.5-flash-latest';
-  yield 'gemini-flash-latest';
-}
-
-class _GeminiModelInfo {
-  const _GeminiModelInfo({required this.name, required this.supportedMethods});
-
-  final String name;
-  final List<String> supportedMethods;
 }
 
 List<String> _fallbackQuestionsFromText(String raw) {

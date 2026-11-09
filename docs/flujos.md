@@ -39,7 +39,7 @@ En `/interview/simulated-call` la pantalla crea `InterviewVoiceController` con e
 4. El controlador evalúa (`evaluateUserAnswer`), pide feedback (`generateFeedback`) y la siguiente pregunta (`generateConversationalNextQuestion`).
 5. Al cerrar, pide el mensaje de cierre (`generateClosingMessage`).
 
-Si Gemini no devuelve el formato esperado, el adapter degrada la respuesta en lugar de cortar la llamada. Los fallos que sí salen hacia la UI viajan como `GeminiException` y `userFriendlyErrorMessage` los convierte en texto.
+Si Groq no devuelve el formato esperado, el adapter degrada la respuesta en lugar de cortar la llamada. Los fallos que sí salen hacia la UI viajan como `AiProviderException` y `userFriendlyErrorMessage` los convierte en texto.
 
 Al terminar, la pantalla navega a procesamiento con `config` y `session`.
 

@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:http/http.dart' as http;
-import 'package:prep_up/features/interview/domain/gemini_exception.dart';
+import 'package:prep_up/features/interview/domain/ai_provider_exception.dart';
 import 'package:prep_up/l10n/app_localizations.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -12,7 +12,7 @@ String userFriendlyErrorMessage(
   AppLocalizations l10n, {
   AuthAction authAction = AuthAction.generic,
 }) {
-  if (error is GeminiException) {
+  if (error is AiProviderException) {
     return _normalizeUserMessage(error.message, l10n);
   }
 

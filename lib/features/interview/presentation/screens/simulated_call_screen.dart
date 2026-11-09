@@ -55,7 +55,7 @@ class _SimulatedCallScreenState extends State<SimulatedCallScreen> {
     });
 
     _voiceController = InterviewVoiceController(
-      geminiService: context.read<InterviewAiPort>(),
+      aiService: context.read<InterviewAiPort>(),
       config: _config,
       languageCode: AppLocaleRuntime.languageCode,
     );
@@ -620,7 +620,7 @@ class _SimulatedCallScreenState extends State<SimulatedCallScreen> {
                                       }
                                     : null,
                                 icon: const Icon(Icons.send_rounded),
-                                label: Text(l10n.callSendToGemini),
+                                label: Text(l10n.callSendAnswer),
                               );
                             },
                           ),

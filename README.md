@@ -37,7 +37,7 @@ El detalle de arquitectura, módulos, datos, flujos y cómo extender el código 
 ## 🚀 Alcance y Funcionalidades Principales
 
 * **Autenticación Segura y Recuperación OTP**: Registro, inicio de sesión y flujo premium de restablecimiento de contraseña mediante códigos de 6 dígitos enviados por correo.
-* **Simulación Conversacional con IA**: Integración de Text-to-Speech (TTS) y Speech-to-Text (STT) usando Google Gemini para una experiencia "cara a cara" con preguntas adaptativas.
+* **Simulación Conversacional con IA**: Integración de Text-to-Speech (TTS) y Speech-to-Text (STT) usando Groq (`openai/gpt-oss-120b`) para una experiencia "cara a cara" con preguntas adaptativas.
 * **Validación y Sanitización de Inputs**: Implementación de `TextInputFormatter` para prevenir espacios accidentales al inicio en todos los campos críticos.
 * **Evaluación y Feedback Profundo**: Análisis de respuestas con puntajes de dominio, comunicación y sugerencias de mejora personalizadas.
 * **Dashboard y Estadísticas Evolutivas**: Visualización gráfica del progreso mediante gráficos de rendimiento y KPIs de usuario.
@@ -62,7 +62,7 @@ lib/
 │   └── presentation/      # Widgets compartidos del design system.
 ├── features/
 │   ├── auth/              # domain (AuthGateway) + infrastructure (Supabase) + presentation.
-│   ├── interview/         # domain (InterviewAiPort) + infrastructure (Gemini) + presentation.
+│   ├── interview/         # domain (InterviewAiPort) + infrastructure (Groq) + presentation.
 │   ├── analysis/          # presentation; usa los puertos compartidos.
 │   ├── tracking/          # presentation.
 │   ├── profile/           # presentation.
@@ -77,11 +77,11 @@ lib/
 
 ## 🏛️ Arquitectura Utilizada
 
-La aplicación es un **monolito modular con puertos hexagonales**. No hay microservicios propios: autenticación y datos viven en Supabase, y la IA se llama a Gemini desde el cliente.
+La aplicación es un **monolito modular con puertos hexagonales**. No hay microservicios propios: autenticación y datos viven en Supabase, y la IA se llama a Groq desde el cliente.
 
 * **Presentation**: pantallas y controladores. Dibujan la UI y hablan con puertos (`AuthGateway`, `InterviewAiPort`, `RelationalDatabaseService`, `OfflineCache`), no con Supabase, SQLite ni el cliente HTTP.
 * **Domain**: entidades y puertos. No importa SDKs de infraestructura.
-* **Infrastructure**: adapters que implementan esos puertos (`AuthService`, `GeminiService`, `SupabaseDatabaseService`, `SqfliteDatabaseService`, `CachedDatabaseService`).
+* **Infrastructure**: adapters que implementan esos puertos (`AuthService`, `GroqService`, `SupabaseDatabaseService`, `SqfliteDatabaseService`, `CachedDatabaseService`).
 * **Composition root**: `main.dart` crea una sola instancia de cada adapter y la registra en `Provider`. Auth y tema siguen escribiendo directo en Supabase; el historial usa la caché local y luego el remoto.
 
 ---
@@ -89,8 +89,8 @@ La aplicación es un **monolito modular con puertos hexagonales**. No hay micros
 ## 🧩 Patrones de Diseño Implementados
 
 * **Provider / State Management**: Uso del patrón *Observer* mediante el paquete `provider` para la inyección de dependencias global (`MultiProvider` en `main.dart`) y manejo reactivo de estado en las vistas.
-* **Dependency Injection (DI)**: El composition root inyecta `AuthGateway`, `InterviewAiPort` y `RelationalDatabaseService`. Las pantallas no construyen `AuthService()` ni `GeminiService()`.
-* **Adapter / Wrapper Pattern**: `GeminiService` implementa `InterviewAiPort` y traduce fallos HTTP a `GeminiException`. La UI los muestra con `userFriendlyErrorMessage`.
+* **Dependency Injection (DI)**: El composition root inyecta `AuthGateway`, `InterviewAiPort` y `RelationalDatabaseService`. Las pantallas no construyen `AuthService()` ni `GroqService()`.
+* **Adapter / Wrapper Pattern**: `GroqService` implementa `InterviewAiPort` y traduce fallos HTTP a `AiProviderException`. La UI los muestra con `userFriendlyErrorMessage`.
 * **Factory Pattern**: Utilizado extensivamente en los modelos de dominio (`fromJson`, `toJson`) para serializar y deserializar respuestas estructuradas de las APIs.
 
 ---
@@ -104,7 +104,7 @@ La aplicación es un **monolito modular con puertos hexagonales**. No hay micros
 5. **Interview Session (Voice/STT-TTS)**:
    * La IA saluda y formula la primera pregunta (mediante `flutter_tts`).
    * La app escucha automáticamente la respuesta del usuario (`speech_to_text`).
-   * La respuesta es enviada a Gemini para validación y evaluación, generando métricas instantáneas y la siguiente pregunta adaptativa.
+   * La respuesta es enviada a Groq para validación y evaluación, generando métricas instantáneas y la siguiente pregunta adaptativa.
 6. **Results Analysis**: Finalizada la sesión, se genera y consolida un `InterviewResultsModel`, presentando un resumen detallado del desempeño.
 
 ---
@@ -112,7 +112,7 @@ La aplicación es un **monolito modular con puertos hexagonales**. No hay micros
 ## 🛠️ Widgets, Componentes y Módulos Relevantes
 
 * **`InterviewVoiceController`**: El motor de la entrevista. Maneja el ciclo de vida complejo de escuchar (micrófono), hablar (TTS), pausar y comunicarse de forma asíncrona con el backend generativo de IA para mantener un flujo conversacional natural.
-* **`GeminiService`**: Servicio centralizado que estructura los *prompts* del sistema mediante schemas JSON estrictos.
+* **`GroqService`**: Servicio centralizado que estructura los *prompts* del sistema mediante schemas JSON estrictos.
 * **Componentes Visuales de Vanguardia**: 
     *   `AnimatedTextKit`: Para el efecto de "escritura" en tiempo real de la IA.
     *   `FlutterAnimate`: Para transiciones fluidas y dinámicas en el Dashboard.
@@ -125,7 +125,7 @@ La aplicación es un **monolito modular con puertos hexagonales**. No hay micros
 
 * **Supabase (`supabase_flutter`)**: Backend as a Service para Autenticación y almacenamiento remoto.
 * **SQLite (`sqflite`)**: Base de datos local para persistencia offline y caché de alto rendimiento.
-* **Google Gemini API (`google_generative_ai` y llamadas HTTP custom)**: El núcleo intelectual de la app. Responsable de la generación conversacional adaptativa y la evaluación semántica y técnica del usuario.
+* **Groq API (endpoint compatible con OpenAI, llamado con `http`)**: Modelo por defecto `openai/gpt-oss-120b`. El núcleo intelectual de la app. Responsable de la generación conversacional adaptativa y la evaluación semántica y técnica del usuario.
 * **`speech_to_text`**: API nativa de transcripción de audio a texto en tiempo real para capturar la respuesta del usuario.
 * **`flutter_tts`**: Conversión de Texto a Voz nativa para dotar a la IA de una voz realista y localizada.
 * **WebRTC / Permisos (`flutter_webrtc`, `camera`, `permission_handler`)**: Manejo profundo de hardware para asegurar el correcto acceso al micrófono y preparar bases para futuras entrevistas con video.
@@ -147,7 +147,7 @@ Definidas en el `pubspec.yaml`:
 
 ## ⚙️ Consideraciones Técnicas Relevantes
 
-* **Manejo de Respuestas AI**: Debido a la naturaleza probabilística de la IA, el `GeminiService` obliga a la API a responder en formato JSON estructurado y realiza *parsing* defensivo. Si la respuesta falla, existen fallbacks que garantizan que el flujo de la entrevista no se rompa (ej: `_fallbackQuestionsFromText`).
+* **Manejo de Respuestas AI**: Debido a la naturaleza probabilística de la IA, el `GroqService` obliga a la API a responder en formato JSON estructurado y realiza *parsing* defensivo. Si la respuesta falla, existen fallbacks que garantizan que el flujo de la entrevista no se rompa (ej: `_fallbackQuestionsFromText`).
 * **Seguridad (Zero Trust)**: Las credenciales y llaves de API NUNCA están codificadas en el repositorio. Se inyectan a través del entorno (`.env`).
 * **Ciclo de Vida de Audio**: La app gestiona cuidadosamente los *locks* del micrófono y los altavoces, deteniendo el TTS automáticamente si el usuario interviene o cancela la sesión prematuramente.
 
@@ -157,14 +157,17 @@ Definidas en el `pubspec.yaml`:
 
 ### **1. Requisitos Previos**
 * SDK de Flutter configurado (Versión `^3.10.8` o superior).
-* Cuenta y proyectos creados en **Supabase** y **Google AI Studio** (Gemini).
+* Cuenta y proyectos creados en **Supabase** y **Groq Console** (API key de Groq).
 
 ### **2. Configuración del Entorno**
 Crea un archivo `.env` en la raíz del proyecto (a nivel del `pubspec.yaml`) con la siguiente estructura:
 ```env
 SUPABASE_URL=tu_supabase_project_url
 SUPABASE_ANON_KEY=tu_supabase_anon_key
-GEMINI_API_KEY=tu_google_gemini_api_key
+GROQ_API_KEY=tu_groq_api_key
+GROQ_MODEL=openai/gpt-oss-120b
+# Opcional: low | medium | high (por defecto low en gpt-oss)
+# GROQ_REASONING_EFFORT=low
 ```
 
 ### **3. Compilación y Ejecución**

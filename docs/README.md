@@ -1,6 +1,6 @@
 # Documentación de Prep_Up
 
-Prep_Up es un cliente Flutter. Autenticación y datos remotos viven en Supabase. La entrevista la genera Gemini, llamado desde la app. El código es un monolito modular con puertos hexagonales: un solo binario, un módulo por carpeta, y los adapters construidos solo en `lib/main.dart`.
+Prep_Up es un cliente Flutter. Autenticación y datos remotos viven en Supabase. La entrevista la genera Groq (`openai/gpt-oss-120b`), llamado desde la app. El código es un monolito modular con puertos hexagonales: un solo binario, un módulo por carpeta, y los adapters construidos solo en `lib/main.dart`.
 
 ## Índice
 

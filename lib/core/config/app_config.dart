@@ -3,29 +3,25 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 class AppConfig {
   const AppConfig._();
 
-  static String get geminiApiKey => dotenv.env['GEMINI_API_KEY'] ?? '';
+  static const String defaultGroqModel = 'openai/gpt-oss-120b';
 
-  static String get geminiModel {
-    final raw = (dotenv.env['GEMINI_MODEL'] ?? '').trim();
-    if (raw.isEmpty) return 'gemini-1.5-flash-latest';
-    if (raw == 'gemini-1.5-flash') return 'gemini-1.5-flash-latest';
-    if (raw.startsWith('models/')) return raw.substring('models/'.length);
-    return raw;
+  static String get groqApiKey => (dotenv.env['GROQ_API_KEY'] ?? '').trim();
+
+  static String get groqModel {
+    final raw = (dotenv.env['GROQ_MODEL'] ?? '').trim();
+    return raw.isEmpty ? defaultGroqModel : raw;
   }
 
-  static Uri geminiGenerateContentUri({
-    required String model,
-    required String apiKey,
-  }) {
-    return Uri.parse(
-      'https://generativelanguage.googleapis.com/v1beta/models/$model:generateContent?key=$apiKey',
-    );
+  /// Esfuerzo de razonamiento para modelos que lo soportan (low, medium, high).
+  /// Si no se define y el modelo es gpt-oss, se usa "low" para no gastar el
+  /// presupuesto de tokens en razonamiento.
+  static String? get groqReasoningEffort {
+    final raw = (dotenv.env['GROQ_REASONING_EFFORT'] ?? '').trim().toLowerCase();
+    if (raw.isNotEmpty) return raw;
+    return groqModel.contains('gpt-oss') ? 'low' : null;
   }
 
-  static Uri geminiListModelsUri({required String apiKey}) {
-    return Uri.parse(
-      'https://generativelanguage.googleapis.com/v1beta/models?key=$apiKey',
-    );
-  }
+  static final Uri groqChatCompletionsUri = Uri.parse(
+    'https://api.groq.com/openai/v1/chat/completions',
+  );
 }
-
