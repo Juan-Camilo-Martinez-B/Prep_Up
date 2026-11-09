@@ -39,8 +39,9 @@ flutter test
 | --- | --- |
 | `test/widget_test.dart` | La app arranca en splash con una base falsa y Supabase de prueba |
 | `test/i18n_validation_test.dart` | Las claves EN y ES coinciden, las pantallas migradas no dejan literales sueltos en títulos, y el idioma se guarda |
+| `test/features/interview/infrastructure/groq_service_test.dart` | El adapter de Groq con un `MockClient`: formato de la petición (URL, `Authorization`, `messages`, `reasoning_effort`, límite de tokens), errores de la API, de red y de JSON, falta de key, límite de tokens agotado, y el parseo de preguntas y evaluaciones. No usa red ni key |
 
-No hay pruebas del adapter de Groq ni de la caché Supabase/SQLite. Un cambio en prompts o en el orden local/remoto no queda cubierto por la suite actual.
+No hay pruebas de la caché Supabase/SQLite, y los tests del adapter no validan la calidad de las respuestas del modelo real. Un cambio en el texto de los prompts o en el orden local/remoto no queda cubierto por la suite actual.
 
 `flutter analyze` puede reportar avisos ya presentes (widgets sin uso, algún import sin usar). Un error de compilación sí indica que la frontera o un import quedó roto.
 

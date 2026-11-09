@@ -12,13 +12,18 @@ class AppConfig {
     return raw.isEmpty ? defaultGroqModel : raw;
   }
 
-  /// Esfuerzo de razonamiento para modelos que lo soportan (low, medium, high).
-  /// Si no se define y el modelo es gpt-oss, se usa "low" para no gastar el
-  /// presupuesto de tokens en razonamiento.
+  /// Esfuerzo de razonamiento definido en el .env (low, medium, high), o null.
   static String? get groqReasoningEffort {
-    final raw = (dotenv.env['GROQ_REASONING_EFFORT'] ?? '').trim().toLowerCase();
-    if (raw.isNotEmpty) return raw;
-    return groqModel.contains('gpt-oss') ? 'low' : null;
+    final raw = (dotenv.env['GROQ_REASONING_EFFORT'] ?? '')
+        .trim()
+        .toLowerCase();
+    return raw.isEmpty ? null : raw;
+  }
+
+  /// Valor por defecto según el modelo: "low" en gpt-oss para no gastar el
+  /// presupuesto de tokens en razonamiento; otros modelos no aceptan el campo.
+  static String? defaultReasoningEffortFor(String model) {
+    return model.contains('gpt-oss') ? 'low' : null;
   }
 
   static final Uri groqChatCompletionsUri = Uri.parse(

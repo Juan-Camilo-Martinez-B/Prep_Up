@@ -22,10 +22,24 @@ class GroqService implements InterviewAiPort {
     String? apiKey,
     String? model,
     String? reasoningEffort,
-  }) : _httpClient = httpClient ?? http.Client(),
-       _apiKey = (apiKey ?? AppConfig.groqApiKey).trim(),
-       _model = (model ?? AppConfig.groqModel).trim(),
-       _reasoningEffort = reasoningEffort ?? AppConfig.groqReasoningEffort;
+  }) : this._resolved(
+         httpClient: httpClient ?? http.Client(),
+         apiKey: (apiKey ?? AppConfig.groqApiKey).trim(),
+         model: (model ?? AppConfig.groqModel).trim(),
+         reasoningEffort: reasoningEffort ?? AppConfig.groqReasoningEffort,
+       );
+
+  GroqService._resolved({
+    required http.Client httpClient,
+    required String apiKey,
+    required String model,
+    required String? reasoningEffort,
+  }) : _httpClient = httpClient,
+       _apiKey = apiKey,
+       _model = model,
+       // El valor por defecto depende del modelo efectivo, no del .env.
+       _reasoningEffort =
+           reasoningEffort ?? AppConfig.defaultReasoningEffortFor(model);
 
   /// Tokens extra para modelos de razonamiento: el razonamiento interno
   /// consume del mismo límite que la respuesta visible.
