@@ -1,0 +1,45 @@
+name: Pruebas
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: pruebas-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  suite:
+    name: Unidad, integración y carga
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Código
+        uses: actions/checkout@v4
+
+      - name: Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 3.38.9
+          channel: stable
+          cache: true
+
+      - name: Dependencias
+        run: flutter pub get
+
+      # .env está en assets y no se versiona. Las pruebas no leen la clave real.
+      - name: Entorno de prueba
+        run: |
+          cat > .env << 'EOF'
+          SUPABASE_URL=https://example.supabase.co
+          SUPABASE_ANON_KEY=anon
+          GROQ_API_KEY=
+          GROQ_MODEL=openai/gpt-oss-120b
+          EOF
+
+      - name: Unidad, integración y carga
+        run: flutter test

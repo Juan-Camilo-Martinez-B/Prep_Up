@@ -48,6 +48,8 @@ flutter test test/load
 
 Ninguna de esas pruebas llama a `api.groq.com` ni usa `GROQ_API_KEY`. La carga mide el adapter, no la cuota del proveedor. No hay pruebas de la caché Supabase/SQLite, y la suite no valida la calidad de las respuestas del modelo real. Un cambio en el texto de los prompts o en el orden local/remoto no queda cubierto.
 
+GitHub Actions corre `flutter test` en cada push a `main` y en cada pull request. El workflow es `.github/workflows/pruebas.yml` y usa Flutter 3.38.9. Cubre arranque, unidad, integración y carga. En el runner se escribe un `.env` de ejemplo, sin clave. Si el pull request lleva un identificador `PRE-`, Linear muestra el check en esa issue.
+
 `flutter analyze` puede reportar avisos ya presentes (widgets sin uso, algún import sin usar). Un error de compilación sí indica que la frontera o un import quedó roto.
 
 ## Agregar una pantalla a un módulo que ya existe
