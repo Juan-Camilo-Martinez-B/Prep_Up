@@ -22,11 +22,14 @@ class GroqService implements InterviewAiPort {
     String? apiKey,
     String? model,
     String? reasoningEffort,
+    Uri? chatCompletionsUri,
   }) : this._resolved(
          httpClient: httpClient ?? http.Client(),
          apiKey: (apiKey ?? AppConfig.groqApiKey).trim(),
          model: (model ?? AppConfig.groqModel).trim(),
          reasoningEffort: reasoningEffort ?? AppConfig.groqReasoningEffort,
+         chatCompletionsUri:
+             chatCompletionsUri ?? AppConfig.groqChatCompletionsUri,
        );
 
   GroqService._resolved({
@@ -34,9 +37,11 @@ class GroqService implements InterviewAiPort {
     required String apiKey,
     required String model,
     required String? reasoningEffort,
+    required Uri chatCompletionsUri,
   }) : _httpClient = httpClient,
        _apiKey = apiKey,
        _model = model,
+       _chatCompletionsUri = chatCompletionsUri,
        // El valor por defecto depende del modelo efectivo, no del .env.
        _reasoningEffort =
            reasoningEffort ?? AppConfig.defaultReasoningEffortFor(model);
@@ -49,6 +54,7 @@ class GroqService implements InterviewAiPort {
   final http.Client _httpClient;
   final String _apiKey;
   final String _model;
+  final Uri _chatCompletionsUri;
   final String? _reasoningEffort;
 
   /// Obtiene una lista aleatoria de temas de enfoque localizados.
@@ -153,7 +159,7 @@ class GroqService implements InterviewAiPort {
   Future<String> _postChatCompletion(Map<String, dynamic> body) async {
     final response = await _httpClient
         .post(
-          AppConfig.groqChatCompletionsUri,
+          _chatCompletionsUri,
           headers: {
             'Content-Type': 'application/json',
             'Authorization': 'Bearer $_apiKey',

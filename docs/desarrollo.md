@@ -33,15 +33,20 @@ GROQ_MODEL=openai/gpt-oss-120b
 ```bash
 flutter analyze
 flutter test
+flutter test test/features/interview/infrastructure/groq_service_test.dart
+flutter test test/integration
+flutter test test/load
 ```
 
-| Archivo | Qué cubre |
-| --- | --- |
-| `test/widget_test.dart` | La app arranca en splash con una base falsa y Supabase de prueba |
-| `test/i18n_validation_test.dart` | Las claves EN y ES coinciden, las pantallas migradas no dejan literales sueltos en títulos, y el idioma se guarda |
-| `test/features/interview/infrastructure/groq_service_test.dart` | El adapter de Groq con un `MockClient`: formato de la petición (URL, `Authorization`, `messages`, `reasoning_effort`, límite de tokens), errores de la API, de red y de JSON, falta de key, límite de tokens agotado, y el parseo de preguntas y evaluaciones. No usa red ni key |
+| Capa | Archivo | Qué cubre |
+| --- | --- | --- |
+| Arranque | `test/widget_test.dart` | La app arranca en splash con una base falsa y Supabase de prueba |
+| Unidad | `test/i18n_validation_test.dart` | Las claves EN y ES coinciden, las pantallas migradas no dejan literales sueltos en títulos, y el idioma se guarda |
+| Unidad | `test/features/interview/infrastructure/groq_service_test.dart` | El adapter de Groq con un `MockClient`: formato de la petición, errores de la API, de red y de JSON, falta de key, límite de tokens agotado, y el parseo de preguntas y evaluaciones |
+| Integración | `test/integration/groq_service_http_integration_test.dart` | `http.Client` real contra un servidor local con la forma de chat completions: cabecera, cuerpo y un 401 |
+| Carga | `test/load/groq_service_load_test.dart` | Cuarenta `sendPrompt` concurrentes contra ese mismo servidor local. Comprueba que no se pierden respuestas y que hubo solapamiento |
 
-No hay pruebas de la caché Supabase/SQLite, y los tests del adapter no validan la calidad de las respuestas del modelo real. Un cambio en el texto de los prompts o en el orden local/remoto no queda cubierto por la suite actual.
+Ninguna de esas pruebas llama a `api.groq.com` ni usa `GROQ_API_KEY`. La carga mide el adapter, no la cuota del proveedor. No hay pruebas de la caché Supabase/SQLite, y la suite no valida la calidad de las respuestas del modelo real. Un cambio en el texto de los prompts o en el orden local/remoto no queda cubierto.
 
 `flutter analyze` puede reportar avisos ya presentes (widgets sin uso, algún import sin usar). Un error de compilación sí indica que la frontera o un import quedó roto.
 
