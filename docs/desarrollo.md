@@ -45,8 +45,12 @@ flutter test test/load
 | Unidad | `test/features/interview/infrastructure/groq_service_test.dart` | El adapter de Groq con un `MockClient`: formato de la petición, errores de la API, de red y de JSON, falta de key, límite de tokens agotado, y el parseo de preguntas y evaluaciones |
 | Integración | `test/integration/groq_service_http_integration_test.dart` | `http.Client` real contra un servidor local con la forma de chat completions: cabecera, cuerpo y un 401 |
 | Carga | `test/load/groq_service_load_test.dart` | Cuarenta `sendPrompt` concurrentes contra ese mismo servidor local. Comprueba que no se pierden respuestas y que hubo solapamiento |
+| Unidad | `test/core/` y `test/shared/user_model_test.dart` | Configuración de Groq, textos de error, limpieza del feedback, rutas y el parseo de ocupación |
+| Unidad | `test/features/interview/interview_config_controller_test.dart` | La configuración de la entrevista queda completa solo con tipo, rol y duración |
+| Unidad | `test/features/shared/cached_database_service_test.dart` | Lectura remota con copia local, caída del remoto y escritura local primero |
+| Extremo a extremo | `test/e2e/auth_flow_test.dart` | Portada, registro, login vacío, envío con credenciales rechazadas y recuperación. Usa pantallas reales y auth falsa. No abre un dispositivo |
 
-Ninguna de esas pruebas llama a `api.groq.com` ni usa `GROQ_API_KEY`. La carga mide el adapter, no la cuota del proveedor. No hay pruebas de la caché Supabase/SQLite, y la suite no valida la calidad de las respuestas del modelo real. Un cambio en el texto de los prompts o en el orden local/remoto no queda cubierto.
+Ninguna de esas pruebas llama a `api.groq.com` ni usa `GROQ_API_KEY`. La carga mide el adapter, no la cuota del proveedor. La caché se prueba con dos bases en memoria, no contra Supabase ni SQLite. El recorrido de auth no sustituye una prueba en un teléfono. La suite no valida la calidad de las respuestas del modelo real. Un cambio en el texto de los prompts o en el orden local/remoto no queda cubierto.
 
 GitHub Actions corre `flutter test` en cada push a `main` y en cada pull request. El workflow es `.github/workflows/pruebas.yml` y usa Flutter 3.38.9. Cubre arranque, unidad, integración y carga. En el runner se escribe un `.env` de ejemplo, sin clave. Si el pull request lleva un identificador `PRE-`, Linear muestra el check en esa issue.
 
